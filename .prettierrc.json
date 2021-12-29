@@ -2,5 +2,5 @@
   "singleQuote": true,
   "semi": true,
   "vueIndentScriptAndStyle": false,
-  "endOfLine": "lf"
+  "endOfLine": "auto"
 }
