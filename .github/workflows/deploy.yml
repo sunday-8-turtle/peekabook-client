@@ -1,0 +1,45 @@
+name: test
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # https://github.com/actions/setup-node
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Get current branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: curr_branch
+
+      - name: Install Netlify CLI
+        run: yarn add netlify-cli
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build App
+        run: yarn build
+
+      # https://docs.github.com/en/actions/learn-github-actions/environment-variables
+      - name: Deploy to netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          RUN_ID: ${{ github.run_id }}
+          CURR_BRANCH: ${{ steps.curr_branch.outputs.branch  }}
+        shell: bash
+        run: netlify deploy --dir=dist --prod --auth $NETLIFY_AUTH_TOKEN --message="GitHub action deploy $RUN_ID on $CURR_BRANCH"
