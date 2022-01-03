@@ -18,6 +18,5 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '16'
-
-      - name: Unit Tests
-        run: yarn test:unit
+      - run: yarn install
+      - run: yarn test:unit
