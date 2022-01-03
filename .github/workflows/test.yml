@@ -1,7 +1,8 @@
-name: test
+name: Test Feature-Branch
 
 on:
   pull_request:
+    types: [opened, reopened]
     branches:
       - dev
       - main
@@ -18,7 +19,5 @@ jobs:
         with:
           node-version: '16'
 
-      # - name: Unit Tests
-      #   run: yarn test:unit
-      # - name: E2E Tests
-      #   run: yarn test:e2e
+      - name: Unit Tests
+        run: yarn test:unit
