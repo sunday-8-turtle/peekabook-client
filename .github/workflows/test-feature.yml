@@ -1,22 +1,27 @@
 name: Test Feature-Branch
+# dev 브랜치로 PR 보내면 유닛 테스트
 
 on:
   pull_request:
     types: [opened, reopened]
     branches:
       - dev
-      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      - name: Use Node.js
+      - name: Use Node v16
         uses: actions/setup-node@v2
         with:
           node-version: '16'
-      - run: yarn install
-      - run: yarn test:unit
+
+      - name: Install Dependencies 🛠
+        run: yarn install
+
+      - name: Unit Testing 🧪
+        run: yarn test:unit
