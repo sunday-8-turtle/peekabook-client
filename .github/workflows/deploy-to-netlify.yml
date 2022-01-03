@@ -6,6 +6,7 @@ on:
     types: [closed]
     branches:
       - dev
+      - main
 
 jobs:
   deploy:
@@ -33,7 +34,7 @@ jobs:
         uses: nwtgck/actions-netlify@v1.2
         with:
           publish-dir: './dist'
-          production-branch: dev
+          production-branch: main
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: ${{ github.event.pull_request.title }}
           enable-pull-request-comment: true
