@@ -5,12 +5,11 @@ axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
 axios.interceptors.request.use(
   function (config: AxiosRequestConfig) {
     let token = localStorage.getItem('auth.token');
-    if (token) {
-      token = refreshToken(token);
-      config = setDefaultHeaders(config, { token });
-    }
 
-    return config;
+    if (!token) return config;
+    if (isTokenExpired(token)) token = refreshToken(token);
+
+    return setDefaultHeaders(config, token);
   },
   function (error) {
     return Promise.reject(error);
@@ -26,10 +25,7 @@ axios.interceptors.response.use(
   }
 );
 
-const setDefaultHeaders = (
-  config: AxiosRequestConfig,
-  { token }: { token: string }
-) => {
+const setDefaultHeaders = (config: AxiosRequestConfig, token: string) => {
   if (!config || !config.headers) {
     throw new Error('Headers do not exist on axios.');
   }
@@ -37,9 +33,10 @@ const setDefaultHeaders = (
   return config;
 };
 
+const isTokenExpired = (token: string) => {
+  return token;
+};
+
 const refreshToken = (token: string) => {
-  // 1. veryfiy the token
-  // 2. if not expired, return the token
-  // 3. if expired, refresh the token
   return token;
 };
