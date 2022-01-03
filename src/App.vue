@@ -6,6 +6,10 @@
   <router-view />
 </template>
 
+<script setup lang="ts">
+// setup 옵션이 lang="ts" 옵션보다 먼저 와야합니다.
+</script>
+
 <style lang="scss">
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
