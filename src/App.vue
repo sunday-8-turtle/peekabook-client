@@ -1,7 +1,7 @@
 <template>
   <div id="nav">
-    <router-link to="/">이민교</router-link> |
-    <router-link to="/about">유창오</router-link>
+    <router-link to="/">민교님</router-link> |
+    <router-link to="/about">창오님</router-link>
   </div>
   <router-view />
 </template>
