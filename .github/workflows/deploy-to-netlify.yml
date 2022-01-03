@@ -32,6 +32,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Build
+        run: yarn build
+
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v1.2
         with:
