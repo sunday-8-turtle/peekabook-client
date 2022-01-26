@@ -1,12 +1,17 @@
 <template>
   <div>
     <BaseInput :type="'text'" :isBtnRequired="true" />
+    <br /><br />
+    <BaseButton :shape="'fill'"> 회원가입 </BaseButton>
+    <br /><br />
+    <BaseButton :shape="'line'"> 로그인 </BaseButton>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
 import BaseInput from '@/components/BaseInput.vue';
+import BaseButton from '@/components/BaseButton.vue';
 
 export default defineComponent({
   name: 'HelloWorld',
@@ -15,6 +20,7 @@ export default defineComponent({
   },
   components: {
     BaseInput,
+    BaseButton,
   },
 });
 </script>

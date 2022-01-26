@@ -77,18 +77,18 @@ export default defineComponent({
   right: 0;
   width: 78px;
   height: 32px;
+  transform: translateY(-50%);
   font-size: 11px;
+  font-family: Pretendard;
   font-style: normal;
   font-weight: normal;
+  letter-spacing: -0.46px;
   border: 1px solid #ced4da;
   border-radius: 50px;
+  padding: 0 9.5px;
   margin-right: 12px;
   color: #ced4da;
   background: #ffffff;
-  transform: translateY(-50%);
-  // font-family: Pretendard;
-  padding: 0 9.5px;
-  // letter-spacing: -0.46px;
   cursor: pointer;
 }
 </style>
