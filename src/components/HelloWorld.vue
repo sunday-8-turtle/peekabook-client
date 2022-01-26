@@ -1,7 +1,6 @@
 <template>
   <div>
     <BaseInput :type="'text'" :isBtnRequired="true" />
-    <br /><br />
     <BaseButton :shape="'fill'"> 회원가입 </BaseButton>
     <br /><br />
     <BaseButton :shape="'line'"> 로그인 </BaseButton>
@@ -15,9 +14,6 @@ import BaseButton from '@/components/BaseButton.vue';
 
 export default defineComponent({
   name: 'HelloWorld',
-  props: {
-    msg: String,
-  },
   components: {
     BaseInput,
     BaseButton,
