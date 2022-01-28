@@ -3,13 +3,28 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'BaseModal',
-  setup() {
-    return {};
+  props: {
+    width: {
+      type: Number, // ex) 500 -> '500px'
+      required: false,
+    },
+    height: {
+      type: Number, // ex) 600 -> '600px'
+      required: false,
+    },
+  },
+  computed: {
+    customSize() {
+      return {
+        width: this.width ? `${this.width}px` : '100%',
+        height: this.height ? `${this.height}px` : '100%',
+      };
+    },
   },
   data() {
     return {
-      modalWrapper: null as null | HTMLDivElement,
-      modal: null as null | HTMLElement,
+      modalWrapper: null as HTMLDivElement | null,
+      modal: null as HTMLElement | null,
     };
   },
   mounted() {
@@ -18,6 +33,14 @@ export default defineComponent({
   },
   methods: {
     open() {
+      // console.log(document.activeElement);
+
+      // if (!this.modal) return;
+      // const buttons = this.getAllFocusableButtons(this.modal);
+      // const firstButton = this.getFirstFocusableButton(buttons);
+      // console.log('buttons', buttons);
+      // console.log('firstButton', firstButton);
+
       this.modalWrapper?.classList.add('black-out');
       this.modal?.setAttribute('open', '');
       document.addEventListener('keydown', this.setEscKeydownEvent);
@@ -34,17 +57,29 @@ export default defineComponent({
       if (e.key !== 'Escape') return;
       this.close();
     },
+    // getAllFocusableButtons(modal: HTMLElement) {
+    //   return Array.from(modal.querySelectorAll('button'));
+    // },
+    // getFirstFocusableButton(buttons: HTMLButtonElement[]) {
+    //   if (buttons.length === 0) return;
+    //   return buttons[0];
+    // },
   },
 });
 </script>
 
 <template>
   <div class="modal-wrapper" @click="close">
-    <dialog class="modal" @click="preventModalClosing">
-      <button class="close-btn" @click="close">
+    <dialog
+      class="modal"
+      :style="[customSize]"
+      aria-modal="true"
+      @click="preventModalClosing"
+    >
+      <button class="close-btn" aria-label="Close Modal" @click="close">
         <img src="@/assets/icons/close-modal.svg" alt="close-modal-btn" />
       </button>
-      <slot name="content"></slot>
+      <slot></slot>
     </dialog>
   </div>
 </template>

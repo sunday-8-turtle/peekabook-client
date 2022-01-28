@@ -1,39 +1,31 @@
 <template>
   <div>
-    <button @click="openModal">모달 열자</button>
-    <BaseInput :type="'text'" :isBtnRequired="true" />
-    <BaseButton :shape="'fill'"> 회원가입 </BaseButton>
+    <button @click="openLoginModal">LOGIN</button>
     <br /><br />
-    <BaseButton :shape="'line'"> 로그인 </BaseButton>
-
-    <BaseModal ref="modal" />
+    <LoginModal ref="loginModal" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import BaseInput from '@/components/BaseInput.vue';
-import BaseButton from '@/components/BaseButton.vue';
-import BaseModal from '@/components/BaseModal.vue';
+import LoginModal from '@/components/LoginModal.vue';
 
 export default defineComponent({
   name: 'HelloWorld',
   components: {
-    BaseInput,
-    BaseButton,
-    BaseModal,
+    LoginModal,
   },
   setup() {
-    const modal = ref<InstanceType<typeof BaseModal>>();
+    const loginModal = ref<InstanceType<typeof LoginModal>>();
 
     return {
-      modal,
+      loginModal,
     };
   },
   methods: {
-    openModal() {
-      if (!this.modal) return;
-      this.modal.open();
+    openLoginModal() {
+      if (!this.loginModal) return;
+      this.loginModal.open();
     },
   },
 });
