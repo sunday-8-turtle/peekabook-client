@@ -1,32 +1,37 @@
 <template>
   <div>
-    <button @click="openLoginModal">LOGIN</button>
+    <button @click="openLoginModal">Login</button>
+    <button @click="openSignupModal">SignUp</button>
     <br /><br />
     <LoginModal ref="loginModal" />
+    <SignupModal ref="signupModal" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import LoginModal from '@/components/LoginModal.vue';
+import SignupModal from '@/components/SignupModal.vue';
 
 export default defineComponent({
   name: 'HelloWorld',
   components: {
     LoginModal,
+    SignupModal,
   },
   setup() {
     const loginModal = ref<InstanceType<typeof LoginModal>>();
+    const signupModal = ref<InstanceType<typeof SignupModal>>();
+
+    const openLoginModal = () => loginModal.value?.open();
+    const openSignupModal = () => signupModal.value?.open();
 
     return {
       loginModal,
+      signupModal,
+      openLoginModal,
+      openSignupModal,
     };
-  },
-  methods: {
-    openLoginModal() {
-      if (!this.loginModal) return;
-      this.loginModal.open();
-    },
   },
 });
 </script>

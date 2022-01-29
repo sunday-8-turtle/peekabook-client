@@ -25,6 +25,11 @@ export default defineComponent({
       required: false,
       default: false,
     },
+    disabled: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   setup() {
     return {};
@@ -40,6 +45,7 @@ export default defineComponent({
       :placeholder="placeholder"
       class="base-input"
       :class="{ 'btn-padding': isBtnRequired }"
+      :disabled="disabled"
     />
     <button v-if="isBtnRequired" class="internal-btn">인증메일 발송</button>
   </div>
@@ -60,6 +66,10 @@ export default defineComponent({
   font-size: 16px;
   width: 100%;
   height: 100%;
+
+  &:disabled {
+    background-color: #e9ecef;
+  }
 }
 
 .base-input::placeholder {
