@@ -1,27 +1,36 @@
 <template>
   <div>
-    <BaseInput :type="'text'" :isBtnRequired="true" />
-    <BaseButton :shape="'fill'"> 회원가입 </BaseButton>
+    <button @click="openLoginModal">LOGIN</button>
     <br /><br />
-    <BaseButton :shape="'line'"> 로그인 </BaseButton>
+    <LoginModal ref="loginModal" />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import BaseInput from '@/components/BaseInput.vue';
-import BaseButton from '@/components/BaseButton.vue';
+import { defineComponent, ref } from 'vue';
+import LoginModal from '@/components/LoginModal.vue';
 
 export default defineComponent({
   name: 'HelloWorld',
   components: {
-    BaseInput,
-    BaseButton,
+    LoginModal,
+  },
+  setup() {
+    const loginModal = ref<InstanceType<typeof LoginModal>>();
+
+    return {
+      loginModal,
+    };
+  },
+  methods: {
+    openLoginModal() {
+      if (!this.loginModal) return;
+      this.loginModal.open();
+    },
   },
 });
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 h3 {
   margin: 40px 0 0;
