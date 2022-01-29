@@ -26,6 +26,7 @@ export default defineComponent({
       default: false,
     },
   },
+  emits: ['update:modelValue'],
   setup() {
     return {};
   },
@@ -36,10 +37,10 @@ export default defineComponent({
   <div class="wrapper">
     <input
       :type="type"
-      :value="value"
       :placeholder="placeholder"
       class="base-input"
       :class="{ 'btn-padding': isBtnRequired }"
+      @input="$emit('update:modelValue', $event.target.value)"
     />
     <button v-if="isBtnRequired" class="internal-btn">인증메일 발송</button>
   </div>

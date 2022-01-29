@@ -1,8 +1,9 @@
-import axios, { AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
-axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
+const axiosInstance = axios.create();
 
-axios.interceptors.request.use(
+axiosInstance.defaults.baseURL = process.env.VUE_APP_BASE_URL;
+axiosInstance.interceptors.request.use(
   function (config: AxiosRequestConfig) {
     let token = localStorage.getItem('auth.token');
 
@@ -16,7 +17,7 @@ axios.interceptors.request.use(
   }
 );
 
-axios.interceptors.response.use(
+axiosInstance.interceptors.response.use(
   function (response) {
     return response;
   },
@@ -40,3 +41,35 @@ const isTokenExpired = (token: string) => {
 const refreshToken = (token: string) => {
   return token;
 };
+
+const apiGet = (
+  url: string,
+  options?: AxiosRequestConfig
+): Promise<AxiosResponse> => {
+  return axiosInstance.get(url, options);
+};
+
+const apiPost = <RequestBody>(
+  url: string,
+  body?: RequestBody,
+  options?: AxiosRequestConfig
+): Promise<AxiosResponse> => {
+  return axiosInstance.post(url, body, options);
+};
+
+const apiPut = <RequestBody>(
+  url: string,
+  body?: RequestBody,
+  options?: AxiosRequestConfig
+): Promise<AxiosResponse> => {
+  return axiosInstance.put(url, body, options);
+};
+
+const apiDelete = (
+  url: string,
+  options?: AxiosRequestConfig
+): Promise<AxiosResponse> => {
+  return axiosInstance.delete(url, options);
+};
+
+export { apiGet, apiPost, apiPut, apiDelete };
