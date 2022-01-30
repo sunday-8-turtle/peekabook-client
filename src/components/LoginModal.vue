@@ -1,8 +1,9 @@
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, reactive } from 'vue';
 import BaseModal from '@/components/BaseModal.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
+import { login } from '@/api/login';
 
 export default defineComponent({
   name: 'LoginModal',
@@ -13,30 +14,45 @@ export default defineComponent({
   },
   setup() {
     const baseModal = ref<InstanceType<typeof BaseModal>>();
-    return { baseModal };
-  },
-  methods: {
-    open() {
-      if (!this.baseModal) return;
-      this.baseModal.open();
-    },
+    const open = () => {
+      if (!baseModal.value) return;
+      baseModal.value.open();
+    };
+
+    const loginData = reactive({
+      email: '',
+      password: '',
+    });
+    const onLogin = async () => {
+      try {
+        const loginResult = await login(loginData);
+        const token = loginResult.data.token;
+        localStorage.token = token;
+        alert('로그인 성공!');
+      } catch (err) {
+        throw new Error('에러는 어떻게하면 더 우아하게 처리할 수 있을까요?');
+      }
+    };
+    return { loginData, baseModal, open, onLogin };
   },
 });
 </script>
 
 <template>
-  <BaseModal ref="baseModal" width="590" height="585">
+  <BaseModal ref="baseModal" :width="590" :height="585">
     <div class="welcome-message">
       <p class="message-en">Welcome to peekabook!</p>
       <p class="message-kr">피카북에 오신 것을 환영합니다!</p>
     </div>
-    <form action="#" class="login-form">
+    <form action="#" class="login-form" @submit.prevent="onLogin">
       <BaseInput
+        v-model="loginData.email"
         :type="'email'"
         :placeholder="'이메일을 입력하세요.'"
         class="input-email"
       />
       <BaseInput
+        v-model="loginData.password"
         :type="'password'"
         :placeholder="'비밀번호를 입력하세요.'"
         class="input-password"

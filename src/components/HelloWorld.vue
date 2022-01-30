@@ -27,8 +27,6 @@ export default defineComponent({
     const openSignupModal = () => signupModal.value?.open();
 
     return {
-      loginModal,
-      signupModal,
       openLoginModal,
       openSignupModal,
     };
