@@ -1,8 +1,10 @@
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, reactive, ref } from 'vue';
 import BaseModal from '@/components/BaseModal.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
+import { SignupRequest } from '@/types/login.types';
+import { signup } from '@/api/login';
 
 export default defineComponent({
   name: 'SignupModal',
@@ -14,7 +16,26 @@ export default defineComponent({
   setup() {
     const baseModal = ref<InstanceType<typeof BaseModal>>();
     const open = () => baseModal.value?.open();
-    return { baseModal, open };
+
+    const signupData: SignupRequest = reactive({
+      email: '',
+      password: '',
+      nickname: '',
+    });
+    const onSignup = async () => {
+      try {
+        const signupResult = await signup(signupData);
+        if (signupResult.result !== 'SUCCESS')
+          throw new Error(
+            `[${signupResult.errorCode}] ${signupResult.message}`
+          );
+        alert('회원가입 성공!');
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    return { baseModal, open, signupData, onSignup };
   },
 });
 </script>
@@ -22,7 +43,7 @@ export default defineComponent({
 <template>
   <BaseModal ref="baseModal" :width="590" :height="700">
     <!--
-      로그인/회원가입 모달 
+      2, 3번 이상 반복되는 컴포넌트들
       - 컴포넌트 네이밍 : AuthModalLogin, AuthModalSignup
       - 레이아웃 컴포넌트 : AuthModalHeader
      -->
@@ -31,8 +52,9 @@ export default defineComponent({
       <p class="message-kr">피카북에 오신 것을 환영합니다!</p>
     </div>
 
-    <form action="#" class="signup-form">
+    <form action="#" class="signup-form" @submit.prevent="onSignup">
       <BaseInput
+        v-model="signupData.email"
         :type="'email'"
         :placeholder="'이메일을 입력하세요.'"
         :isBtnRequired="true"
@@ -45,11 +67,13 @@ export default defineComponent({
         :disabled="true"
       />
       <BaseInput
+        v-model="signupData.password"
         :type="'password'"
         :placeholder="'비밀번호를 입력하세요.'"
         class="input input-password"
       />
       <BaseInput
+        v-model="signupData.nickname"
         :type="'string'"
         :placeholder="'닉네임을 입력하세요(선택)'"
         class="input input-nickname"

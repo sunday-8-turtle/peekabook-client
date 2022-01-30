@@ -4,6 +4,7 @@ import BaseModal from '@/components/BaseModal.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import { login } from '@/api/login';
+import { LoginRequest } from '@/types/login.types';
 
 export default defineComponent({
   name: 'LoginModal',
@@ -14,12 +15,9 @@ export default defineComponent({
   },
   setup() {
     const baseModal = ref<InstanceType<typeof BaseModal>>();
-    const open = () => {
-      if (!baseModal.value) return;
-      baseModal.value.open();
-    };
+    const open = () => baseModal.value?.open();
 
-    const loginData = reactive({
+    const loginData: LoginRequest = reactive({
       email: '',
       password: '',
     });
