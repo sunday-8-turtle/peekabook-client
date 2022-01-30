@@ -1,13 +1,13 @@
 <script lang="ts">
-import { defineComponent, ref, reactive } from 'vue';
+import { defineComponent, reactive, ref } from 'vue';
 import BaseModal from '@/components/BaseModal.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
-import { login } from '@/api/login';
-import { LoginRequest } from '@/types/login.types';
+import { SignupRequest } from '@/types/login.types';
+import { signup } from '@/api/login';
 
 export default defineComponent({
-  name: 'LoginModal',
+  name: 'SignupModal',
   components: {
     BaseModal,
     BaseInput,
@@ -17,57 +17,75 @@ export default defineComponent({
     const baseModal = ref<InstanceType<typeof BaseModal>>();
     const open = () => baseModal.value?.open();
 
-    const loginData: LoginRequest = reactive({
+    const signupData: SignupRequest = reactive({
       email: '',
       password: '',
+      nickname: '',
     });
-    const onLogin = async () => {
+    const onSignup = async () => {
       try {
-        const loginResult = await login(loginData);
-        const token = loginResult.data.token;
-        localStorage.token = token;
-        alert('로그인 성공!');
+        const signupResult = await signup(signupData);
+        if (signupResult.result !== 'SUCCESS')
+          throw new Error(
+            `[${signupResult.errorCode}] ${signupResult.message}`
+          );
+        alert('회원가입 성공!');
       } catch (err) {
-        throw new Error('에러는 어떻게하면 더 우아하게 처리할 수 있을까요?');
+        console.error(err);
       }
     };
-    return { loginData, baseModal, open, onLogin };
+
+    return { baseModal, open, signupData, onSignup };
   },
 });
 </script>
 
 <template>
-  <BaseModal ref="baseModal" :width="590" :height="585">
+  <BaseModal ref="baseModal" :width="590" :height="700">
+    <!--
+      2, 3번 이상 반복되는 컴포넌트들
+      - 컴포넌트 네이밍 : AuthModalLogin, AuthModalSignup
+      - 레이아웃 컴포넌트 : AuthModalHeader
+     -->
     <div class="welcome-message">
       <p class="message-en">Welcome to peekabook!</p>
       <p class="message-kr">피카북에 오신 것을 환영합니다!</p>
     </div>
-    <form action="#" class="login-form" @submit.prevent="onLogin">
+
+    <form action="#" class="signup-form" @submit.prevent="onSignup">
       <BaseInput
-        v-model="loginData.email"
+        v-model="signupData.email"
         :type="'email'"
         :placeholder="'이메일을 입력하세요.'"
-        class="input-email"
+        :isBtnRequired="true"
+        class="input input-email"
       />
       <BaseInput
-        v-model="loginData.password"
+        :type="'string'"
+        :placeholder="'인증코드를 입력하세요.'"
+        class="input input-verification-code"
+        :disabled="true"
+      />
+      <BaseInput
+        v-model="signupData.password"
         :type="'password'"
         :placeholder="'비밀번호를 입력하세요.'"
-        class="input-password"
+        class="input input-password"
+      />
+      <BaseInput
+        v-model="signupData.nickname"
+        :type="'string'"
+        :placeholder="'닉네임을 입력하세요(선택)'"
+        class="input input-nickname"
       />
 
-      <BaseButton shape="line" class="submit-btn">로그인</BaseButton>
+      <BaseButton shape="line" class="submit-btn">회원가입</BaseButton>
     </form>
     <div class="options">
-      <p class="go-signup">
-        <span>피카북에 처음 방문하셨나요?</span>
+      <p class="go-login">
+        <span>이미 회원이신가요?</span>
         &nbsp;
-        <a href="#">회원가입 하기</a>
-      </p>
-      <p class="find-password">
-        <span>비밀번호를 잊으셨나요?</span>
-        &nbsp;
-        <a href="#">비밀번호 찾기</a>
+        <a href="#">로그인 하기</a>
       </p>
     </div>
   </BaseModal>
@@ -103,7 +121,7 @@ export default defineComponent({
   }
 }
 
-.login-form {
+.signup-form {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -112,8 +130,12 @@ export default defineComponent({
   width: 100%;
   margin-top: 32px;
 
-  .input-password {
-    margin-top: 24px;
+  .input {
+    margin-top: 20px;
+  }
+
+  .input-email {
+    margin-top: 0;
   }
 
   .submit-btn {
@@ -122,7 +144,7 @@ export default defineComponent({
 }
 
 .options {
-  margin-top: 40px;
+  margin-top: 30px;
 
   p {
     display: flex;
@@ -137,10 +159,6 @@ export default defineComponent({
       font-weight: 700;
       color: #ff69b4;
     }
-  }
-
-  .find-password {
-    margin-top: 10px;
   }
 }
 </style>

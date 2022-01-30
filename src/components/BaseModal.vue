@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, computed, ref } from 'vue';
 
 export default defineComponent({
   name: 'BaseModal',
@@ -13,23 +13,18 @@ export default defineComponent({
       required: false,
     },
   },
-  computed: {
-    customSize() {
+  setup(props) {
+    const modalWrapper = ref<HTMLDivElement>();
+    const modal = ref<HTMLElement>();
+
+    const customModalSize = computed(() => {
       return {
-        width: this.width ? `${this.width}px` : '100%',
-        height: this.height ? `${this.height}px` : '100%',
+        width: props.width ? `${props.width}px` : '100%',
+        height: props.height ? `${props.height}px` : '100%',
       };
-    },
-  },
-  data() {
-    return {
-      modalWrapper: null as HTMLDivElement | null,
-      modal: null as HTMLElement | null,
-    };
-  },
-  mounted() {
-    this.modalWrapper = document.querySelector('.modal-wrapper');
-    this.modal = document.querySelector('.modal');
+    });
+
+    return { customModalSize, modalWrapper, modal };
   },
   methods: {
     open() {
@@ -69,10 +64,11 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="modal-wrapper" @click="close">
+  <div ref="modalWrapper" class="modal-wrapper" @click="close">
     <dialog
+      ref="modal"
       class="modal"
-      :style="[customSize]"
+      :style="[customModalSize]"
       aria-modal="true"
       @click="preventModalClosing"
     >
@@ -105,8 +101,6 @@ export default defineComponent({
 
 .modal {
   position: relative;
-  width: 590px;
-  height: 700px;
   padding: 35px;
   opacity: 0;
   z-index: 1011;
