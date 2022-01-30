@@ -17,16 +17,15 @@ export default defineComponent({
   },
   setup() {
     const loginModal = ref<InstanceType<typeof LoginModal>>();
+    const openLoginModal = () => {
+      if (!loginModal.value) return;
+      loginModal.value.open();
+    };
 
     return {
       loginModal,
+      openLoginModal,
     };
-  },
-  methods: {
-    openLoginModal() {
-      if (!this.loginModal) return;
-      this.loginModal.open();
-    },
   },
 });
 </script>
