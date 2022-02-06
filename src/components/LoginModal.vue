@@ -16,6 +16,7 @@ export default defineComponent({
   setup() {
     const baseModal = ref<InstanceType<typeof BaseModal>>();
     const open = () => baseModal.value?.open();
+    const onClose = () => resetData();
 
     const loginData: LoginRequest = reactive({
       email: '',
@@ -31,13 +32,18 @@ export default defineComponent({
         throw new Error('에러는 어떻게하면 더 우아하게 처리할 수 있을까요?');
       }
     };
-    return { loginData, baseModal, open, onLogin };
+
+    const resetData = () => {
+      loginData.email = '';
+      loginData.password = '';
+    };
+    return { loginData, baseModal, open, onClose, onLogin };
   },
 });
 </script>
 
 <template>
-  <BaseModal ref="baseModal" :width="590" :height="585">
+  <BaseModal ref="baseModal" :width="590" :height="585" @close-modal="onClose">
     <div class="welcome-message">
       <p class="message-en">Welcome to peekabook!</p>
       <p class="message-kr">피카북에 오신 것을 환영합니다!</p>
