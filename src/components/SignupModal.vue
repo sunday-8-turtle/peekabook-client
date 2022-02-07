@@ -93,7 +93,6 @@ export default defineComponent({
             `[${certificateResult.errorCode}] ${certificateResult.message}`
           );
         }
-
         alert('이메일로 인증코드를 발송했습니다.');
         showCertificationCodeInput.value = true;
       } catch (err) {
