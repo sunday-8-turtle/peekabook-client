@@ -4,7 +4,7 @@ import BaseModal from '@/components/BaseModal.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import { SignupRequest } from '@/types/login.types';
-import { signup } from '@/api/login';
+import { sendEmailCertificate, signup } from '@/api/login';
 
 export default defineComponent({
   name: 'SignupModal',
@@ -13,40 +13,81 @@ export default defineComponent({
     BaseInput,
     BaseButton,
   },
-  setup() {
+  emits: ['open-login-modal'],
+  setup(props, { emit }) {
     const baseModal = ref<InstanceType<typeof BaseModal>>();
     const open = () => baseModal.value?.open();
+    const onClose = () => resetData();
 
     const signupData: SignupRequest = reactive({
       email: '',
       password: '',
       nickname: '',
+      certificationCode: '',
     });
     const onSignup = async () => {
       try {
         const signupResult = await signup(signupData);
-        if (signupResult.result !== 'SUCCESS')
+        if (signupResult.result !== 'SUCCESS') {
+          alert(signupResult.message);
           throw new Error(
             `[${signupResult.errorCode}] ${signupResult.message}`
           );
-        alert('회원가입 성공!');
+        }
+
+        alert('회원가입 성공! 로그인 후 피카북을 이용해보세요 :)');
+        goToLogin();
       } catch (err) {
         console.error(err);
       }
     };
 
-    return { baseModal, open, signupData, onSignup };
+    const showCertificationCodeInput = ref(false);
+    const sendCertificationCode = async (email: string) => {
+      try {
+        const certificateResult = await sendEmailCertificate({ email });
+        if (certificateResult.result !== 'SUCCESS') {
+          throw new Error(
+            `[${certificateResult.errorCode}] ${certificateResult.message}`
+          );
+        }
+        alert('이메일로 인증코드를 발송했습니다.');
+        showCertificationCodeInput.value = true;
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    const resetData = () => {
+      signupData.email = '';
+      signupData.password = '';
+      signupData.nickname = '';
+      signupData.certificationCode = '';
+      showCertificationCodeInput.value = false;
+    };
+
+    const goToLogin = () => {
+      baseModal.value?.close();
+      emit('open-login-modal');
+    };
+
+    return {
+      baseModal,
+      open,
+      onClose,
+      signupData,
+      onSignup,
+      sendCertificationCode,
+      showCertificationCodeInput,
+      resetData,
+      goToLogin,
+    };
   },
 });
 </script>
 
 <template>
-  <BaseModal ref="baseModal" :width="590" :height="700">
-    <!--
-      2, 3번 이상 반복되는 컴포넌트들
-      - 컴포넌트 네이밍 : AuthModalLogin, AuthModalSignup
-      - 레이아웃 컴포넌트 : AuthModalHeader
-     -->
+  <BaseModal ref="baseModal" :width="590" :height="700" @close-modal="onClose">
     <div class="welcome-message">
       <p class="message-en">Welcome to peekabook!</p>
       <p class="message-kr">피카북에 오신 것을 환영합니다!</p>
@@ -57,14 +98,16 @@ export default defineComponent({
         v-model="signupData.email"
         :type="'email'"
         :placeholder="'이메일을 입력하세요.'"
-        :isBtnRequired="true"
         class="input input-email"
+        :isBtnRequired="true"
+        @send-certification-code="sendCertificationCode(signupData.email)"
       />
       <BaseInput
+        v-model="signupData.certificationCode"
         :type="'string'"
         :placeholder="'인증코드를 입력하세요.'"
-        class="input input-verification-code"
-        :disabled="true"
+        class="input input-certification-code"
+        :disabled="!showCertificationCodeInput"
       />
       <BaseInput
         v-model="signupData.password"
@@ -85,7 +128,7 @@ export default defineComponent({
       <p class="go-login">
         <span>이미 회원이신가요?</span>
         &nbsp;
-        <a href="#">로그인 하기</a>
+        <a href="#" @click="goToLogin"> 로그인 하기 </a>
       </p>
     </div>
   </BaseModal>

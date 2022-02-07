@@ -4,6 +4,8 @@ import {
   LoginResponse,
   SendEmailCertificateRequest,
   SendEmailCertificateResponse,
+  VerifyEmailCertificateRequest,
+  VerifyEmailCertificateResponse,
   SignupRequest,
   SignupResponse,
 } from '@/types/login.types';
@@ -28,4 +30,12 @@ async function sendEmailCertificate(
   return res.data;
 }
 
-export { login, signup };
+async function verifyEmailCertificate(
+  body: VerifyEmailCertificateRequest
+): Promise<VerifyEmailCertificateResponse> {
+  const VERIFY_EAMIL_CERTIFICATE_URL = '/user/email/certification';
+  const res = await apiPost(VERIFY_EAMIL_CERTIFICATE_URL, body);
+  return res.data;
+}
+
+export { login, signup, sendEmailCertificate, verifyEmailCertificate };

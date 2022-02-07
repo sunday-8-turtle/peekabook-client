@@ -1,7 +1,7 @@
 <template>
   <div id="nav">
-    <router-link to="/">민교님 새로 팜</router-link> |
-    <router-link to="/about">창오님 잘 되나요</router-link>
+    <!-- <router-link to="/">민교님 새로 팜</router-link> |
+    <router-link to="/about">창오님 잘 되나요</router-link> -->
   </div>
   <router-view />
 </template>

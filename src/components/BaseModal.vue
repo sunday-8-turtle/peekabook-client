@@ -13,6 +13,7 @@ export default defineComponent({
       required: false,
     },
   },
+  emits: ['close-modal'],
   setup(props) {
     const modalWrapper = ref<HTMLDivElement>();
     const modal = ref<HTMLElement>();
@@ -44,6 +45,7 @@ export default defineComponent({
       this.modalWrapper?.classList.remove('black-out');
       this.modal?.removeAttribute('open');
       document.removeEventListener('keydown', this.setEscKeydownEvent);
+      this.$emit('close-modal');
     },
     preventModalClosing(e: PointerEvent) {
       e.stopPropagation();

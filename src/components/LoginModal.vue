@@ -13,9 +13,11 @@ export default defineComponent({
     BaseInput,
     BaseButton,
   },
-  setup() {
+  emits: ['open-signup-modal'],
+  setup(props, { emit }) {
     const baseModal = ref<InstanceType<typeof BaseModal>>();
     const open = () => baseModal.value?.open();
+    const onClose = () => resetData();
 
     const loginData: LoginRequest = reactive({
       email: '',
@@ -24,20 +26,35 @@ export default defineComponent({
     const onLogin = async () => {
       try {
         const loginResult = await login(loginData);
+        if (loginResult.result !== 'SUCCESS') {
+          alert(loginResult.message);
+          throw new Error(`[${loginResult.errorCode}] ${loginResult.message}`);
+        }
+
         const token = loginResult.data.token;
         localStorage.token = token;
         alert('로그인 성공!');
       } catch (err) {
-        throw new Error('에러는 어떻게하면 더 우아하게 처리할 수 있을까요?');
+        console.error(err);
       }
     };
-    return { loginData, baseModal, open, onLogin };
+
+    const resetData = () => {
+      loginData.email = '';
+      loginData.password = '';
+    };
+
+    const goToSignup = () => {
+      baseModal.value?.close();
+      emit('open-signup-modal');
+    };
+    return { loginData, baseModal, open, onClose, onLogin, goToSignup };
   },
 });
 </script>
 
 <template>
-  <BaseModal ref="baseModal" :width="590" :height="585">
+  <BaseModal ref="baseModal" :width="590" :height="585" @close-modal="onClose">
     <div class="welcome-message">
       <p class="message-en">Welcome to peekabook!</p>
       <p class="message-kr">피카북에 오신 것을 환영합니다!</p>
@@ -62,7 +79,7 @@ export default defineComponent({
       <p class="go-signup">
         <span>피카북에 처음 방문하셨나요?</span>
         &nbsp;
-        <a href="#">회원가입 하기</a>
+        <a href="#" @click="goToSignup"> 회원가입 하기 </a>
       </p>
       <p class="find-password">
         <span>비밀번호를 잊으셨나요?</span>

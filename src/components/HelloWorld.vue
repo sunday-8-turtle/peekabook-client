@@ -1,10 +1,19 @@
 <template>
-  <div>
-    <button @click="openLoginModal">Login</button>
-    <button @click="openSignupModal">SignUp</button>
+  <div
+    style="
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      margin-top: 22px;
+    "
+  >
+    <BaseButton shape="line" @click="openLoginModal">Login</BaseButton>
+    <BaseButton shape="line" @click="openSignupModal" style="margin-left: 14px">
+      SignUp
+    </BaseButton>
     <br /><br />
-    <LoginModal ref="loginModal" />
-    <SignupModal ref="signupModal" />
+    <LoginModal ref="loginModal" @open-signup-modal="openSignupModal" />
+    <SignupModal ref="signupModal" @open-login-modal="openLoginModal" />
   </div>
 </template>
 
@@ -12,12 +21,14 @@
 import { defineComponent, ref } from 'vue';
 import LoginModal from '@/components/LoginModal.vue';
 import SignupModal from '@/components/SignupModal.vue';
+import BaseButton from '@/components/BaseButton.vue';
 
 export default defineComponent({
   name: 'HelloWorld',
   components: {
     LoginModal,
     SignupModal,
+    BaseButton,
   },
   setup() {
     const loginModal = ref<InstanceType<typeof LoginModal>>();

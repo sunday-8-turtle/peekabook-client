@@ -22,6 +22,7 @@ interface SignupRequest {
   email: string;
   password: string;
   nickname: string;
+  certificationCode: string;
 }
 
 interface SignupResponse extends CommonResponse {
