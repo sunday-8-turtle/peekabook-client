@@ -1,7 +1,7 @@
 <template>
   <div
     style="
-      min-height: 100vh;
+      min-height: 80vh;
       display: flex;
       justify-content: center;
       margin-top: 22px;

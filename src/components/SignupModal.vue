@@ -1,10 +1,17 @@
 <script lang="ts">
-import { defineComponent, reactive, ref } from 'vue';
+import { computed, defineComponent, reactive, ref } from 'vue';
+
 import BaseModal from '@/components/BaseModal.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
+import BaseLottie from '@/components/BaseLottie.vue';
+
 import { SignupRequest } from '@/types/login.types';
-import { sendEmailCertificate, signup } from '@/api/login';
+import {
+  sendCertificationCode,
+  verifyCertificationCode,
+  signup,
+} from '@/api/login';
 
 export default defineComponent({
   name: 'SignupModal',
@@ -12,6 +19,7 @@ export default defineComponent({
     BaseModal,
     BaseInput,
     BaseButton,
+    BaseLottie,
   },
   emits: ['open-login-modal'],
   setup(props, { emit }) {
@@ -19,6 +27,7 @@ export default defineComponent({
     const open = () => baseModal.value?.open();
     const onClose = () => resetData();
 
+    const isSubmitting = ref(false);
     const signupData: SignupRequest = reactive({
       email: '',
       password: '',
@@ -27,6 +36,26 @@ export default defineComponent({
     });
     const onSignup = async () => {
       try {
+        isSubmitting.value = true;
+
+        if (!isFormFilled.value) {
+          alert('입력값을 확인해주세요.');
+          return;
+        }
+
+        // 1. 인증코드 확인
+        const certificationResult = await verifyCertificationCode({
+          email: signupData.email,
+          certificationCode: signupData.certificationCode,
+        });
+        if (certificationResult.result !== 'SUCCESS') {
+          alert(certificationResult.message);
+          throw new Error(
+            `[${certificationResult.errorCode}] ${certificationResult.message}`
+          );
+        }
+
+        // 2. 회원가입
         const signupResult = await signup(signupData);
         if (signupResult.result !== 'SUCCESS') {
           alert(signupResult.message);
@@ -39,24 +68,49 @@ export default defineComponent({
         goToLogin();
       } catch (err) {
         console.error(err);
+      } finally {
+        isSubmitting.value = false;
       }
     };
 
+    const isSending = ref(false);
     const showCertificationCodeInput = ref(false);
-    const sendCertificationCode = async (email: string) => {
+    const onSendCertificationCode = async () => {
       try {
-        const certificateResult = await sendEmailCertificate({ email });
+        isSending.value = true;
+
+        if (!signupData.email) {
+          alert('이메일을 입력해주세요.');
+          return;
+        }
+
+        const certificateResult = await sendCertificationCode({
+          email: signupData.email,
+        });
         if (certificateResult.result !== 'SUCCESS') {
+          alert(certificateResult.message);
           throw new Error(
             `[${certificateResult.errorCode}] ${certificateResult.message}`
           );
         }
+
         alert('이메일로 인증코드를 발송했습니다.');
         showCertificationCodeInput.value = true;
       } catch (err) {
         console.error(err);
+      } finally {
+        isSending.value = false;
       }
     };
+
+    const isFormFilled = computed(() => {
+      return (
+        signupData.email &&
+        signupData.password &&
+        signupData.nickname &&
+        signupData.certificationCode
+      );
+    });
 
     const resetData = () => {
       signupData.email = '';
@@ -75,10 +129,13 @@ export default defineComponent({
       baseModal,
       open,
       onClose,
+      isSubmitting,
       signupData,
       onSignup,
-      sendCertificationCode,
+      isSending,
+      onSendCertificationCode,
       showCertificationCodeInput,
+      isFormFilled,
       resetData,
       goToLogin,
     };
@@ -93,36 +150,55 @@ export default defineComponent({
       <p class="message-kr">피카북에 오신 것을 환영합니다!</p>
     </div>
 
-    <form action="#" class="signup-form" @submit.prevent="onSignup">
+    <form
+      action="#"
+      class="signup-form"
+      autocomplete="on"
+      @submit.prevent="onSignup"
+    >
       <BaseInput
         v-model="signupData.email"
-        :type="'email'"
+        type="email"
+        name="email"
         :placeholder="'이메일을 입력하세요.'"
         class="input input-email"
         :isBtnRequired="true"
-        @send-certification-code="sendCertificationCode(signupData.email)"
+        :isSending="isSending"
+        @send-certification-code="onSendCertificationCode"
       />
       <BaseInput
         v-model="signupData.certificationCode"
-        :type="'string'"
+        type="text"
+        autocomplete="one-time-code"
         :placeholder="'인증코드를 입력하세요.'"
         class="input input-certification-code"
         :disabled="!showCertificationCodeInput"
       />
       <BaseInput
         v-model="signupData.password"
-        :type="'password'"
+        type="password"
+        name="password"
+        autocomplete="new-password"
         :placeholder="'비밀번호를 입력하세요.'"
         class="input input-password"
       />
       <BaseInput
         v-model="signupData.nickname"
-        :type="'string'"
-        :placeholder="'닉네임을 입력하세요(선택)'"
+        type="text"
+        name="username"
+        placeholder="닉네임을 입력하세요(선택)"
         class="input input-nickname"
       />
 
-      <BaseButton shape="line" class="submit-btn">회원가입</BaseButton>
+      <BaseButton :shape="isFormFilled ? 'fill' : 'line'" class="submit-btn">
+        <BaseLottie
+          v-if="isSubmitting"
+          name="loading-btn"
+          width="32px"
+          height="32px"
+        />
+        <span v-else>회원가입</span>
+      </BaseButton>
     </form>
     <div class="options">
       <p class="go-login">

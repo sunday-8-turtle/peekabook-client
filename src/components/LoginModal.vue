@@ -1,10 +1,11 @@
 <script lang="ts">
-import { defineComponent, ref, reactive } from 'vue';
+import { defineComponent, ref, reactive, computed } from 'vue';
 import BaseModal from '@/components/BaseModal.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import { login } from '@/api/login';
 import { LoginRequest } from '@/types/login.types';
+import BaseLottie from './BaseLottie.vue';
 
 export default defineComponent({
   name: 'LoginModal',
@@ -12,6 +13,7 @@ export default defineComponent({
     BaseModal,
     BaseInput,
     BaseButton,
+    BaseLottie,
   },
   emits: ['open-signup-modal'],
   setup(props, { emit }) {
@@ -19,12 +21,20 @@ export default defineComponent({
     const open = () => baseModal.value?.open();
     const onClose = () => resetData();
 
+    const isSubmitting = ref(false);
     const loginData: LoginRequest = reactive({
       email: '',
       password: '',
     });
     const onLogin = async () => {
       try {
+        isSubmitting.value = true;
+
+        if (!isFormFilled.value) {
+          alert('입력값을 확인해주세요.');
+          return;
+        }
+
         const loginResult = await login(loginData);
         if (loginResult.result !== 'SUCCESS') {
           alert(loginResult.message);
@@ -34,10 +44,17 @@ export default defineComponent({
         const token = loginResult.data.token;
         localStorage.token = token;
         alert('로그인 성공!');
+        baseModal.value?.close();
       } catch (err) {
         console.error(err);
+      } finally {
+        isSubmitting.value = false;
       }
     };
+
+    const isFormFilled = computed(() => {
+      return loginData.email && loginData.password;
+    });
 
     const resetData = () => {
       loginData.email = '';
@@ -48,7 +65,17 @@ export default defineComponent({
       baseModal.value?.close();
       emit('open-signup-modal');
     };
-    return { loginData, baseModal, open, onClose, onLogin, goToSignup };
+    return {
+      baseModal,
+      open,
+      onClose,
+      isSubmitting,
+      loginData,
+      onLogin,
+      isFormFilled,
+      resetData,
+      goToSignup,
+    };
   },
 });
 </script>
@@ -59,21 +86,38 @@ export default defineComponent({
       <p class="message-en">Welcome to peekabook!</p>
       <p class="message-kr">피카북에 오신 것을 환영합니다!</p>
     </div>
-    <form action="#" class="login-form" @submit.prevent="onLogin">
+    <form
+      action="#"
+      class="login-form"
+      autocomplete="on"
+      @submit.prevent="onLogin"
+    >
       <BaseInput
         v-model="loginData.email"
-        :type="'email'"
-        :placeholder="'이메일을 입력하세요.'"
+        type="email"
+        name="email"
+        placeholder="이메일을 입력하세요."
         class="input-email"
+        :required="true"
       />
       <BaseInput
         v-model="loginData.password"
-        :type="'password'"
+        type="password"
+        name="password"
+        autocomplete="current-password"
         :placeholder="'비밀번호를 입력하세요.'"
         class="input-password"
       />
 
-      <BaseButton shape="line" class="submit-btn">로그인</BaseButton>
+      <BaseButton :shape="isFormFilled ? 'fill' : 'line'" class="submit-btn">
+        <BaseLottie
+          v-if="isSubmitting"
+          name="loading-btn"
+          width="32px"
+          height="32px"
+        />
+        <span v-else>로그인</span>
+      </BaseButton>
     </form>
     <div class="options">
       <p class="go-signup">

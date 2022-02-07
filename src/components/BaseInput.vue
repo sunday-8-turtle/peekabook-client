@@ -1,9 +1,11 @@
 <script lang="ts">
 import { defineComponent, PropType, ref } from 'vue';
+import BaseLottie from './BaseLottie.vue';
 
 type InputType = 'text' | 'email' | 'password';
 
 export default defineComponent({
+  components: { BaseLottie },
   props: {
     type: {
       type: String as PropType<InputType>,
@@ -20,9 +22,28 @@ export default defineComponent({
       required: false,
       default: '',
     },
+    name: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    autocomplete: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    required: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     isBtnRequired: {
       type: Boolean,
       required: false,
+      default: false,
+    },
+    isSending: {
+      type: Boolean,
       default: false,
     },
     disabled: {
@@ -68,6 +89,9 @@ export default defineComponent({
       :placeholder="placeholder"
       class="base-input"
       :class="{ 'btn-padding': isBtnRequired }"
+      :name="name"
+      :autocomplete="autocomplete"
+      :required="required"
       :disabled="disabled"
       :value="modelValue"
       @input="$emit('update:modelValue', $event.target.value)"
@@ -77,7 +101,13 @@ export default defineComponent({
       class="internal-btn"
       @click.prevent="onClickInternalBtn"
     >
-      인증메일 발송
+      <BaseLottie
+        v-if="isSending"
+        name="loading-btn"
+        width="24px"
+        height="24px"
+      />
+      <span v-else>인증메일 발송</span>
     </button>
   </div>
 </template>
@@ -119,6 +149,11 @@ export default defineComponent({
   width: 78px;
   height: 32px;
   transform: translateY(-50%);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   font-size: 11px;
   font-family: Pretendard;
   font-style: normal;
