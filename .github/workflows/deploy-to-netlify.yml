@@ -25,7 +25,7 @@ jobs:
         run: yarn install
 
       - name: Unit Testing 🧪
-        run: yarn test:unit
+        run: yarn test:unit --passWithNoTests
 
       - name: Build 🏡
         run: yarn build
