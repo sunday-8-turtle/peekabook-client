@@ -1,16 +1,18 @@
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+import { defineComponent, PropType, ref } from 'vue';
+import BaseLottie from './BaseLottie.vue';
 
 type InputType = 'text' | 'email' | 'password';
 
 export default defineComponent({
+  components: { BaseLottie },
   props: {
     type: {
       type: String as PropType<InputType>,
       required: false,
       default: '',
     },
-    value: {
+    modelValue: {
       type: String,
       required: false,
       default: '',
@@ -20,9 +22,28 @@ export default defineComponent({
       required: false,
       default: '',
     },
+    name: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    autocomplete: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    required: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     isBtnRequired: {
       type: Boolean,
       required: false,
+      default: false,
+    },
+    isSending: {
+      type: Boolean,
       default: false,
     },
     disabled: {
@@ -31,9 +52,31 @@ export default defineComponent({
       default: false,
     },
   },
-  emits: ['update:modelValue'],
+  emits: ['update:modelValue', 'send-certification-code'],
   setup() {
-    return {};
+    const input = ref<InstanceType<typeof HTMLInputElement>>();
+    return { input };
+  },
+  methods: {
+    isEligibleForSendCode() {
+      if (!this.input) {
+        console.error('Input 엘리먼트를 찾을 수 없습니다.');
+        return false;
+      }
+      if (!this.input.checkValidity()) {
+        console.error('이메일 형식이 올바르지 않습니다.');
+        return false;
+      }
+
+      return true;
+    },
+    onClickInternalBtn() {
+      if (!this.isEligibleForSendCode()) {
+        alert('이메일 형식을 확인해주세요.');
+        return;
+      }
+      this.$emit('send-certification-code');
+    },
   },
 });
 </script>
@@ -41,14 +84,31 @@ export default defineComponent({
 <template>
   <div class="wrapper">
     <input
+      ref="input"
       :type="type"
       :placeholder="placeholder"
       class="base-input"
       :class="{ 'btn-padding': isBtnRequired }"
+      :name="name"
+      :autocomplete="autocomplete"
+      :required="required"
       :disabled="disabled"
+      :value="modelValue"
       @input="$emit('update:modelValue', $event.target.value)"
     />
-    <button v-if="isBtnRequired" class="internal-btn">인증메일 발송</button>
+    <button
+      v-if="isBtnRequired"
+      class="internal-btn"
+      @click.prevent="onClickInternalBtn"
+    >
+      <BaseLottie
+        v-if="isSending"
+        name="loading-btn"
+        width="24px"
+        height="24px"
+      />
+      <span v-else>인증메일 발송</span>
+    </button>
   </div>
 </template>
 
@@ -89,6 +149,11 @@ export default defineComponent({
   width: 78px;
   height: 32px;
   transform: translateY(-50%);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   font-size: 11px;
   font-family: Pretendard;
   font-style: normal;

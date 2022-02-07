@@ -22,27 +22,28 @@ interface SignupRequest {
   email: string;
   password: string;
   nickname: string;
+  certificationCode: string;
 }
 
 interface SignupResponse extends CommonResponse {
   data: null;
 }
 
-interface SendEmailCertificateRequest {
+interface SendCertificationCodeRequest {
   email: string;
 }
 
-interface SendEmailCertificateResponse extends CommonResponse {
+interface SendCertificationCodeResponse extends CommonResponse {
   email: string;
-  certificateCode: string;
+  certificationCode: string;
 }
 
-interface VerifyEmailCertificateRequest {
+interface VerifyCertificationCodeRequest {
   email: string;
-  certificateCode: string;
+  certificationCode: string;
 }
 
-interface VerifyEmailCertificateResponse extends CommonResponse {
+interface VerifyCertificationCodeResponse extends CommonResponse {
   data: null;
 }
 
@@ -51,8 +52,8 @@ export {
   LoginResponse,
   SignupRequest,
   SignupResponse,
-  SendEmailCertificateRequest,
-  SendEmailCertificateResponse,
-  VerifyEmailCertificateRequest,
-  VerifyEmailCertificateResponse,
+  SendCertificationCodeRequest,
+  SendCertificationCodeResponse,
+  VerifyCertificationCodeRequest,
+  VerifyCertificationCodeResponse,
 };

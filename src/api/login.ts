@@ -2,10 +2,12 @@ import { apiPost } from './index';
 import {
   LoginRequest,
   LoginResponse,
-  SendEmailCertificateRequest,
-  SendEmailCertificateResponse,
   SignupRequest,
   SignupResponse,
+  SendCertificationCodeRequest,
+  SendCertificationCodeResponse,
+  VerifyCertificationCodeRequest,
+  VerifyCertificationCodeResponse,
 } from '@/types/login.types';
 
 async function login(body: LoginRequest): Promise<LoginResponse> {
@@ -20,12 +22,20 @@ async function signup(body: SignupRequest): Promise<SignupResponse> {
   return res.data;
 }
 
-async function sendEmailCertificate(
-  body: SendEmailCertificateRequest
-): Promise<SendEmailCertificateResponse> {
+async function sendCertificationCode(
+  body: SendCertificationCodeRequest
+): Promise<SendCertificationCodeResponse> {
   const SEND_EMAIL_CERTIFICATE_URL = '/user/email/send';
   const res = await apiPost(SEND_EMAIL_CERTIFICATE_URL, body);
   return res.data;
 }
 
-export { login, signup };
+async function verifyCertificationCode(
+  body: VerifyCertificationCodeRequest
+): Promise<VerifyCertificationCodeResponse> {
+  const VERIFY_EAMIL_CERTIFICATE_URL = '/user/email/certification';
+  const res = await apiPost(VERIFY_EAMIL_CERTIFICATE_URL, body);
+  return res.data;
+}
+
+export { login, signup, sendCertificationCode, verifyCertificationCode };
