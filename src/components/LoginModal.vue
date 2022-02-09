@@ -96,15 +96,16 @@ export default defineComponent({
         v-model="loginData.email"
         type="email"
         name="email"
+        required
         placeholder="이메일을 입력하세요."
         class="input-email"
-        :required="true"
       />
       <BaseInput
         v-model="loginData.password"
         type="password"
         name="password"
         autocomplete="current-password"
+        required
         :placeholder="'비밀번호를 입력하세요.'"
         class="input-password"
       />
