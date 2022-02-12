@@ -36,13 +36,17 @@ export default defineComponent({
     });
     const onSignup = async () => {
       try {
-        isSubmitting.value = true;
+        if (isSubmitting.value) {
+          alert('이전 요청을 처리하고 있습니다.');
+          return;
+        }
 
         if (!isFormFilled.value) {
           alert('입력값을 확인해주세요.');
           return;
         }
 
+        isSubmitting.value = true;
         // 1. 인증코드 확인
         const certificationResult = await verifyCertificationCode({
           email: signupData.email,
@@ -77,13 +81,16 @@ export default defineComponent({
     const showCertificationCodeInput = ref(false);
     const onSendCertificationCode = async () => {
       try {
-        isSending.value = true;
-
+        if (isSending.value) {
+          alert('이전 요청을 처리하고 있습니다.');
+          return;
+        }
         if (!signupData.email) {
           alert('이메일을 입력해주세요.');
           return;
         }
 
+        isSending.value = true;
         const certificateResult = await sendCertificationCode({
           email: signupData.email,
         });
@@ -117,6 +124,8 @@ export default defineComponent({
       signupData.nickname = '';
       signupData.certificationCode = '';
       showCertificationCodeInput.value = false;
+      isSubmitting.value = false;
+      isSending.value = false;
     };
 
     const goToLogin = () => {
@@ -159,6 +168,7 @@ export default defineComponent({
         v-model="signupData.email"
         type="email"
         name="email"
+        required
         :placeholder="'이메일을 입력하세요.'"
         class="input input-email"
         :isBtnRequired="true"
@@ -169,6 +179,7 @@ export default defineComponent({
         v-model="signupData.certificationCode"
         type="text"
         autocomplete="one-time-code"
+        required
         :placeholder="'인증코드를 입력하세요.'"
         class="input input-certification-code"
         :disabled="!showCertificationCodeInput"
@@ -177,6 +188,7 @@ export default defineComponent({
         v-model="signupData.password"
         type="password"
         name="password"
+        required
         autocomplete="new-password"
         :placeholder="'비밀번호를 입력하세요.'"
         class="input input-password"
