@@ -4,6 +4,7 @@ import BaseModal from '@/components/BaseModal.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import { login } from '@/api/login';
+import { sendMessageToExtension } from '@/api/extension';
 import { LoginRequest } from '@/types/login.types';
 import BaseLottie from './BaseLottie.vue';
 
@@ -43,6 +44,7 @@ export default defineComponent({
 
         const token = loginResult.data.token;
         localStorage.token = token;
+        sendMessageToExtension({ token });
         alert('로그인 성공!');
         baseModal.value?.close();
       } catch (err) {
