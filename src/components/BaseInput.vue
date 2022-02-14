@@ -1,11 +1,10 @@
 <script lang="ts">
-import { computed, defineComponent, PropType, ref } from 'vue';
-import BaseLottie from './BaseLottie.vue';
+import { defineComponent, PropType, ref } from 'vue';
 
 type InputType = 'text' | 'email' | 'password';
 
 export default defineComponent({
-  components: { BaseLottie },
+  components: {},
   props: {
     type: {
       type: String as PropType<InputType>,
@@ -33,11 +32,6 @@ export default defineComponent({
       default: '',
     },
     required: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    isBtnRequired: {
       type: Boolean,
       required: false,
       default: false,
@@ -86,13 +80,6 @@ export default defineComponent({
 
       return true;
     },
-    onClickInternalBtn() {
-      if (!this.isEligibleForSendCode()) {
-        alert('이메일 형식을 확인해주세요.');
-        return;
-      }
-      this.$emit('send-certification-code');
-    },
   },
 });
 </script>
@@ -104,7 +91,6 @@ export default defineComponent({
       :type="type"
       :placeholder="placeholder"
       class="base-input"
-      :class="{ 'btn-padding': isBtnRequired }"
       :name="name"
       :autocomplete="autocomplete"
       :required="required"
@@ -112,19 +98,6 @@ export default defineComponent({
       :value="modelValue"
       @input="$emit('update:modelValue', $event.target.value)"
     />
-    <button
-      v-if="isBtnRequired"
-      class="internal-btn"
-      @click.prevent="onClickInternalBtn"
-    >
-      <BaseLottie
-        v-if="isSending"
-        name="loading-btn"
-        width="24px"
-        height="24px"
-      />
-      <span v-else>인증메일 발송</span>
-    </button>
   </div>
 </template>
 
@@ -136,51 +109,27 @@ export default defineComponent({
 }
 
 .base-input {
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  padding: 0 12px;
-  color: #868e96;
-  font-size: 16px;
   width: 100%;
   height: 100%;
+  padding: 0 12px;
+
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+
+  color: #868e96;
+  font-size: 16px;
+
+  caret-color: #ff69b4;
 
   &:disabled {
     background-color: #e9ecef;
+    color: #ced4da;
+    cursor: not-allowed;
   }
 }
 
 .base-input::placeholder {
   font-size: 16px;
   color: #ced4da;
-}
-
-.btn-padding {
-  padding-right: 102px;
-}
-
-.internal-btn {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  width: 78px;
-  height: 32px;
-  transform: translateY(-50%);
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  font-size: 11px;
-  font-family: Pretendard;
-  font-style: normal;
-  font-weight: normal;
-  letter-spacing: -0.46px;
-  border: 1px solid #ced4da;
-  border-radius: 50px;
-  padding: 0 9.5px;
-  margin-right: 12px;
-  color: #ced4da;
-  background: #ffffff;
-  cursor: pointer;
 }
 </style>

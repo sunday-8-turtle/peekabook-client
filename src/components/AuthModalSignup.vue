@@ -4,7 +4,7 @@ import { computed, defineComponent, reactive, ref } from 'vue';
 import BaseModal from '@/components/BaseModal.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
-import BaseLottie from '@/components/BaseLottie.vue';
+import AuthModalHeader from '@/components/AuthModalHeader.vue';
 
 import { SignupRequest } from '@/types/login.types';
 import {
@@ -14,12 +14,12 @@ import {
 } from '@/api/login';
 
 export default defineComponent({
-  name: 'SignupModal',
+  name: 'AuthModalSignup',
   components: {
     BaseModal,
     BaseInput,
     BaseButton,
-    BaseLottie,
+    AuthModalHeader,
   },
   emits: ['open-login-modal'],
   setup(props, { emit }) {
@@ -46,20 +46,11 @@ export default defineComponent({
           return;
         }
 
-        isSubmitting.value = true;
-        // 1. 인증코드 확인
-        const certificationResult = await verifyCertificationCode({
-          email: signupData.email,
-          certificationCode: signupData.certificationCode,
-        });
-        if (certificationResult.result !== 'SUCCESS') {
-          alert(certificationResult.message);
-          throw new Error(
-            `[${certificationResult.errorCode}] ${certificationResult.message}`
-          );
+        if (!isEmailVerified.value) {
+          alert('인증코드를 확인해주세요.');
+          return;
         }
 
-        // 2. 회원가입
         const signupResult = await signup(signupData);
         if (signupResult.result !== 'SUCCESS') {
           alert(signupResult.message);
@@ -77,9 +68,10 @@ export default defineComponent({
       }
     };
 
-    const isSending = ref(false);
-    const showCertificationCodeInput = ref(false);
-    const onSendCertificationCode = async () => {
+    const isEmailVerified = ref(false); // 인증코드 확인 완료
+    const isSending = ref(false); // 인증코드 발송 중
+    const showCertificationCodeInput = ref(false); // 인증코드 입력창 디스플레이 여부
+    const onClickCertificationEmail = async () => {
       try {
         if (isSending.value) {
           alert('이전 요청을 처리하고 있습니다.');
@@ -109,12 +101,43 @@ export default defineComponent({
       }
     };
 
+    const isVerifying = ref(false); // 인증코드 확인 중
+    const onClickVerfication = async () => {
+      try {
+        if (isVerifying.value) {
+          alert('인증 코드를 확인하고 있습니다.');
+          return;
+        }
+
+        if (!signupData.certificationCode) {
+          alert('인증코드를 입력해주세요.');
+          return;
+        }
+
+        isVerifying.value = true;
+        const { email, certificationCode } = signupData;
+        const verificationResult = await verifyCertificationCode({
+          email,
+          certificationCode,
+        });
+        if (verificationResult.result !== 'SUCCESS') {
+          alert(verificationResult.message);
+          throw new Error(
+            `[${verificationResult.errorCode}] ${verificationResult.message}`
+          );
+        }
+        alert('인증완료!');
+        isEmailVerified.value = true;
+      } catch (err) {
+        console.error(err);
+      } finally {
+        isVerifying.value = false;
+      }
+    };
+
     const isFormFilled = computed(() => {
       return (
-        signupData.email &&
-        signupData.password &&
-        signupData.nickname &&
-        signupData.certificationCode
+        signupData.email && signupData.password && signupData.certificationCode
       );
     });
 
@@ -126,6 +149,8 @@ export default defineComponent({
       showCertificationCodeInput.value = false;
       isSubmitting.value = false;
       isSending.value = false;
+      isEmailVerified.value = false;
+      isVerifying.value = false;
     };
 
     const goToLogin = () => {
@@ -140,9 +165,12 @@ export default defineComponent({
       isSubmitting,
       signupData,
       onSignup,
+      isEmailVerified,
       isSending,
-      onSendCertificationCode,
+      onClickCertificationEmail,
       showCertificationCodeInput,
+      isVerifying,
+      onClickVerfication,
       isFormFilled,
       resetData,
       goToLogin,
@@ -153,38 +181,58 @@ export default defineComponent({
 
 <template>
   <BaseModal ref="baseModal" modal-type="signup" @close-modal="onClose">
-    <div class="welcome-message">
-      <p class="message-en">Welcome to peekabook!</p>
-      <p class="message-kr">피카북에 오신 것을 환영합니다!</p>
-    </div>
+    <AuthModalHeader />
     <form
       action="#"
       class="signup-form"
       autocomplete="on"
       @submit.prevent="onSignup"
     >
-      <BaseInput
-        v-model="signupData.email"
-        type="email"
-        name="email"
-        required
-        :placeholder="'이메일을 입력하세요.'"
-        class="input input-email"
-        :isBtnRequired="true"
-        :isSending="isSending"
-        height="56px"
-        @send-certification-code="onSendCertificationCode"
-      />
-      <BaseInput
-        v-model="signupData.certificationCode"
-        type="text"
-        autocomplete="one-time-code"
-        required
-        :placeholder="'인증코드를 입력하세요.'"
-        class="input input-certification-code"
-        :disabled="!showCertificationCodeInput"
-        height="56px"
-      />
+      <div class="input-btn-wrapper">
+        <BaseInput
+          v-model="signupData.email"
+          type="email"
+          name="email"
+          required
+          :placeholder="'이메일을 입력하세요.'"
+          class="input input-email"
+          :isSending="isSending"
+          :disabled="isEmailVerified"
+        />
+        <BaseButton
+          shape="line"
+          class="btn"
+          fontSize="16px"
+          loaderSize="24px"
+          :isLoading="isSending"
+          :disabled="isEmailVerified"
+          @click.prevent="onClickCertificationEmail"
+        >
+          인증메일
+        </BaseButton>
+      </div>
+      <div class="input-btn-wrapper">
+        <BaseInput
+          v-model="signupData.certificationCode"
+          type="text"
+          autocomplete="one-time-code"
+          required
+          :placeholder="'인증코드를 입력하세요.'"
+          class="input input-certification-code"
+          :disabled="!showCertificationCodeInput || isEmailVerified"
+        />
+        <BaseButton
+          shape="line"
+          class="btn"
+          fontSize="16px"
+          loaderSize="24px"
+          :isLoading="isVerifying"
+          :disabled="!showCertificationCodeInput || isEmailVerified"
+          @click.prevent="onClickVerfication"
+        >
+          인증확인
+        </BaseButton>
+      </div>
       <BaseInput
         v-model="signupData.password"
         type="password"
@@ -203,15 +251,14 @@ export default defineComponent({
         class="input input-nickname"
         height="56px"
       />
-
-      <BaseButton :shape="isFormFilled ? 'fill' : 'line'" class="submit-btn">
-        <BaseLottie
-          v-if="isSubmitting"
-          name="loading-btn"
-          width="32px"
-          height="32px"
-        />
-        <span v-else>회원가입</span>
+      <BaseButton
+        :shape="isFormFilled ? 'fill' : 'line'"
+        class="submit-btn"
+        fontSize="18px"
+        loaderSize="32px"
+        :isLoading="isSubmitting"
+      >
+        회원가입
       </BaseButton>
     </form>
     <div class="options">
@@ -227,40 +274,6 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import '@/design/_responsive.scss';
 
-.welcome-message {
-  margin-top: 50px;
-  font-family: Pretendard;
-  font-style: normal;
-  text-align: center;
-  line-height: 140%;
-  color: #343a40;
-
-  p {
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .message-en {
-    height: 34px;
-    font-weight: 700;
-    font-size: 24px;
-
-    @include respond-to(tablet) {
-      height: 45px;
-      font-size: 32px;
-    }
-  }
-
-  .message-kr {
-    font-weight: 400;
-    margin-top: 10px;
-    font-size: 14px;
-    height: 20px;
-  }
-}
-
 .signup-form {
   display: flex;
   flex-direction: column;
@@ -270,15 +283,29 @@ export default defineComponent({
   width: 100%;
   margin-top: 32px;
 
-  .input {
+  > div {
     margin-top: 20px;
     height: 56px;
-
-    @include respond-to(tablet) {
-      width: 390px;
-    }
   }
 
+  .input-btn-wrapper {
+    display: flex;
+    justify-content: space-between;
+
+    width: 100%;
+    height: 56px;
+    margin-top: 20px;
+
+    .input {
+      height: 100%;
+    }
+
+    .btn {
+      width: 96px;
+      height: 100%;
+      margin-left: 8px;
+    }
+  }
   .input-email {
     margin-top: 0;
   }
@@ -287,14 +314,14 @@ export default defineComponent({
     margin-top: 40px;
     height: 56px;
 
-    @include respond-to(tablet) {
-      width: 390px;
-    }
+    // @include respond-to(tablet) {
+    //   width: 390px;
+    // }
   }
 }
 
 .options {
-  margin-top: 30px;
+  margin: 30px 0;
 
   p {
     display: flex;

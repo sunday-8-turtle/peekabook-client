@@ -13,26 +13,26 @@
     </BaseButton>
     <br /><br />
     <LoginModal ref="loginModal" @open-signup-modal="openSignupModal" />
-    <SignupModal ref="signupModal" @open-login-modal="openLoginModal" />
+    <AuthModalSignup ref="signupModal" @open-login-modal="openLoginModal" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import LoginModal from '@/components/LoginModal.vue';
-import SignupModal from '@/components/SignupModal.vue';
+import AuthModalSignup from '@/components/AuthModalSignup.vue';
 import BaseButton from '@/components/BaseButton.vue';
 
 export default defineComponent({
   name: 'HelloWorld',
   components: {
     LoginModal,
-    SignupModal,
+    AuthModalSignup,
     BaseButton,
   },
   setup() {
     const loginModal = ref<InstanceType<typeof LoginModal>>();
-    const signupModal = ref<InstanceType<typeof SignupModal>>();
+    const signupModal = ref<InstanceType<typeof AuthModalSignup>>();
 
     const openLoginModal = () => loginModal.value?.open();
     const openSignupModal = () => signupModal.value?.open();

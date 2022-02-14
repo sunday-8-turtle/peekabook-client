@@ -85,7 +85,6 @@ export default defineComponent({
 
   width: 100%;
   height: 100%;
-  padding: 12px;
   background-color: rgba(0, 0, 0, 0.6);
 
   &.black-out {
@@ -97,7 +96,7 @@ export default defineComponent({
 
 .modal {
   position: relative;
-  padding: 35px;
+  padding: 40px;
   opacity: 0;
   z-index: 1011;
 
@@ -114,16 +113,17 @@ export default defineComponent({
   }
 }
 
+// 회원가입 모달
+// 회원가입 컴포넌트로 옮겨야 함... :(
 .signup {
   width: 100%;
-  height: 700px;
 
   @include respond-to(tablet) {
-    width: 590px;
+    width: 464px;
   }
 
   @include respond-to(desktop) {
-    width: 590px;
+    width: 464px;
   }
 }
 
