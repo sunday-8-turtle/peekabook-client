@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, PropType, ref } from 'vue';
+import { computed, defineComponent, PropType, ref } from 'vue';
 import BaseLottie from './BaseLottie.vue';
 
 type InputType = 'text' | 'email' | 'password';
@@ -51,10 +51,26 @@ export default defineComponent({
       required: false,
       default: false,
     },
+    // height: {
+    //   type: String,
+    //   default: '100%',
+    // },
+    // width: {
+    //   type: String,
+    //   default: '100%',
+    // },
   },
   emits: ['update:modelValue', 'send-certification-code'],
-  setup() {
+  setup(props) {
     const input = ref<InstanceType<typeof HTMLInputElement>>();
+
+    // const customSize = computed(() => {
+    //   return {
+    //     width: props.width,
+    //     height: props.height,
+    //   };
+    // });
+
     return { input };
   },
   methods: {
@@ -115,8 +131,8 @@ export default defineComponent({
 <style scoped lang="scss">
 .wrapper {
   position: relative;
-  width: 390px;
-  height: 56px;
+  width: 100%;
+  height: 100%;
 }
 
 .base-input {

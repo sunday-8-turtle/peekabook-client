@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+import { computed, defineComponent, PropType } from 'vue';
 
 type Shape = 'fill' | 'line';
 
@@ -28,9 +28,11 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 390px;
-  height: 56px;
+
+  width: 100%;
+  height: 100%;
   border-radius: 4px;
+
   font-family: Pretendard;
   font-style: normal;
   font-size: 18px;

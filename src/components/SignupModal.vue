@@ -152,12 +152,11 @@ export default defineComponent({
 </script>
 
 <template>
-  <BaseModal ref="baseModal" :width="590" :height="700" @close-modal="onClose">
+  <BaseModal ref="baseModal" modal-type="signup" @close-modal="onClose">
     <div class="welcome-message">
       <p class="message-en">Welcome to peekabook!</p>
       <p class="message-kr">피카북에 오신 것을 환영합니다!</p>
     </div>
-
     <form
       action="#"
       class="signup-form"
@@ -173,6 +172,7 @@ export default defineComponent({
         class="input input-email"
         :isBtnRequired="true"
         :isSending="isSending"
+        height="56px"
         @send-certification-code="onSendCertificationCode"
       />
       <BaseInput
@@ -183,6 +183,7 @@ export default defineComponent({
         :placeholder="'인증코드를 입력하세요.'"
         class="input input-certification-code"
         :disabled="!showCertificationCodeInput"
+        height="56px"
       />
       <BaseInput
         v-model="signupData.password"
@@ -192,6 +193,7 @@ export default defineComponent({
         autocomplete="new-password"
         :placeholder="'비밀번호를 입력하세요.'"
         class="input input-password"
+        height="56px"
       />
       <BaseInput
         v-model="signupData.nickname"
@@ -199,6 +201,7 @@ export default defineComponent({
         name="username"
         placeholder="닉네임을 입력하세요(선택)"
         class="input input-nickname"
+        height="56px"
       />
 
       <BaseButton :shape="isFormFilled ? 'fill' : 'line'" class="submit-btn">
@@ -222,6 +225,8 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+@import '@/design/_responsive.scss';
+
 .welcome-message {
   margin-top: 50px;
   font-family: Pretendard;
@@ -238,16 +243,21 @@ export default defineComponent({
   }
 
   .message-en {
-    height: 45px;
+    height: 34px;
     font-weight: 700;
-    font-size: 32px;
+    font-size: 24px;
+
+    @include respond-to(tablet) {
+      height: 45px;
+      font-size: 32px;
+    }
   }
 
   .message-kr {
-    height: 20px;
     font-weight: 400;
-    font-size: 14px;
     margin-top: 10px;
+    font-size: 14px;
+    height: 20px;
   }
 }
 
@@ -262,6 +272,11 @@ export default defineComponent({
 
   .input {
     margin-top: 20px;
+    height: 56px;
+
+    @include respond-to(tablet) {
+      width: 390px;
+    }
   }
 
   .input-email {
@@ -270,6 +285,11 @@ export default defineComponent({
 
   .submit-btn {
     margin-top: 40px;
+    height: 56px;
+
+    @include respond-to(tablet) {
+      width: 390px;
+    }
   }
 }
 

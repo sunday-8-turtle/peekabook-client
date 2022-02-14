@@ -1,15 +1,13 @@
 <script lang="ts">
-import { defineComponent, computed, ref } from 'vue';
+import { defineComponent, computed, ref, PropType } from 'vue';
+
+type ModalType = 'signup' | 'login';
 
 export default defineComponent({
   name: 'BaseModal',
   props: {
-    width: {
-      type: Number, // ex) 500 -> '500px'
-      required: false,
-    },
-    height: {
-      type: Number, // ex) 600 -> '600px'
+    modalType: {
+      type: String as PropType<ModalType>,
       required: false,
     },
   },
@@ -18,14 +16,7 @@ export default defineComponent({
     const modalWrapper = ref<HTMLDivElement>();
     const modal = ref<HTMLElement>();
 
-    const customModalSize = computed(() => {
-      return {
-        width: props.width ? `${props.width}px` : '100%',
-        height: props.height ? `${props.height}px` : '100%',
-      };
-    });
-
-    return { customModalSize, modalWrapper, modal };
+    return { modalWrapper, modal };
   },
   methods: {
     open() {
@@ -70,7 +61,7 @@ export default defineComponent({
     <dialog
       ref="modal"
       class="modal"
-      :style="[customModalSize]"
+      :class="modalType"
       aria-modal="true"
       @click="preventModalClosing"
     >
@@ -83,6 +74,8 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+@import '@/design/_responsive.scss';
+
 .modal-wrapper {
   display: none;
   position: absolute;
@@ -92,6 +85,7 @@ export default defineComponent({
 
   width: 100%;
   height: 100%;
+  padding: 12px;
   background-color: rgba(0, 0, 0, 0.6);
 
   &.black-out {
@@ -117,6 +111,19 @@ export default defineComponent({
   &[open] {
     opacity: 1;
     pointer-events: auto;
+  }
+}
+
+.signup {
+  width: 100%;
+  height: 700px;
+
+  @include respond-to(tablet) {
+    width: 590px;
+  }
+
+  @include respond-to(desktop) {
+    width: 590px;
   }
 }
 
