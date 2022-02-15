@@ -30,10 +30,20 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    // height: {
+    //   type: String,
+    //   default: '100%',
+    // },
+    // width: {
+    //   type: String,
+    //   default: '100%',
+    // },
   },
   setup(props) {
     const customStyle = {
       'font-size': props.fontSize,
+      // width: props.width,
+      // height: props.height,
     };
     return { customStyle };
   },

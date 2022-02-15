@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, PropType, ref } from 'vue';
+import { computed, defineComponent, PropType, ref } from 'vue';
 
 type InputType = 'text' | 'email' | 'password';
 
@@ -58,14 +58,14 @@ export default defineComponent({
   setup(props) {
     const input = ref<InstanceType<typeof HTMLInputElement>>();
 
-    // const customSize = computed(() => {
-    //   return {
-    //     width: props.width,
-    //     height: props.height,
-    //   };
-    // });
+    const customSize = computed(() => {
+      return {
+        // width: props.width,
+        // height: props.height,
+      };
+    });
 
-    return { input };
+    return { input, customSize };
   },
   methods: {
     isEligibleForSendCode() {
@@ -85,29 +85,22 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="wrapper">
-    <input
-      ref="input"
-      :type="type"
-      :placeholder="placeholder"
-      class="base-input"
-      :name="name"
-      :autocomplete="autocomplete"
-      :required="required"
-      :disabled="disabled"
-      :value="modelValue"
-      @input="$emit('update:modelValue', $event.target.value)"
-    />
-  </div>
+  <input
+    ref="input"
+    class="base-input"
+    :style="[customSize]"
+    :type="type"
+    :placeholder="placeholder"
+    :name="name"
+    :autocomplete="autocomplete"
+    :required="required"
+    :disabled="disabled"
+    :value="modelValue"
+    @input="$emit('update:modelValue', $event.target.value)"
+  />
 </template>
 
 <style scoped lang="scss">
-.wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
 .base-input {
   width: 100%;
   height: 100%;

@@ -27,7 +27,7 @@ export default defineComponent({
     const open = () => baseModal.value?.open();
     const onClose = () => resetData();
 
-    const isSubmitting = ref(false);
+    const isSubmitting = ref(false); // 회원가입 제출 중
     const signupData: SignupRequest = reactive({
       email: '',
       password: '',
@@ -46,14 +46,20 @@ export default defineComponent({
           return;
         }
 
-        if (!isEmailVerified.value) {
-          alert('인증코드를 확인해주세요.');
-          return;
+        isSubmitting.value = true;
+
+        const verificationResult = await verifyCertificationCode({
+          email: signupData.email,
+          certificationCode: signupData.certificationCode,
+        });
+        if (verificationResult.result !== 'SUCCESS') {
+          throw new Error(
+            `[${verificationResult.errorCode}] ${verificationResult.message}`
+          );
         }
 
         const signupResult = await signup(signupData);
         if (signupResult.result !== 'SUCCESS') {
-          alert(signupResult.message);
           throw new Error(
             `[${signupResult.errorCode}] ${signupResult.message}`
           );
@@ -63,12 +69,12 @@ export default defineComponent({
         goToLogin();
       } catch (err) {
         console.error(err);
+        alert(err);
       } finally {
         isSubmitting.value = false;
       }
     };
 
-    const isEmailVerified = ref(false); // 인증코드 확인 완료
     const isSending = ref(false); // 인증코드 발송 중
     const showCertificationCodeInput = ref(false); // 인증코드 입력창 디스플레이 여부
     const onClickCertificationEmail = async () => {
@@ -101,40 +107,6 @@ export default defineComponent({
       }
     };
 
-    const isVerifying = ref(false); // 인증코드 확인 중
-    const onClickVerfication = async () => {
-      try {
-        if (isVerifying.value) {
-          alert('인증 코드를 확인하고 있습니다.');
-          return;
-        }
-
-        if (!signupData.certificationCode) {
-          alert('인증코드를 입력해주세요.');
-          return;
-        }
-
-        isVerifying.value = true;
-        const { email, certificationCode } = signupData;
-        const verificationResult = await verifyCertificationCode({
-          email,
-          certificationCode,
-        });
-        if (verificationResult.result !== 'SUCCESS') {
-          alert(verificationResult.message);
-          throw new Error(
-            `[${verificationResult.errorCode}] ${verificationResult.message}`
-          );
-        }
-        alert('인증완료!');
-        isEmailVerified.value = true;
-      } catch (err) {
-        console.error(err);
-      } finally {
-        isVerifying.value = false;
-      }
-    };
-
     const isFormFilled = computed(() => {
       return (
         signupData.email && signupData.password && signupData.certificationCode
@@ -149,8 +121,6 @@ export default defineComponent({
       showCertificationCodeInput.value = false;
       isSubmitting.value = false;
       isSending.value = false;
-      isEmailVerified.value = false;
-      isVerifying.value = false;
     };
 
     const goToLogin = () => {
@@ -165,12 +135,9 @@ export default defineComponent({
       isSubmitting,
       signupData,
       onSignup,
-      isEmailVerified,
       isSending,
       onClickCertificationEmail,
       showCertificationCodeInput,
-      isVerifying,
-      onClickVerfication,
       isFormFilled,
       resetData,
       goToLogin,
@@ -188,74 +155,66 @@ export default defineComponent({
       autocomplete="on"
       @submit.prevent="onSignup"
     >
-      <div class="input-btn-wrapper">
+      <div class="input-wrapper two-columns">
         <BaseInput
           v-model="signupData.email"
+          class="input input-email"
           type="email"
           name="email"
           required
           :placeholder="'이메일을 입력하세요.'"
-          class="input input-email"
           :isSending="isSending"
-          :disabled="isEmailVerified"
         />
         <BaseButton
           shape="line"
-          class="btn"
+          class="email-btn"
           fontSize="16px"
           loaderSize="24px"
           :isLoading="isSending"
-          :disabled="isEmailVerified"
           @click.prevent="onClickCertificationEmail"
         >
           인증메일
         </BaseButton>
       </div>
-      <div class="input-btn-wrapper">
+      <div class="input-wrapper">
         <BaseInput
           v-model="signupData.certificationCode"
+          class="input input-certification-code"
           type="text"
           autocomplete="one-time-code"
           required
           :placeholder="'인증코드를 입력하세요.'"
-          class="input input-certification-code"
-          :disabled="!showCertificationCodeInput || isEmailVerified"
+          :disabled="!showCertificationCodeInput"
         />
-        <BaseButton
-          shape="line"
-          class="btn"
-          fontSize="16px"
-          loaderSize="24px"
-          :isLoading="isVerifying"
-          :disabled="!showCertificationCodeInput || isEmailVerified"
-          @click.prevent="onClickVerfication"
-        >
-          인증확인
-        </BaseButton>
       </div>
-      <BaseInput
-        v-model="signupData.password"
-        type="password"
-        name="password"
-        required
-        autocomplete="new-password"
-        :placeholder="'비밀번호를 입력하세요.'"
-        class="input input-password"
-        height="56px"
-      />
-      <BaseInput
-        v-model="signupData.nickname"
-        type="text"
-        name="username"
-        placeholder="닉네임을 입력하세요(선택)"
-        class="input input-nickname"
-        height="56px"
-      />
+
+      <div class="input-wrapper">
+        <BaseInput
+          v-model="signupData.password"
+          class="input input-password"
+          type="password"
+          name="password"
+          autocomplete="new-password"
+          required
+          :placeholder="'비밀번호를 입력하세요.'"
+        />
+      </div>
+
+      <div class="input-wrapper">
+        <BaseInput
+          v-model="signupData.nickname"
+          class="input input-nickname"
+          type="text"
+          name="username"
+          placeholder="닉네임을 입력하세요(선택)"
+        />
+      </div>
       <BaseButton
         :shape="isFormFilled ? 'fill' : 'line'"
         class="submit-btn"
         fontSize="18px"
         loaderSize="32px"
+        height="56px"
         :isLoading="isSubmitting"
       >
         회원가입
@@ -282,46 +241,46 @@ export default defineComponent({
 
   width: 100%;
   margin-top: 32px;
+  margin-bottom: 40px;
 
   > div {
     margin-top: 20px;
     height: 56px;
   }
 
-  .input-btn-wrapper {
-    display: flex;
-    justify-content: space-between;
-
+  .input-wrapper {
     width: 100%;
-    height: 56px;
-    margin-top: 20px;
+    height: 100%;
+    margin-top: 16px;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    &.two-columns {
+      display: flex;
+      justify-content: space-between;
+
+      .email-btn {
+        width: 96px;
+        height: 56px;
+        margin-left: 8px;
+      }
+    }
 
     .input {
-      height: 100%;
+      height: 56px;
     }
-
-    .btn {
-      width: 96px;
-      height: 100%;
-      margin-left: 8px;
-    }
-  }
-  .input-email {
-    margin-top: 0;
   }
 
   .submit-btn {
     margin-top: 40px;
     height: 56px;
-
-    // @include respond-to(tablet) {
-    //   width: 390px;
-    // }
   }
 }
 
 .options {
-  margin: 30px 0;
+  margin-bottom: 30px;
 
   p {
     display: flex;
