@@ -1,19 +1,21 @@
 <script lang="ts">
 import { defineComponent, ref, reactive, computed } from 'vue';
+
 import BaseModal from '@/components/BaseModal.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
+import AuthModalHeader from '@/components/AuthModalHeader.vue';
+
 import { login } from '@/api/login';
 import { LoginRequest } from '@/types/login.types';
-import BaseLottie from './BaseLottie.vue';
 
 export default defineComponent({
-  name: 'LoginModal',
+  name: 'AuthModalLogin',
   components: {
     BaseModal,
     BaseInput,
     BaseButton,
-    BaseLottie,
+    AuthModalHeader,
   },
   emits: ['open-signup-modal'],
   setup(props, { emit }) {
@@ -28,12 +30,17 @@ export default defineComponent({
     });
     const onLogin = async () => {
       try {
-        isSubmitting.value = true;
+        if (isSubmitting.value) {
+          alert('이전 요청을 처리하고 있습니다.');
+          return;
+        }
 
         if (!isFormFilled.value) {
           alert('입력값을 확인해주세요.');
           return;
         }
+
+        isSubmitting.value = true;
 
         const loginResult = await login(loginData);
         if (loginResult.result !== 'SUCCESS') {
@@ -81,43 +88,44 @@ export default defineComponent({
 </script>
 
 <template>
-  <BaseModal ref="baseModal" :width="590" :height="585" @close-modal="onClose">
-    <div class="welcome-message">
-      <p class="message-en">Welcome to peekabook!</p>
-      <p class="message-kr">피카북에 오신 것을 환영합니다!</p>
-    </div>
+  <BaseModal ref="baseModal" :modalType="'auth'" @close-modal="onClose">
+    <AuthModalHeader />
     <form
       action="#"
       class="login-form"
       autocomplete="on"
       @submit.prevent="onLogin"
     >
-      <BaseInput
-        v-model="loginData.email"
-        type="email"
-        name="email"
-        required
-        placeholder="이메일을 입력하세요."
-        class="input-email"
-      />
-      <BaseInput
-        v-model="loginData.password"
-        type="password"
-        name="password"
-        autocomplete="current-password"
-        required
-        :placeholder="'비밀번호를 입력하세요.'"
-        class="input-password"
-      />
-
-      <BaseButton :shape="isFormFilled ? 'fill' : 'line'" class="submit-btn">
-        <BaseLottie
-          v-if="isSubmitting"
-          name="loading-btn"
-          width="32px"
-          height="32px"
+      <div class="input-wrapper">
+        <BaseInput
+          v-model="loginData.email"
+          class="input input-email"
+          type="email"
+          name="email"
+          required
+          placeholder="이메일을 입력하세요."
         />
-        <span v-else>로그인</span>
+      </div>
+      <div class="input-wrapper">
+        <BaseInput
+          v-model="loginData.password"
+          class="input input-password"
+          type="password"
+          name="password"
+          autocomplete="current-password"
+          required
+          :placeholder="'비밀번호를 입력하세요.'"
+        />
+      </div>
+
+      <BaseButton
+        :shape="isFormFilled ? 'fill' : 'line'"
+        class="submit-btn"
+        :fontSize="'18px'"
+        :loaderSize="'32px'"
+        :isLoading="isSubmitting"
+      >
+        로그인
       </BaseButton>
     </form>
     <div class="options">
@@ -136,36 +144,7 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
-.welcome-message {
-  margin-top: 50px;
-  font-family: Pretendard;
-  font-style: normal;
-  text-align: center;
-  line-height: 140%;
-  color: #343a40;
-
-  p {
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .message-en {
-    height: 45px;
-    font-weight: 700;
-    font-size: 32px;
-  }
-
-  .message-kr {
-    height: 20px;
-    font-weight: 400;
-    font-size: 14px;
-    margin-top: 10px;
-  }
-}
-
-.login-form {
+form.login-form {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -173,18 +152,30 @@ export default defineComponent({
 
   width: 100%;
   margin-top: 32px;
+  margin-bottom: 40px;
 
-  .input-password {
-    margin-top: 24px;
+  div.input-wrapper {
+    width: 100%;
+    height: 100%;
+    margin-top: 16px;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    .input {
+      height: 56px;
+    }
   }
 
-  .submit-btn {
+  button.submit-btn {
+    height: 56px;
     margin-top: 40px;
   }
 }
 
 .options {
-  margin-top: 40px;
+  margin-bottom: 30px;
 
   p {
     display: flex;

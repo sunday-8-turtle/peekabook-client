@@ -26,7 +26,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .modal-header {
-  margin-top: 50px;
+  margin-top: 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;

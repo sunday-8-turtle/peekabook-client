@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, computed, ref, PropType } from 'vue';
 
-type ModalType = 'signup' | 'login';
+type ModalType = 'auth';
 
 export default defineComponent({
   name: 'BaseModal',
@@ -115,7 +115,7 @@ export default defineComponent({
 
 // 회원가입 모달
 // 회원가입 컴포넌트로 옮겨야 함... :(
-.signup {
+.auth {
   width: 100%;
 
   @include respond-to(tablet) {

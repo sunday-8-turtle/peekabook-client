@@ -147,7 +147,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <BaseModal ref="baseModal" modal-type="signup" @close-modal="onClose">
+  <BaseModal ref="baseModal" :modalType="'auth'" @close-modal="onClose">
     <AuthModalHeader />
     <form
       action="#"
@@ -187,7 +187,6 @@ export default defineComponent({
           :disabled="!showCertificationCodeInput"
         />
       </div>
-
       <div class="input-wrapper">
         <BaseInput
           v-model="signupData.password"
@@ -199,7 +198,6 @@ export default defineComponent({
           :placeholder="'비밀번호를 입력하세요.'"
         />
       </div>
-
       <div class="input-wrapper">
         <BaseInput
           v-model="signupData.nickname"
@@ -214,7 +212,6 @@ export default defineComponent({
         class="submit-btn"
         fontSize="18px"
         loaderSize="32px"
-        height="56px"
         :isLoading="isSubmitting"
       >
         회원가입
