@@ -9,6 +9,7 @@ import AuthModalFooter from '@/components/AuthModalFooter.vue';
 
 import { login } from '@/api/login';
 import { LoginRequest } from '@/types/login.types';
+import { sendMessageToExtension } from '@/api/extension';
 
 export default defineComponent({
   name: 'AuthModalLogin',
@@ -52,6 +53,7 @@ export default defineComponent({
         const token = loginResult.data.token;
         localStorage.token = token;
         alert('로그인 성공!');
+        sendMessageToExtension({ token });
         baseModal.value?.close();
       } catch (err) {
         console.error(err);
