@@ -27,7 +27,7 @@ axiosInstance.interceptors.response.use(
     // -> 서버/네트워크 에러
     // -> 상태코드별 구체적 대응
     if (!error.response) {
-      alert(error);
+      console.error(error);
     }
     return Promise.reject(error);
   }
