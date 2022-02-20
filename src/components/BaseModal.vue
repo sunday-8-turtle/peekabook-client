@@ -1,31 +1,23 @@
 <script lang="ts">
-import { defineComponent, computed, ref } from 'vue';
+import { defineComponent, ref, PropType } from 'vue';
+
+type ModalType = 'auth';
 
 export default defineComponent({
   name: 'BaseModal',
+  inheritAttrs: false,
   props: {
-    width: {
-      type: Number, // ex) 500 -> '500px'
-      required: false,
-    },
-    height: {
-      type: Number, // ex) 600 -> '600px'
+    type: {
+      type: String as PropType<ModalType>,
       required: false,
     },
   },
   emits: ['close-modal'],
-  setup(props) {
+  setup(props, { attrs }) {
     const modalWrapper = ref<HTMLDivElement>();
     const modal = ref<HTMLElement>();
 
-    const customModalSize = computed(() => {
-      return {
-        width: props.width ? `${props.width}px` : '100%',
-        height: props.height ? `${props.height}px` : '100%',
-      };
-    });
-
-    return { customModalSize, modalWrapper, modal };
+    return { attrs, modalWrapper, modal };
   },
   methods: {
     open() {
@@ -70,8 +62,8 @@ export default defineComponent({
     <dialog
       ref="modal"
       class="modal"
-      :style="[customModalSize]"
       aria-modal="true"
+      v-bind="attrs"
       @click="preventModalClosing"
     >
       <button class="close-btn" aria-label="Close Modal" @click="close">
@@ -83,6 +75,8 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+@import '@/design/_responsive.scss';
+
 .modal-wrapper {
   display: none;
   position: absolute;
@@ -102,21 +96,30 @@ export default defineComponent({
 }
 
 .modal {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+
   position: relative;
-  padding: 35px;
+  padding: 40px;
   opacity: 0;
   z-index: 1011;
 
   background: #ffffff;
   border: 1px solid #e9ecef;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
-  border-radius: 12px;
 
   pointer-events: none;
 
   &[open] {
     opacity: 1;
     pointer-events: auto;
+  }
+
+  @include respond-to(tablet) {
+    min-width: 464px;
+    height: unset;
+    border-radius: 12px;
   }
 }
 

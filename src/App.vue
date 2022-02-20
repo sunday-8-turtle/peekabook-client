@@ -13,4 +13,5 @@
 <style lang="scss">
 @import 'design/_normalize.css';
 @import 'design/_typography.scss';
+@import 'design/_responsive.scss';
 </style>

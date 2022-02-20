@@ -1,0 +1,50 @@
+// https://getbootstrap.com/docs/5.0/layout/breakpoints/#available-breakpoints
+$breakpoints: (
+  'mobile': 576px,
+  'tablet': 768px,
+  'desktop': 992px,
+);
+
+@mixin respond-to($breakpoint, $direction: min) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    $device: map-get($breakpoints, $breakpoint);
+    @media (min-width: $device) {
+      @content;
+    }
+  } @else {
+    @if $direction == min {
+      @media (min-width: $breakpoint) {
+        @content;
+      }
+    } @else {
+      @media (max-width: $breakpoint) {
+        @content;
+      }
+    }
+  }
+}
+
+// 1. 정의해둔 브레이크포인트 사용 (Mobile-first => $breakpoints)
+// .bookmark-item {
+//   width: 100%;
+
+//   @include respond-to(tablet) {
+//     width: 220px;
+//   }
+
+//   @include respond-to(desktop) {
+//     width: 330px;
+//   }
+// }
+
+// 2. 커스텀 사이즈 사용: @include respond-to (커스텀 픽셀, min or max) { ... }
+// .bookmark-item {
+//   width: 100%;
+
+//   @include respond-to(1200px, min) {
+//     width: 350px;
+//   }
+// }
+
+// Todos
+// 디바이스 가로/세로 전환 대응

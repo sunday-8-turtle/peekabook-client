@@ -22,6 +22,13 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   function (error) {
+    // Todos
+    // 응답 에러 처리
+    // -> 서버/네트워크 에러
+    // -> 상태코드별 구체적 대응
+    if (!error.response) {
+      console.error(error);
+    }
     return Promise.reject(error);
   }
 );

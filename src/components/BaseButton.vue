@@ -1,25 +1,71 @@
 <script lang="ts">
 import { defineComponent, PropType } from 'vue';
 
+import BaseLottie from '@/components/BaseLottie.vue';
+
 type Shape = 'fill' | 'line';
 
 export default defineComponent({
+  name: 'BaseButton',
+  components: { BaseLottie },
   props: {
     shape: {
       type: String as PropType<Shape>,
       required: false,
       default: 'fill',
     },
+    isLoading: {
+      type: Boolean,
+      required: false,
+    },
+    fontSize: {
+      type: String,
+      default: '14px',
+    },
+    loaderSize: {
+      type: String,
+      default: '18px',
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+    // height: {
+    //   type: String,
+    //   default: '100%',
+    // },
+    // width: {
+    //   type: String,
+    //   default: '100%',
+    // },
   },
-  setup() {
-    return {};
+  setup(props) {
+    const customStyle = {
+      'font-size': props.fontSize,
+      // width: props.width,
+      // height: props.height,
+    };
+    return { customStyle };
   },
 });
 </script>
 
 <template>
-  <button class="base-button" :class="shape">
-    <slot></slot>
+  <button
+    class="base-button"
+    :class="shape"
+    :style="[customStyle]"
+    :disabled="disabled"
+  >
+    <BaseLottie
+      v-if="isLoading"
+      name="loading-btn"
+      :width="loaderSize"
+      :height="loaderSize"
+    />
+    <span v-else>
+      <slot></slot>
+    </span>
   </button>
 </template>
 
@@ -28,14 +74,23 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 390px;
-  height: 56px;
+
+  width: 100%;
+  height: 100%;
   border-radius: 4px;
+
   font-family: Pretendard;
   font-style: normal;
   font-size: 18px;
   line-height: 140%;
   cursor: pointer;
+
+  &:disabled {
+    background: #ffffff;
+    border: 1px solid #ced4da;
+    color: #ced4da;
+    cursor: not-allowed;
+  }
 }
 
 .line {
