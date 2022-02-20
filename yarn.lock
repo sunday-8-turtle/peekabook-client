@@ -7447,8 +7447,8 @@ nan@^2.12.1:
   integrity "sha1-PzSkc/8Y4VwbVia2KQO1rW5mX+4= sha512-8ZtvEnA2c5aYCZYd1cvgdnU6cqwixRoYg70xPLWUws5ORTa/lnw+u4amixRS/Ac5U5mQVgp9pnlSUnbNWFaWZQ=="
 
 nanoid@^3.1.30:
-  version "3.1.30"
-  resolved "https://registry.npmmirror.com/nanoid/download/nanoid-3.1.30.tgz"
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.1.tgz#6347a18cac88af88f58af0b3594b723d5e99bb35"
 
 nanomatch@^1.2.9:
   version "1.2.13"
