@@ -95,7 +95,6 @@ export default defineComponent({
           email: signupData.email,
         });
         if (certificateResult.result !== 'SUCCESS') {
-          alert(certificateResult.message);
           throw new Error(
             `[${certificateResult.errorCode}] ${certificateResult.message}`
           );
