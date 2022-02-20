@@ -46,7 +46,6 @@ export default defineComponent({
 
         const loginResult = await login(loginData);
         if (loginResult.result !== 'SUCCESS') {
-          alert(loginResult.message);
           throw new Error(`[${loginResult.errorCode}] ${loginResult.message}`);
         }
 
