@@ -10,6 +10,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@types/chrome": "^0.0.178",
     "axios": "^0.24.0",
     "core-js": "^3.6.5",
     "lottie-web": "^5.8.1",

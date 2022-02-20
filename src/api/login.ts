@@ -11,7 +11,7 @@ import {
 } from '@/types/login.types';
 
 async function login(body: LoginRequest): Promise<LoginResponse> {
-  const LOGIN_URL = '/user';
+  const LOGIN_URL = '/user/login';
   const res = await apiPost(LOGIN_URL, body);
   return res.data;
 }
