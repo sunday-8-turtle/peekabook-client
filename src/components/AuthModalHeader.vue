@@ -12,7 +12,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="modal-header">
+  <header class="modal-header">
     <img
       class="logo"
       src="@/assets/logo.svg"
@@ -21,7 +21,7 @@ export default defineComponent({
       height="33"
     />
     <p class="message">피카북에 오신 것을 환영합니다!</p>
-  </div>
+  </header>
 </template>
 
 <style lang="scss" scoped>

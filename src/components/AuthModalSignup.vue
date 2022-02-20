@@ -5,6 +5,7 @@ import BaseModal from '@/components/BaseModal.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import AuthModalHeader from '@/components/AuthModalHeader.vue';
+import AuthModalFooter from '@/components/AuthModalFooter.vue';
 
 import { SignupRequest } from '@/types/login.types';
 import {
@@ -20,6 +21,7 @@ export default defineComponent({
     BaseInput,
     BaseButton,
     AuthModalHeader,
+    AuthModalFooter,
   },
   emits: ['open-login-modal'],
   setup(props, { emit }) {
@@ -147,7 +149,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <BaseModal ref="baseModal" :modalType="'auth'" @close-modal="onClose">
+  <BaseModal ref="baseModal" id="signup-modal" @close-modal="onClose">
     <AuthModalHeader />
     <form
       action="#"
@@ -217,80 +219,64 @@ export default defineComponent({
         회원가입
       </BaseButton>
     </form>
-    <div class="options">
-      <p class="go-login">
-        <span>이미 회원이신가요?</span>
-        &nbsp;
-        <a href="#" @click="goToLogin"> 로그인 하기 </a>
-      </p>
-    </div>
+    <AuthModalFooter :type="'signup'" @open-login-modal="goToLogin" />
   </BaseModal>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import '@/design/_responsive.scss';
 
-.signup-form {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
+#signup-modal {
+  padding: 28px;
 
-  width: 100%;
-  margin-top: 32px;
-  margin-bottom: 40px;
-
-  > div {
-    margin-top: 20px;
-    height: 56px;
+  @include respond-to(tablet) {
+    width: 464px;
+    padding: 40px;
   }
 
-  .input-wrapper {
-    width: 100%;
-    height: 100%;
-    margin-top: 16px;
+  form.signup-form {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
 
-    &:first-child {
-      margin-top: 0;
+    width: 100%;
+    margin-top: 32px;
+    margin-bottom: 40px;
+
+    > div {
+      margin-top: 20px;
+      height: 56px;
     }
 
-    &.two-columns {
-      display: flex;
-      justify-content: space-between;
+    .input-wrapper {
+      width: 100%;
+      height: 100%;
+      margin-top: 16px;
 
-      .email-btn {
-        width: 96px;
+      &:first-child {
+        margin-top: 0;
+      }
+
+      &.two-columns {
+        display: flex;
+        justify-content: space-between;
+
+        .email-btn {
+          width: 96px;
+          height: 56px;
+          margin-left: 8px;
+        }
+      }
+
+      .input {
         height: 56px;
-        margin-left: 8px;
       }
     }
 
-    .input {
+    .submit-btn {
+      margin-top: 40px;
       height: 56px;
-    }
-  }
-
-  .submit-btn {
-    margin-top: 40px;
-    height: 56px;
-  }
-}
-
-.options {
-  margin-bottom: 30px;
-
-  p {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 21px;
-    margin: 0;
-    font-size: 15px;
-    line-height: 140%;
-
-    a {
-      font-weight: 700;
-      color: #ff69b4;
     }
   }
 }

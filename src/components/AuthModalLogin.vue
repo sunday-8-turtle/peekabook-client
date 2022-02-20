@@ -5,6 +5,7 @@ import BaseModal from '@/components/BaseModal.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import AuthModalHeader from '@/components/AuthModalHeader.vue';
+import AuthModalFooter from '@/components/AuthModalFooter.vue';
 
 import { login } from '@/api/login';
 import { LoginRequest } from '@/types/login.types';
@@ -16,6 +17,7 @@ export default defineComponent({
     BaseInput,
     BaseButton,
     AuthModalHeader,
+    AuthModalFooter,
   },
   emits: ['open-signup-modal'],
   setup(props, { emit }) {
@@ -51,11 +53,11 @@ export default defineComponent({
         const token = loginResult.data.token;
         localStorage.token = token;
         alert('로그인 성공!');
+        isSubmitting.value = false;
         baseModal.value?.close();
       } catch (err) {
         console.error(err);
-      } finally {
-        isSubmitting.value = false;
+        baseModal.value?.close();
       }
     };
 
@@ -66,6 +68,7 @@ export default defineComponent({
     const resetData = () => {
       loginData.email = '';
       loginData.password = '';
+      isSubmitting.value = false;
     };
 
     const goToSignup = () => {
@@ -88,7 +91,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <BaseModal ref="baseModal" :modalType="'auth'" @close-modal="onClose">
+  <BaseModal ref="baseModal" id="login-modal" @close-modal="onClose">
     <AuthModalHeader />
     <form
       action="#"
@@ -128,72 +131,49 @@ export default defineComponent({
         로그인
       </BaseButton>
     </form>
-    <div class="options">
-      <p class="go-signup">
-        <span>피카북에 처음 방문하셨나요?</span>
-        &nbsp;
-        <a href="#" @click="goToSignup"> 회원가입 하기 </a>
-      </p>
-      <p class="find-password">
-        <span>비밀번호를 잊으셨나요?</span>
-        &nbsp;
-        <a href="#">비밀번호 찾기</a>
-      </p>
-    </div>
+    <AuthModalFooter :type="'login'" @open-signup-modal="goToSignup" />
   </BaseModal>
 </template>
 
-<style lang="scss" scoped>
-form.login-form {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
+<style lang="scss">
+@import '@/design/_responsive.scss';
 
-  width: 100%;
-  margin-top: 32px;
-  margin-bottom: 40px;
+#login-modal {
+  padding: 28px;
 
-  div.input-wrapper {
-    width: 100%;
-    height: 100%;
-    margin-top: 16px;
-
-    &:first-child {
-      margin-top: 0;
-    }
-
-    .input {
-      height: 56px;
-    }
+  @include respond-to(tablet) {
+    width: 464px;
+    padding: 40px;
   }
 
-  button.submit-btn {
-    height: 56px;
-    margin-top: 40px;
-  }
-}
-
-.options {
-  margin-bottom: 30px;
-
-  p {
+  form.login-form {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: space-between;
     align-items: center;
-    height: 21px;
-    margin: 0;
-    font-size: 15px;
-    line-height: 140%;
 
-    a {
-      font-weight: 700;
-      color: #ff69b4;
+    width: 100%;
+    margin-top: 32px;
+    margin-bottom: 40px;
+
+    div.input-wrapper {
+      width: 100%;
+      height: 100%;
+      margin-top: 16px;
+
+      &:first-child {
+        margin-top: 0;
+      }
+
+      .input {
+        height: 56px;
+      }
     }
-  }
 
-  .find-password {
-    margin-top: 10px;
+    button.submit-btn {
+      height: 56px;
+      margin-top: 40px;
+    }
   }
 }
 </style>

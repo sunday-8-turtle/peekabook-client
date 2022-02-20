@@ -1,22 +1,23 @@
 <script lang="ts">
-import { defineComponent, computed, ref, PropType } from 'vue';
+import { defineComponent, ref, PropType } from 'vue';
 
 type ModalType = 'auth';
 
 export default defineComponent({
   name: 'BaseModal',
+  inheritAttrs: false,
   props: {
-    modalType: {
+    type: {
       type: String as PropType<ModalType>,
       required: false,
     },
   },
   emits: ['close-modal'],
-  setup(props) {
+  setup(props, { attrs }) {
     const modalWrapper = ref<HTMLDivElement>();
     const modal = ref<HTMLElement>();
 
-    return { modalWrapper, modal };
+    return { attrs, modalWrapper, modal };
   },
   methods: {
     open() {
@@ -61,8 +62,8 @@ export default defineComponent({
     <dialog
       ref="modal"
       class="modal"
-      :class="modalType"
       aria-modal="true"
+      v-bind="attrs"
       @click="preventModalClosing"
     >
       <button class="close-btn" aria-label="Close Modal" @click="close">
@@ -95,6 +96,10 @@ export default defineComponent({
 }
 
 .modal {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+
   position: relative;
   padding: 40px;
   opacity: 0;
@@ -103,7 +108,6 @@ export default defineComponent({
   background: #ffffff;
   border: 1px solid #e9ecef;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
-  border-radius: 12px;
 
   pointer-events: none;
 
@@ -111,19 +115,11 @@ export default defineComponent({
     opacity: 1;
     pointer-events: auto;
   }
-}
-
-// 회원가입 모달
-// 회원가입 컴포넌트로 옮겨야 함... :(
-.auth {
-  width: 100%;
 
   @include respond-to(tablet) {
-    width: 464px;
-  }
-
-  @include respond-to(desktop) {
-    width: 464px;
+    min-width: 464px;
+    height: unset;
+    border-radius: 12px;
   }
 }
 
