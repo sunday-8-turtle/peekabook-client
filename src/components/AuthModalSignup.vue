@@ -104,6 +104,7 @@ export default defineComponent({
         showCertificationCodeInput.value = true;
       } catch (err) {
         console.error(err);
+        alert(err);
       } finally {
         isSending.value = false;
       }

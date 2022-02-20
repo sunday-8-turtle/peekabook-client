@@ -53,11 +53,12 @@ export default defineComponent({
         const token = loginResult.data.token;
         localStorage.token = token;
         alert('로그인 성공!');
-        isSubmitting.value = false;
         baseModal.value?.close();
       } catch (err) {
         console.error(err);
-        baseModal.value?.close();
+        alert(err);
+      } finally {
+        isSubmitting.value = false;
       }
     };
 

@@ -1,71 +1,24 @@
 <script lang="ts">
-import { computed, defineComponent, PropType, ref } from 'vue';
-
-type InputType = 'text' | 'email' | 'password';
+import { computed, defineComponent, ref } from 'vue';
 
 export default defineComponent({
   components: {},
   props: {
-    type: {
-      type: String as PropType<InputType>,
-      required: false,
-      default: '',
-    },
     modelValue: {
       type: String,
       required: false,
       default: '',
     },
-    placeholder: {
-      type: String,
-      required: false,
-      default: '',
-    },
-    name: {
-      type: String,
-      required: false,
-      default: '',
-    },
-    autocomplete: {
-      type: String,
-      required: false,
-      default: '',
-    },
-    required: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     isSending: {
       type: Boolean,
       default: false,
     },
-    disabled: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-    // height: {
-    //   type: String,
-    //   default: '100%',
-    // },
-    // width: {
-    //   type: String,
-    //   default: '100%',
-    // },
   },
   emits: ['update:modelValue', 'send-certification-code'],
   setup(props) {
     const input = ref<InstanceType<typeof HTMLInputElement>>();
 
-    const customSize = computed(() => {
-      return {
-        // width: props.width,
-        // height: props.height,
-      };
-    });
-
-    return { input, customSize };
+    return { input };
   },
   methods: {
     isEligibleForSendCode() {
@@ -88,13 +41,6 @@ export default defineComponent({
   <input
     ref="input"
     class="base-input"
-    :style="[customSize]"
-    :type="type"
-    :placeholder="placeholder"
-    :name="name"
-    :autocomplete="autocomplete"
-    :required="required"
-    :disabled="disabled"
     :value="modelValue"
     @input="$emit('update:modelValue', $event.target.value)"
   />
