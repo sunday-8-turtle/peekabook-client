@@ -1,9 +1,11 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
+import { useAuthStore } from '@/store';
 
 import AuthModalLogin from '@/components/AuthModalLogin.vue';
 import AuthModalSignup from '@/components/AuthModalSignup.vue';
 import BaseButton from '@/components/BaseButton.vue';
+import { storeToRefs } from 'pinia';
 
 export default defineComponent({
   name: 'TheGnb',
@@ -14,20 +16,23 @@ export default defineComponent({
   },
   props: {},
   setup() {
+    // Login Modal
     const loginModal = ref<InstanceType<typeof AuthModalLogin>>();
     const openLoginModal = () => loginModal.value?.open();
-
+    // Signup Modal
     const signupModal = ref<InstanceType<typeof AuthModalSignup>>();
     const openSignupModal = () => signupModal.value?.open();
 
-    const loggedIn = false;
+    const authStore = useAuthStore();
+    const { isLoggedIn } = storeToRefs(authStore);
+    // const isLoggedIn = authStore.isLoggedIn;
 
     return {
       loginModal,
       signupModal,
       openLoginModal,
       openSignupModal,
-      loggedIn,
+      isLoggedIn,
     };
   },
 });
@@ -45,7 +50,7 @@ export default defineComponent({
           class="logo"
         />
       </router-link>
-      <template v-if="loggedIn"></template>
+      <template v-if="isLoggedIn"></template>
       <template v-else>
         <div class="auth-buttons">
           <BaseButton class="login" :shape="'line'" @click="openLoginModal">
