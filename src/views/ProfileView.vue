@@ -9,9 +9,13 @@ export default defineComponent({
   components: { BaseInput, BaseButton, ModalConfirm },
   props: {},
   setup() {
-    const isSubmitting = ref(false);
+    // Modal
     const modalConfirm = ref<InstanceType<typeof ModalConfirm>>();
     const openModal = () => modalConfirm.value?.open();
+
+    // Form
+    const isSubmitting = ref(false);
+    const formData = ref();
 
     return {
       isSubmitting,

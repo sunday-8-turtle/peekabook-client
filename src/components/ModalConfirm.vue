@@ -6,6 +6,7 @@ import BaseButton from '@/components/BaseButton.vue';
 export default defineComponent({
   name: 'ModalConfirm',
   components: { BaseButton, BaseModal },
+  emits: ['confirm'],
   props: {
     cancelMsg: {
       type: String,
@@ -26,10 +27,12 @@ export default defineComponent({
   setup() {
     const baseModal = ref<InstanceType<typeof BaseModal>>();
     const open = () => baseModal.value?.open();
+    const close = () => baseModal.value?.close();
 
     return {
       baseModal,
       open,
+      close,
     };
   },
 });
@@ -40,12 +43,20 @@ export default defineComponent({
     <slot class="modal-confirm-body"></slot>
     <footer class="modal-confirm-footer">
       <template v-if="!reversed">
-        <BaseButton class="cancel-btn">{{ cancelMsg }}</BaseButton>
-        <BaseButton class="confirm-btn">{{ confirmMsg }}</BaseButton>
+        <BaseButton class="cancel-btn" @click="close">{{
+          cancelMsg
+        }}</BaseButton>
+        <BaseButton class="confirm-btn" @click="$emit('confirm')">{{
+          confirmMsg
+        }}</BaseButton>
       </template>
       <template else>
-        <BaseButton class="confirm-btn">{{ confirmMsg }}</BaseButton>
-        <BaseButton class="cancel-btn">{{ cancelMsg }}</BaseButton>
+        <BaseButton class="confirm-btn" @click="$emit('confirm')">{{
+          confirmMsg
+        }}</BaseButton>
+        <BaseButton class="cancel-btn" @click="close">{{
+          cancelMsg
+        }}</BaseButton>
       </template>
     </footer>
   </BaseModal>
