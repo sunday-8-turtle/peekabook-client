@@ -1,26 +1,117 @@
 <script lang="ts">
-import { ref, defineComponent } from 'vue';
+import { ref, Ref, reactive, defineComponent } from 'vue';
+
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import ModalConfirm from '@/components/ModalConfirm.vue';
+
+import {
+  ResetPasswordResponse,
+  ResetNicknameResponse,
+} from '@/types/profile.types';
+import { resetNickname, resetPassword, getProfile } from '@/api/profile';
 
 export default defineComponent({
   name: 'ProfileView',
   components: { BaseInput, BaseButton, ModalConfirm },
   props: {},
   setup() {
-    // Modal
+    /**
+     * Profile
+     */
+    const profile = ref({
+      email: '',
+      nickname: '',
+    });
+
+    /**
+     * Modal
+     */
     const modalConfirm = ref<InstanceType<typeof ModalConfirm>>();
     const openModal = () => modalConfirm.value?.open();
 
-    // Form
+    /**
+     * Form
+     */
+    const messageList: Ref<string[]> = ref([]);
+    const setMessage = (error: string) => messageList.value.push(error);
+    const resetMessageList = () => (messageList.value = []);
+
     const isSubmitting = ref(false);
-    const formData = ref();
+    const formData = reactive({
+      nickname: '',
+      password: '',
+      beforePassword: '',
+    });
+    const onSubmit = async (e: Event) => {
+      resetMessageList();
+
+      if (isSubmitting.value) {
+        setMessage('이미 요청하였습니다. 잠시만 기다려주세요.');
+        return;
+      }
+
+      // validation - empty
+      if (!formData.nickname) {
+        setMessage('닉네임을 입력하세요.');
+      }
+      if (
+        (formData.password && !formData.beforePassword) ||
+        formData.password !== formData.beforePassword
+      ) {
+        setMessage('비밀번호가 일치하지 않습니다.');
+      }
+      /**
+       * validation - constraints
+       * nickname: 최대 10자
+       * password: ...
+       */
+      if (formData.nickname.length > 10) {
+        setMessage('닉네임은 최대 10자까지만 가능합니다.');
+      }
+      if (messageList.value.length) return;
+
+      const requests = [] as Promise<
+        ResetNicknameResponse | ResetPasswordResponse
+      >[];
+      requests.push(resetNickname(formData));
+      if (formData.password) requests.push(resetPassword(formData));
+
+      try {
+        isSubmitting.value = true;
+        await Promise.all(requests);
+        setMessage('변경사항이 저장되었습니다.');
+      } catch (e) {
+        console.log(e);
+      }
+
+      isSubmitting.value = false;
+    };
+
+    /**
+     * initial requests
+     */
+    (async () => {
+      try {
+        const response = await getProfile();
+        profile.value = response.data;
+
+        formData.nickname = profile.value.nickname;
+      } catch (err) {
+        console.error(err);
+      }
+    })();
 
     return {
-      isSubmitting,
+      profile,
+
       modalConfirm,
       openModal,
+
+      messageList,
+      isSubmitting,
+      formData,
+      onSubmit,
     };
   },
 });
@@ -32,14 +123,14 @@ export default defineComponent({
       <h1 class="title">설정하기</h1>
     </header>
     <section>
-      <form @submit.prevent>
+      <form @submit.prevent="onSubmit">
         <div class="input-wrapper">
           <label for="nickname">닉네임</label>
           <BaseInput
             name="nickname"
             type="text"
-            value="현재 유저의 닉네임"
             autofocus
+            v-model="formData.nickname"
           />
         </div>
         <div class="input-wrapper">
@@ -47,7 +138,7 @@ export default defineComponent({
           <BaseInput
             name="email"
             type="email"
-            value="현재 유저의 이메일"
+            :value="profile.email"
             disabled
           />
         </div>
@@ -57,6 +148,7 @@ export default defineComponent({
             name="new-password"
             type="password"
             placeholder="변경 비밀번호 입력"
+            v-model="formData.password"
           />
         </div>
         <div class="input-wrapper">
@@ -65,6 +157,7 @@ export default defineComponent({
             name="current-password"
             type="password"
             autocomplete="current-password"
+            v-model="formData.beforePassword"
             placeholder="현재 비밀번호 입력"
           />
         </div>
@@ -82,6 +175,13 @@ export default defineComponent({
         탈퇴하기
       </button>
     </footer>
+    <div class="snackbar-wrapper">
+      <TransitionGroup name="snackbar" tag="ul">
+        <li class="snackbar" v-for="error in messageList" :key="error">
+          {{ error }}
+        </li>
+      </TransitionGroup>
+    </div>
   </main>
   <ModalConfirm ref="modalConfirm" id="modal-confirm">
     <header>
@@ -183,4 +283,50 @@ footer {
     }
   }
 }
+
+.snackbar-wrapper {
+  position: fixed;
+  top: 0;
+  left: calc(50% + 256px);
+
+  width: fit-content;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  margin-left: 56px;
+
+  ul {
+    margin: 0;
+    padding: 0;
+  }
+}
+.snackbar {
+  display: flex;
+  align-items: center;
+
+  height: 48px;
+  padding: 12px 32px;
+  margin-bottom: 40px;
+
+  background: #343a40;
+  color: white;
+  opacity: 0.85;
+
+  border-radius: 99px;
+}
+
+.snackbar-move,
+.snackbar-enter-active {
+  transition: all 0.5s ease;
+}
+.snackbar-enter-from {
+  opacity: 0;
+  transform: translateY(-30px);
+}
+
+// .snackbar-leave-to {
+//   opacity: 0;
+//   transform: translateY(30px);
+// }
 </style>
