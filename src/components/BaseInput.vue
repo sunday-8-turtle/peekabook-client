@@ -60,6 +60,10 @@ export default defineComponent({
 
   caret-color: #ff69b4;
 
+  &:focus {
+    outline: 1px solid #868e96;
+  }
+
   &:disabled {
     background-color: #e9ecef;
     color: #ced4da;

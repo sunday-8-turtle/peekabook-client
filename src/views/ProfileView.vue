@@ -299,21 +299,22 @@ footer {
   ul {
     margin: 0;
     padding: 0;
+
+    li.snackbar {
+      display: flex;
+      align-items: center;
+
+      height: 48px;
+      padding: 12px 32px;
+      margin-bottom: 40px;
+
+      background: #343a40;
+      color: white;
+      opacity: 0.85;
+
+      border-radius: 99px;
+    }
   }
-}
-.snackbar {
-  display: flex;
-  align-items: center;
-
-  height: 48px;
-  padding: 12px 32px;
-  margin-bottom: 40px;
-
-  background: #343a40;
-  color: white;
-  opacity: 0.85;
-
-  border-radius: 99px;
 }
 
 .snackbar-move,
@@ -324,9 +325,4 @@ footer {
   opacity: 0;
   transform: translateY(-30px);
 }
-
-// .snackbar-leave-to {
-//   opacity: 0;
-//   transform: translateY(30px);
-// }
 </style>
