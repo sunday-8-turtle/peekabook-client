@@ -1,11 +1,12 @@
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
 import useAuthStore from '@/store/auth.store';
 
 import AuthModalLogin from '@/components/AuthModalLogin.vue';
 import AuthModalSignup from '@/components/AuthModalSignup.vue';
 import BaseButton from '@/components/BaseButton.vue';
-import { storeToRefs } from 'pinia';
 
 export default defineComponent({
   name: 'TheGnb',
@@ -19,21 +20,38 @@ export default defineComponent({
     // Login Modal
     const loginModal = ref<InstanceType<typeof AuthModalLogin>>();
     const openLoginModal = () => loginModal.value?.open();
+    // 파라미터를 활용한 로그인 모달 열기 (ex- ?initialLoginModal=true)
+    const $route = useRoute();
+    watch(
+      () => $route.query.initialLoginModal,
+      (initialLoginModal) => {
+        if (initialLoginModal) {
+          openLoginModal();
+        }
+      }
+    );
 
     // Signup Modal
     const signupModal = ref<InstanceType<typeof AuthModalSignup>>();
     const openSignupModal = () => signupModal.value?.open();
 
-    // isLoggedIn
+    // loggedIn
     const authStore = useAuthStore();
-    const { isLoggedIn } = storeToRefs(authStore);
+    const { loggedIn } = storeToRefs(authStore);
+
+    const $router = useRouter();
+    const redirectToPreviousPage = () => {
+      const targetPage = $route.redirectedFrom ?? 'MainView';
+      $router.push(targetPage);
+    };
 
     return {
       loginModal,
       signupModal,
       openLoginModal,
       openSignupModal,
-      isLoggedIn,
+      loggedIn,
+      redirectToPreviousPage,
     };
   },
 });
@@ -41,7 +59,7 @@ export default defineComponent({
 
 <template>
   <header>
-    <nav :class="{ loggedIn: isLoogedIn }">
+    <nav>
       <div class="logo-title">
         <router-link class="title" :to="{ name: 'LandingPageView' }">
           <img
@@ -53,7 +71,7 @@ export default defineComponent({
           />
         </router-link>
       </div>
-      <template v-if="isLoggedIn">
+      <template v-if="loggedIn">
         <div class="center-container">
           <ul class="menus">
             <li>
@@ -98,7 +116,11 @@ export default defineComponent({
       </template>
     </nav>
 
-    <AuthModalLogin ref="loginModal" @open-signup-modal="openSignupModal" />
+    <AuthModalLogin
+      ref="loginModal"
+      @open-signup-modal="openSignupModal"
+      @redirect-to-previous-page="redirectToPreviousPage"
+    />
     <AuthModalSignup ref="signupModal" @open-login-modal="openLoginModal" />
   </header>
 </template>
@@ -165,13 +187,15 @@ header {
           list-style: none;
 
           a {
-            color: inherit;
+            color: #ced4da;
             text-decoration: none;
 
             font-weight: bold;
             font-size: 16px;
 
             &.router-link-active {
+              color: #343a40;
+
               &::after {
                 content: '';
                 width: 100%;

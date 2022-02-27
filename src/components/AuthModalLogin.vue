@@ -20,7 +20,7 @@ export default defineComponent({
     AuthModalHeader,
     AuthModalFooter,
   },
-  emits: ['open-signup-modal'],
+  emits: ['open-signup-modal', 'redirect-to-previous-page'],
   setup(props, { emit }) {
     const baseModal = ref<InstanceType<typeof BaseModal>>();
     const open = () => baseModal.value?.open();
@@ -52,14 +52,15 @@ export default defineComponent({
         }
 
         // 익스텐션에 토큰 전달
-        alert('로그인 성공!');
+        // alert('로그인 성공!');
         sendMessageToExtension({ token: user.token });
         baseModal.value?.close();
+        isSubmitting.value = false;
+
+        emit('redirect-to-previous-page');
       } catch (err) {
         console.error(err);
         alert(err);
-      } finally {
-        isSubmitting.value = false;
       }
     };
 

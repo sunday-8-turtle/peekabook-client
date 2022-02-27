@@ -7,8 +7,8 @@ import { getSavedState, saveState } from './helpers';
 
 const user: CurrentUserState | undefined = getSavedState('user');
 const initialUserState = user
-  ? { isLoggedIn: true, user }
-  : { isLoggedIn: false, user: null };
+  ? { loggedIn: true, user }
+  : { loggedIn: false, user: null };
 
 const useAuthStore = defineStore('auth', {
   state: () => {
@@ -24,13 +24,13 @@ const useAuthStore = defineStore('auth', {
       }
       const user = res.data;
 
-      this.isLoggedIn = true;
+      this.loggedIn = true;
       this.user = user;
       saveState('user', user);
       return user;
     },
     logout() {
-      this.isLoggedIn = false;
+      this.loggedIn = false;
       this.user = null;
       localStorage.removeItem('user');
     },
