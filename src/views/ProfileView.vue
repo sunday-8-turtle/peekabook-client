@@ -1,9 +1,10 @@
 <script lang="ts">
-import { ref, Ref, reactive, defineComponent } from 'vue';
+import { ref, reactive, defineComponent } from 'vue';
 
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import ModalConfirm from '@/components/ModalConfirm.vue';
+import Snackbar from '@/components/Snackbar.vue';
 
 import {
   ResetPasswordResponse,
@@ -13,63 +14,46 @@ import { resetNickname, resetPassword, getProfile } from '@/api/profile';
 
 export default defineComponent({
   name: 'ProfileView',
-  components: { BaseInput, BaseButton, ModalConfirm },
+  components: { BaseInput, BaseButton, ModalConfirm, Snackbar },
   props: {},
   setup() {
-    /**
-     * Profile
-     */
     const profile = ref({
       email: '',
       nickname: '',
     });
 
-    /**
-     * Modal
-     */
     const modalConfirm = ref<InstanceType<typeof ModalConfirm>>();
     const openModal = () => modalConfirm.value?.open();
 
-    /**
-     * Form
-     */
-    const messageList: Ref<string[]> = ref([]);
-    const setMessage = (error: string) => messageList.value.push(error);
-    const resetMessageList = () => (messageList.value = []);
-
+    const snackbarMessage = ref('');
     const isSubmitting = ref(false);
     const formData = reactive({
       nickname: '',
       password: '',
       beforePassword: '',
     });
-    const onSubmit = async (e: Event) => {
-      resetMessageList();
+    const onSubmit = async () => {
+      snackbarMessage.value = '';
 
       if (isSubmitting.value) {
-        setMessage('이미 요청하였습니다. 잠시만 기다려주세요.');
+        snackbarMessage.value = '이미 요청하였습니다. 잠시만 기다려주세요.';
         return;
       }
 
-      // validation - empty
       if (!formData.nickname) {
-        setMessage('닉네임을 입력하세요.');
+        snackbarMessage.value = '닉네임을 입력하세요.';
+        return;
       }
-      if (
-        (formData.password && !formData.beforePassword) ||
-        formData.password !== formData.beforePassword
-      ) {
-        setMessage('비밀번호가 일치하지 않습니다.');
+
+      if (formData.password && !formData.beforePassword) {
+        snackbarMessage.value = '현재 비밀번호를 입력해주세요.';
+        return;
       }
-      /**
-       * validation - constraints
-       * nickname: 최대 10자
-       * password: ...
-       */
+
       if (formData.nickname.length > 10) {
-        setMessage('닉네임은 최대 10자까지만 가능합니다.');
+        snackbarMessage.value = '닉네임은 최대 10자까지만 가능합니다.';
+        return;
       }
-      if (messageList.value.length) return;
 
       const requests = [] as Promise<
         ResetNicknameResponse | ResetPasswordResponse
@@ -80,7 +64,7 @@ export default defineComponent({
       try {
         isSubmitting.value = true;
         await Promise.all(requests);
-        setMessage('변경사항이 저장되었습니다.');
+        snackbarMessage.value = '변경사항이 저장되었습니다.';
       } catch (e) {
         console.log(e);
       }
@@ -88,9 +72,6 @@ export default defineComponent({
       isSubmitting.value = false;
     };
 
-    /**
-     * initial requests
-     */
     (async () => {
       try {
         const response = await getProfile();
@@ -108,7 +89,7 @@ export default defineComponent({
       modalConfirm,
       openModal,
 
-      messageList,
+      snackbarMessage,
       isSubmitting,
       formData,
       onSubmit,
@@ -170,19 +151,14 @@ export default defineComponent({
         >
       </form>
     </section>
+    <Snackbar v-if="snackbarMessage" :message="snackbarMessage" />
     <footer>
       <button @click="openModal" type="button" class="resign-btn">
         탈퇴하기
       </button>
     </footer>
-    <div class="snackbar-wrapper">
-      <TransitionGroup name="snackbar" tag="ul">
-        <li class="snackbar" v-for="error in messageList" :key="error">
-          {{ error }}
-        </li>
-      </TransitionGroup>
-    </div>
   </main>
+
   <ModalConfirm ref="modalConfirm" id="modal-confirm">
     <header>
       <p>모든 즐겨찾기 기록이 사라집니다.</p>
@@ -282,47 +258,5 @@ footer {
       font-weight: 600;
     }
   }
-}
-
-.snackbar-wrapper {
-  position: fixed;
-  top: 0;
-  left: calc(50% + 256px);
-
-  width: fit-content;
-  height: 100vh;
-
-  display: flex;
-  flex-direction: column;
-  margin-left: 56px;
-
-  ul {
-    margin: 0;
-    padding: 0;
-
-    li.snackbar {
-      display: flex;
-      align-items: center;
-
-      height: 48px;
-      padding: 12px 32px;
-      margin-bottom: 40px;
-
-      background: #343a40;
-      color: white;
-      opacity: 0.85;
-
-      border-radius: 99px;
-    }
-  }
-}
-
-.snackbar-move,
-.snackbar-enter-active {
-  transition: all 0.5s ease;
-}
-.snackbar-enter-from {
-  opacity: 0;
-  transform: translateY(-30px);
 }
 </style>
