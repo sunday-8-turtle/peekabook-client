@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent, ref, PropType } from 'vue';
 
-type ModalType = 'auth';
+type ModalType = 'auth' | 'confirm';
 
 export default defineComponent({
   name: 'BaseModal',
@@ -39,7 +39,7 @@ export default defineComponent({
       document.removeEventListener('keydown', this.setEscKeydownEvent);
       this.$emit('close-modal');
     },
-    preventModalClosing(e: PointerEvent) {
+    preventModalClosing(e: MouseEvent) {
       e.stopPropagation();
     },
     setEscKeydownEvent(e: KeyboardEvent) {
@@ -66,7 +66,12 @@ export default defineComponent({
       v-bind="attrs"
       @click="preventModalClosing"
     >
-      <button class="close-btn" aria-label="Close Modal" @click="close">
+      <button
+        v-if="type !== 'confirm'"
+        class="close-btn"
+        aria-label="Close Modal"
+        @click="close"
+      >
         <img src="@/assets/icons/close-modal.svg" alt="close-modal-btn" />
       </button>
       <slot></slot>
