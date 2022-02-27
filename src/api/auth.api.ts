@@ -1,4 +1,5 @@
-import { apiPost } from './index';
+import httpClient from '.';
+import { PKBResponse } from '@/types';
 import {
   LoginRequest,
   LoginResponse,
@@ -8,33 +9,35 @@ import {
   SendCertificationCodeResponse,
   VerifyCertificationCodeRequest,
   VerifyCertificationCodeResponse,
-} from '@/types/login.types';
+} from '@/types/auth.types';
 
-async function login(body: LoginRequest): Promise<LoginResponse> {
+async function login(body: LoginRequest): Promise<PKBResponse<LoginResponse>> {
   const LOGIN_URL = '/user/login';
-  const res = await apiPost(LOGIN_URL, body);
+  const res = await httpClient.post(LOGIN_URL, body);
   return res.data;
 }
 
-async function signup(body: SignupRequest): Promise<SignupResponse> {
+async function signup(
+  body: SignupRequest
+): Promise<PKBResponse<SignupResponse>> {
   const SIGNUP_URL = '/user/signup';
-  const res = await apiPost(SIGNUP_URL, body);
+  const res = await httpClient.post(SIGNUP_URL, body);
   return res.data;
 }
 
 async function sendCertificationCode(
   body: SendCertificationCodeRequest
-): Promise<SendCertificationCodeResponse> {
+): Promise<PKBResponse<SendCertificationCodeResponse>> {
   const SEND_EMAIL_CERTIFICATE_URL = '/user/email/send';
-  const res = await apiPost(SEND_EMAIL_CERTIFICATE_URL, body);
+  const res = await httpClient.post(SEND_EMAIL_CERTIFICATE_URL, body);
   return res.data;
 }
 
 async function verifyCertificationCode(
   body: VerifyCertificationCodeRequest
-): Promise<VerifyCertificationCodeResponse> {
+): Promise<PKBResponse<VerifyCertificationCodeResponse>> {
   const VERIFY_EAMIL_CERTIFICATE_URL = '/user/email/certification';
-  const res = await apiPost(VERIFY_EAMIL_CERTIFICATE_URL, body);
+  const res = await httpClient.post(VERIFY_EAMIL_CERTIFICATE_URL, body);
   return res.data;
 }
 

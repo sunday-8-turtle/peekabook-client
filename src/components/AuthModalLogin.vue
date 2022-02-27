@@ -1,5 +1,6 @@
 <script lang="ts">
 import { defineComponent, ref, reactive, computed } from 'vue';
+import useAuthStore from '@/store/auth.store';
 
 import BaseModal from '@/components/BaseModal.vue';
 import BaseInput from '@/components/BaseInput.vue';
@@ -7,8 +8,7 @@ import BaseButton from '@/components/BaseButton.vue';
 import AuthModalHeader from '@/components/AuthModalHeader.vue';
 import AuthModalFooter from '@/components/AuthModalFooter.vue';
 
-import { login } from '@/api/login';
-import { LoginRequest } from '@/types/login.types';
+import { LoginRequest } from '@/types/auth.types';
 import { sendMessageToExtension } from '@/api/extension';
 
 export default defineComponent({
@@ -26,8 +26,9 @@ export default defineComponent({
     const open = () => baseModal.value?.open();
     const onClose = () => resetData();
 
+    const authStore = useAuthStore();
     const isSubmitting = ref(false);
-    const loginData: LoginRequest = reactive({
+    const loginBody: LoginRequest = reactive({
       email: '',
       password: '',
     });
@@ -45,15 +46,14 @@ export default defineComponent({
 
         isSubmitting.value = true;
 
-        const loginResult = await login(loginData);
-        if (loginResult.result !== 'SUCCESS') {
-          throw new Error(`[${loginResult.errorCode}] ${loginResult.message}`);
+        const user = await authStore.login(loginBody);
+        if (!user) {
+          throw new Error('Login Error');
         }
 
-        const token = loginResult.data.token;
-        localStorage.token = token;
+        // 익스텐션에 토큰 전달
         alert('로그인 성공!');
-        sendMessageToExtension({ token });
+        sendMessageToExtension({ token: user.token });
         baseModal.value?.close();
       } catch (err) {
         console.error(err);
@@ -64,12 +64,12 @@ export default defineComponent({
     };
 
     const isFormFilled = computed(() => {
-      return loginData.email && loginData.password;
+      return loginBody.email && loginBody.password;
     });
 
     const resetData = () => {
-      loginData.email = '';
-      loginData.password = '';
+      loginBody.email = '';
+      loginBody.password = '';
       isSubmitting.value = false;
     };
 
@@ -82,7 +82,7 @@ export default defineComponent({
       open,
       onClose,
       isSubmitting,
-      loginData,
+      loginBody,
       onLogin,
       isFormFilled,
       resetData,
@@ -103,7 +103,7 @@ export default defineComponent({
     >
       <div class="input-wrapper">
         <BaseInput
-          v-model="loginData.email"
+          v-model="loginBody.email"
           class="input input-email"
           type="email"
           name="email"
@@ -113,7 +113,7 @@ export default defineComponent({
       </div>
       <div class="input-wrapper">
         <BaseInput
-          v-model="loginData.password"
+          v-model="loginBody.password"
           class="input input-password"
           type="password"
           name="password"

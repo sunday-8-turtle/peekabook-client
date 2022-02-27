@@ -1,8 +1,7 @@
-interface CommonResponse {
-  result: 'SUCCESS' | 'FAIL';
-  message: string | null;
-  errorCode: number | null;
-  timestamp: string;
+interface CurrentUserState {
+  token: string;
+  refreshToken: string;
+  expireTime: string;
 }
 
 interface LoginRequest {
@@ -10,12 +9,10 @@ interface LoginRequest {
   password: string;
 }
 
-interface LoginResponse extends CommonResponse {
-  data: {
-    token: string;
-    expireTime: string;
-    refreshToken: string;
-  };
+interface LoginResponse {
+  token: string;
+  refreshToken: string;
+  expireTime: string;
 }
 
 interface SignupRequest {
@@ -25,7 +22,7 @@ interface SignupRequest {
   certificationCode: string;
 }
 
-interface SignupResponse extends CommonResponse {
+interface SignupResponse {
   data: null;
 }
 
@@ -33,7 +30,7 @@ interface SendCertificationCodeRequest {
   email: string;
 }
 
-interface SendCertificationCodeResponse extends CommonResponse {
+interface SendCertificationCodeResponse {
   email: string;
   certificationCode: string;
 }
@@ -43,11 +40,12 @@ interface VerifyCertificationCodeRequest {
   certificationCode: string;
 }
 
-interface VerifyCertificationCodeResponse extends CommonResponse {
+interface VerifyCertificationCodeResponse {
   data: null;
 }
 
 export {
+  CurrentUserState,
   LoginRequest,
   LoginResponse,
   SignupRequest,

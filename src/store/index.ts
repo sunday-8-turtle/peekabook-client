@@ -1,5 +1,4 @@
 import { defineStore } from 'pinia';
-import useAuthStore from './auth.store';
 
 const useMainStore = defineStore('main', {
   state: () => {
@@ -9,4 +8,4 @@ const useMainStore = defineStore('main', {
   },
 });
 
-export { useMainStore, useAuthStore };
+export default useMainStore;

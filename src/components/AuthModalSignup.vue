@@ -7,12 +7,12 @@ import BaseButton from '@/components/BaseButton.vue';
 import AuthModalHeader from '@/components/AuthModalHeader.vue';
 import AuthModalFooter from '@/components/AuthModalFooter.vue';
 
-import { SignupRequest } from '@/types/login.types';
+import { SignupRequest } from '@/types/auth.types';
 import {
   sendCertificationCode,
   verifyCertificationCode,
   signup,
-} from '@/api/login';
+} from '@/api/auth.api';
 
 export default defineComponent({
   name: 'AuthModalSignup',

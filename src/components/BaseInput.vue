@@ -1,5 +1,5 @@
 <script lang="ts">
-import { computed, defineComponent, ref } from 'vue';
+import { defineComponent } from 'vue';
 
 export default defineComponent({
   components: {},
@@ -14,25 +14,9 @@ export default defineComponent({
       default: false,
     },
   },
-  emits: ['update:modelValue', 'send-certification-code'],
-  setup(props) {
-    const input = ref<InstanceType<typeof HTMLInputElement>>();
-
-    return { input };
-  },
-  methods: {
-    isEligibleForSendCode() {
-      if (!this.input) {
-        console.error('Input 엘리먼트를 찾을 수 없습니다.');
-        return false;
-      }
-      if (!this.input.checkValidity()) {
-        console.error('이메일 형식이 올바르지 않습니다.');
-        return false;
-      }
-
-      return true;
-    },
+  emits: ['update:modelValue'],
+  setup() {
+    return {};
   },
 });
 </script>
