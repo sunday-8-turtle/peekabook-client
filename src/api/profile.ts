@@ -1,4 +1,4 @@
-import { apiGet, apiPut } from './index';
+import { apiDelete, apiGet, apiPut } from './index';
 import {
   ResetNicknameRequest,
   ResetPasswordRequest,
@@ -29,4 +29,9 @@ const getProfile = async (): Promise<Profile> => {
   return res.data;
 };
 
-export { resetNickname, resetPassword, getProfile };
+const deleteAccount = async (): Promise<void> => {
+  const url = '/user';
+  await apiDelete(url);
+};
+
+export { resetNickname, resetPassword, getProfile, deleteAccount };

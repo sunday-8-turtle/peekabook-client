@@ -23,6 +23,11 @@ export default defineComponent({
       required: false,
       default: false,
     },
+    disableConfirm: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   setup() {
     const baseModal = ref<InstanceType<typeof BaseModal>>();
@@ -46,14 +51,20 @@ export default defineComponent({
         <BaseButton class="cancel-btn" @click="close">{{
           cancelMsg
         }}</BaseButton>
-        <BaseButton class="confirm-btn" @click="$emit('confirm')">{{
-          confirmMsg
-        }}</BaseButton>
+        <BaseButton
+          :disabled="disableConfirm"
+          class="confirm-btn"
+          @click="$emit('confirm')"
+          >{{ confirmMsg }}</BaseButton
+        >
       </template>
-      <template else>
-        <BaseButton class="confirm-btn" @click="$emit('confirm')">{{
-          confirmMsg
-        }}</BaseButton>
+      <template v-else>
+        <BaseButton
+          :disabled="disableConfirm"
+          class="confirm-btn"
+          @click="$emit('confirm')"
+          >{{ confirmMsg }}</BaseButton
+        >
         <BaseButton class="cancel-btn" @click="close">{{
           cancelMsg
         }}</BaseButton>
@@ -66,6 +77,7 @@ export default defineComponent({
 @import '@/design/_responsive.scss';
 
 #modal-confirm {
+  height: unset;
   width: 320px;
   padding: 0px 20px 20px 20px;
 

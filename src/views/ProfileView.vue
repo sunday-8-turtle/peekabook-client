@@ -1,5 +1,6 @@
 <script lang="ts">
 import { ref, reactive, defineComponent } from 'vue';
+import { useRouter } from 'vue-router';
 
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
@@ -10,48 +11,81 @@ import {
   ResetPasswordResponse,
   ResetNicknameResponse,
 } from '@/types/profile.types';
-import { resetNickname, resetPassword, getProfile } from '@/api/profile';
+import {
+  resetNickname,
+  resetPassword,
+  getProfile,
+  deleteAccount,
+} from '@/api/profile';
 
 export default defineComponent({
   name: 'ProfileView',
   components: { BaseInput, BaseButton, ModalConfirm, Snackbar },
-  props: {},
   setup() {
-    const profile = ref({
-      email: '',
-      nickname: '',
-    });
+    const router = useRouter();
+    const goToMain = () => router.push('/');
 
     const modalConfirm = ref<InstanceType<typeof ModalConfirm>>();
-    const openModal = () => modalConfirm.value?.open();
+    const hasConfirmed = ref(false);
+    const confirmEmail = ref('');
+    const openModal = () => {
+      hasConfirmed.value = false;
+      modalConfirm.value?.open();
+    };
+    const onConfirmDeleteACcount = async () => {
+      if (!hasConfirmed.value) {
+        hasConfirmed.value = true;
+        return;
+      } else {
+        isSubmitting.value = true;
+        await deleteAccount();
+        isSubmitting.value = false;
+        alert('계정이 삭제되었습니다.');
+        goToMain();
+      }
+    };
 
-    const snackbarMessage = ref('');
+    const snackbarMessage = ref();
     const isSubmitting = ref(false);
     const formData = reactive({
       nickname: '',
       password: '',
       beforePassword: '',
     });
+    const MESSAEG_SET = {
+      NO_NICKNAME: '닉네임을 입력하세요.',
+      NO_NEW_PASSWORD: '변경 비밀번호를 입력해주세요.',
+      NO_BEFORE_PASSWORD: '현재 비밀번호를 입력해주세요.',
+      INVALID_NICKNAME: '닉네임은 최대 10자까지만 가능합니다.',
+      INVALID_PASSWORD: '유효하지 않은 비밀번호입니다.',
+      REQUEST_SUCCESS: '변경사항이 저장되었습니다.',
+      REQUEST_DUPLICATE: '이미 요청하였습니다. 잠시만 기다려주세요.',
+    };
     const onSubmit = async () => {
       snackbarMessage.value = '';
 
       if (isSubmitting.value) {
-        snackbarMessage.value = '이미 요청하였습니다. 잠시만 기다려주세요.';
+        snackbarMessage.value = MESSAEG_SET.REQUEST_DUPLICATE;
         return;
       }
 
+      // (todo) 비활성화 상태 추가되면 필요 없어짐
       if (!formData.nickname) {
-        snackbarMessage.value = '닉네임을 입력하세요.';
+        snackbarMessage.value = MESSAEG_SET.NO_NICKNAME;
         return;
       }
 
       if (formData.password && !formData.beforePassword) {
-        snackbarMessage.value = '현재 비밀번호를 입력해주세요.';
+        snackbarMessage.value = MESSAEG_SET.NO_BEFORE_PASSWORD;
+        return;
+      }
+      if (formData.beforePassword && !formData.password) {
+        snackbarMessage.value = MESSAEG_SET.NO_NEW_PASSWORD;
         return;
       }
 
       if (formData.nickname.length > 10) {
-        snackbarMessage.value = '닉네임은 최대 10자까지만 가능합니다.';
+        snackbarMessage.value = MESSAEG_SET.INVALID_NICKNAME;
         return;
       }
 
@@ -61,17 +95,24 @@ export default defineComponent({
       requests.push(resetNickname(formData));
       if (formData.password) requests.push(resetPassword(formData));
 
-      try {
-        isSubmitting.value = true;
-        await Promise.all(requests);
-        snackbarMessage.value = '변경사항이 저장되었습니다.';
-      } catch (e) {
-        console.log(e);
+      isSubmitting.value = true;
+      const responseList = await Promise.all(requests);
+      isSubmitting.value = false;
+
+      for (const response of responseList) {
+        if (response.result === 'FAIL') {
+          snackbarMessage.value = response.message;
+          return;
+        }
       }
 
-      isSubmitting.value = false;
+      snackbarMessage.value = MESSAEG_SET.REQUEST_SUCCESS;
     };
 
+    const profile = ref({
+      email: '',
+      nickname: '',
+    });
     (async () => {
       try {
         const response = await getProfile();
@@ -84,15 +125,18 @@ export default defineComponent({
     })();
 
     return {
-      profile,
-
       modalConfirm,
       openModal,
+      confirmEmail,
+      hasConfirmed,
+      onConfirmDeleteACcount,
 
       snackbarMessage,
       isSubmitting,
       formData,
       onSubmit,
+
+      profile,
     };
   },
 });
@@ -151,18 +195,32 @@ export default defineComponent({
         >
       </form>
     </section>
-    <Snackbar v-if="snackbarMessage" :message="snackbarMessage" />
     <footer>
       <button @click="openModal" type="button" class="resign-btn">
         탈퇴하기
       </button>
     </footer>
   </main>
-
-  <ModalConfirm ref="modalConfirm" id="modal-confirm">
-    <header>
+  <Snackbar v-if="snackbarMessage" :message="snackbarMessage" />
+  <ModalConfirm
+    ref="modalConfirm"
+    id="modal-confirm"
+    :reversed="hasConfirmed"
+    :disableConfirm="hasConfirmed && confirmEmail !== profile.email"
+    :confirmMsg="hasConfirmed ? '회원 탈퇴' : '네'"
+    :cancelMsg="hasConfirmed ? '취소' : '아니오'"
+    @confirm="onConfirmDeleteACcount"
+  >
+    <header v-if="!hasConfirmed" class="decision-request">
       <p>모든 즐겨찾기 기록이 사라집니다.</p>
       <p>정말로.. 탈퇴하시나요?</p>
+    </header>
+    <header v-else class="final-request">
+      <p>가입하신 이메일을 입력해주세요.</p>
+      <BaseInput
+        placeholder="peekabook@gmail.com"
+        v-model="confirmEmail"
+      ></BaseInput>
     </header>
   </ModalConfirm>
 </template>
@@ -244,18 +302,42 @@ footer {
 
 #modal-confirm {
   header {
-    height: 128px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+  }
+
+  p {
+    font-size: 17px;
+    line-height: 26px;
+    color: #17191b;
+    font-weight: 600;
+  }
+  header.decision-request {
+    height: 128px;
 
     p {
       margin: 0;
       font-size: 17px;
-      line-height: 26px;
+    }
+  }
+
+  header.final-request {
+    p {
+      margin-top: 40px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    input {
+      height: 48px;
+      margin-bottom: 32px;
+
+      font-weight: normal;
+      font-size: 15px;
+      line-height: 22px;
       color: #343a40;
-      font-weight: 600;
     }
   }
 }
