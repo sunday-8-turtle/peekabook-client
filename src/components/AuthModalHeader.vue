@@ -15,8 +15,8 @@ export default defineComponent({
   <header class="modal-header">
     <img
       class="logo"
-      src="@/assets/logo.svg"
-      alt="logo"
+      src="@/assets/peekabook-logo-title.svg"
+      alt="peekabook title"
       width="184"
       height="33"
     />

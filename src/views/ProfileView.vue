@@ -161,67 +161,69 @@ export default defineComponent({
 </script>
 
 <template>
-  <main class="wrapper">
-    <header>
-      <h1 class="title">설정하기</h1>
-    </header>
-    <section>
-      <form @submit.prevent="onSubmit">
-        <div class="input-wrapper">
-          <label for="nickname">닉네임</label>
-          <BaseInput
-            name="nickname"
-            type="text"
-            autofocus
-            v-model="formData.nickname"
-            :error="formDataErrors.nickname"
-          />
-        </div>
-        <div class="input-wrapper">
-          <label for="email">이메일</label>
-          <BaseInput
-            name="email"
-            type="email"
-            :value="profile.email"
-            disabled
-          />
-        </div>
-        <div class="input-wrapper">
-          <label for="new-password">변경 비밀번호</label>
-          <BaseInput
-            name="new-password"
-            type="password"
-            placeholder="변경 비밀번호 입력"
-            v-model="formData.password"
-            :error="formDataErrors.password"
-          />
-        </div>
-        <div class="input-wrapper">
-          <label for="current-password">현재 비밀번호</label>
-          <BaseInput
-            name="current-password"
-            type="password"
-            autocomplete="current-password"
-            v-model="formData.beforePassword"
-            placeholder="현재 비밀번호 입력"
-            :error="formDataErrors.beforePassword"
-          />
-        </div>
-        <BaseButton
-          type="submit"
-          class="submit-btn"
-          :fontSize="'18px'"
-          :isLoading="isSubmitting"
-          >저장</BaseButton
-        >
-      </form>
-    </section>
-    <footer>
-      <button @click="openModal" type="button" class="resign-btn">
-        탈퇴하기
-      </button>
-    </footer>
-  </main>
+  <div class="wrapper">
+    <div class="profile">
+      <header>
+        <h1 class="title">설정하기</h1>
+      </header>
+      <section>
+        <form @submit.prevent="onSubmit">
+          <div class="input-wrapper">
+            <label for="nickname">닉네임</label>
+            <BaseInput
+              name="nickname"
+              type="text"
+              autofocus
+              v-model="formData.nickname"
+              :error="formDataErrors.nickname"
+            />
+          </div>
+          <div class="input-wrapper">
+            <label for="email">이메일</label>
+            <BaseInput
+              name="email"
+              type="email"
+              :value="profile.email"
+              disabled
+            />
+          </div>
+          <div class="input-wrapper">
+            <label for="new-password">변경 비밀번호</label>
+            <BaseInput
+              name="new-password"
+              type="password"
+              placeholder="변경 비밀번호 입력"
+              v-model="formData.password"
+              :error="formDataErrors.password"
+            />
+          </div>
+          <div class="input-wrapper">
+            <label for="current-password">현재 비밀번호</label>
+            <BaseInput
+              name="current-password"
+              type="password"
+              autocomplete="current-password"
+              v-model="formData.beforePassword"
+              placeholder="현재 비밀번호 입력"
+              :error="formDataErrors.beforePassword"
+            />
+          </div>
+          <BaseButton
+            type="submit"
+            class="submit-btn"
+            :fontSize="'18px'"
+            :isLoading="isSubmitting"
+            >저장</BaseButton
+          >
+        </form>
+      </section>
+      <footer>
+        <button @click="openModal" type="button" class="resign-btn">
+          탈퇴하기
+        </button>
+      </footer>
+    </div>
+  </div>
   <Snackbar :message="snackbarMessage" />
   <ModalConfirm
     ref="modalConfirm"
@@ -248,13 +250,26 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .wrapper {
-  position: fixed;
+  height: calc(100vh - 72px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+  background-color: #f8f9fa;
+}
+
+.profile {
   width: 512px;
   height: 612px;
-  padding: 56px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  // position: fixed;
+  // padding: 56px;
+  // top: 50%;
+  // left: 50%;
+  // transform: translate(-50%, -50%);
 
   background: #ffffff;
   border: 1px solid #e9ecef;
