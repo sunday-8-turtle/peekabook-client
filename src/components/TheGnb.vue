@@ -7,6 +7,8 @@ import useAuthStore from '@/store/auth.store';
 import AuthModalLogin from '@/components/AuthModalLogin.vue';
 import AuthModalSignup from '@/components/AuthModalSignup.vue';
 import BaseButton from '@/components/BaseButton.vue';
+import BaseContextMenu from '@/components/BaseContextMenu.vue';
+import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
 
 export default defineComponent({
   name: 'TheGnb',
@@ -14,6 +16,8 @@ export default defineComponent({
     AuthModalLogin,
     AuthModalSignup,
     BaseButton,
+    BaseContextMenu,
+    BaseContextMenuItem,
   },
   props: {},
   setup() {
@@ -45,6 +49,16 @@ export default defineComponent({
       $router.push(targetPage);
     };
 
+    // User Context Menu
+    const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
+    const showUserContextMenu = ref(false);
+    const toggleUserContextMenu = () => {
+      showUserContextMenu.value = !showUserContextMenu.value;
+      showUserContextMenu.value
+        ? userContextMenu.value?.open()
+        : userContextMenu.value?.close();
+    };
+
     return {
       loginModal,
       signupModal,
@@ -52,6 +66,9 @@ export default defineComponent({
       openSignupModal,
       loggedIn,
       redirectToPreviousPage,
+      userContextMenu,
+      showUserContextMenu,
+      toggleUserContextMenu,
     };
   },
 });
@@ -61,7 +78,10 @@ export default defineComponent({
   <header>
     <nav>
       <div class="logo-title">
-        <router-link class="title" :to="{ name: 'LandingPageView' }">
+        <router-link
+          class="title"
+          :to="{ name: loggedIn ? 'MainView' : 'LandingPageView' }"
+        >
           <img
             src="@/assets/peekabook-logo-title.svg"
             alt="title"
@@ -75,10 +95,10 @@ export default defineComponent({
         <div class="center-container">
           <ul class="menus">
             <li>
-              <router-link :to="{ name: 'MainView' }"> 내 북마크 </router-link>
+              <router-link :to="{ name: 'MainView' }">내 북마크</router-link>
             </li>
             <li>
-              <router-link :to="{ name: 'ExploreView' }"> 탐색 </router-link>
+              <router-link :to="{ name: 'ExploreView' }">탐색</router-link>
             </li>
           </ul>
           <div class="search-container">
@@ -99,8 +119,12 @@ export default defineComponent({
             />
             <img src="@/assets/icons/gnb-noti.svg" alt="noti icon" />
           </button>
-          <button class="profile">
+          <button class="profile" @click="toggleUserContextMenu">
             <img src="@/assets/icons/gnb-user.svg" alt="noti icon" />
+            <BaseContextMenu ref="userContextMenu">
+              <BaseContextMenuItem>계정 정보 설정</BaseContextMenuItem>
+              <BaseContextMenuItem>로그아웃</BaseContextMenuItem>
+            </BaseContextMenu>
           </button>
         </div>
       </template>
@@ -249,6 +273,7 @@ header {
       display: flex;
 
       button {
+        position: relative;
         background-color: inherit;
         border: none;
         cursor: pointer;
@@ -263,7 +288,7 @@ header {
         }
 
         &.profile {
-          margin-left: 35px;
+          margin-left: 24px;
         }
       }
     }
