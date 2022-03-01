@@ -149,7 +149,7 @@ export default defineComponent({
     <AuthModalLogin
       ref="loginModal"
       @open-signup-modal="openSignupModal"
-      @redirect-to-previous-page="goToPreviousPage"
+      @go-to-previous-page="goToPreviousPage"
     />
     <AuthModalSignup ref="signupModal" @open-login-modal="openLoginModal" />
   </header>
