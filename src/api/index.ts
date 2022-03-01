@@ -17,7 +17,7 @@ httpClient.interceptors.request.use(
       token = reissueToken(refreshToken);
     }
 
-    httpClient.defaults.headers.common['Authorization'] = `${token}`;
+    config.headers!.Authorization = `${token}`;
     return config;
   },
   function (error) {
