@@ -223,7 +223,7 @@ export default defineComponent({
       </button>
     </footer>
   </main>
-  <Snackbar v-if="snackbarMessage" :message="snackbarMessage" />
+  <Snackbar :display="snackbarMessage" :message="snackbarMessage" />
   <ModalConfirm
     ref="modalConfirm"
     id="modal-confirm"
