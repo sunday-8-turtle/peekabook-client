@@ -25,6 +25,8 @@ export default defineComponent({
     const router = useRouter();
     const goToMain = () => router.push('/');
 
+    const isSubmitting = ref(false);
+
     const modalConfirm = ref<InstanceType<typeof ModalConfirm>>();
     const hasConfirmed = ref(false);
     const confirmEmail = ref('');
@@ -32,6 +34,7 @@ export default defineComponent({
       hasConfirmed.value = false;
       modalConfirm.value?.open();
     };
+
     const onConfirmDeleteACcount = async () => {
       if (!hasConfirmed.value) {
         hasConfirmed.value = true;
@@ -45,13 +48,17 @@ export default defineComponent({
       }
     };
 
-    const snackbarMessage = ref();
-    const isSubmitting = ref(false);
     const formData = reactive({
       nickname: '',
       password: '',
       beforePassword: '',
     });
+    const formDataErrors: { [index: string]: boolean } = reactive({
+      nickname: false,
+      password: false,
+      beforePassword: false,
+    });
+    const snackbarMessage = ref();
     const MESSAEG_SET = {
       NO_NICKNAME: '닉네임을 입력하세요.',
       NO_NEW_PASSWORD: '변경 비밀번호를 입력해주세요.',
@@ -61,8 +68,15 @@ export default defineComponent({
       REQUEST_SUCCESS: '변경사항이 저장되었습니다.',
       REQUEST_DUPLICATE: '이미 요청하였습니다. 잠시만 기다려주세요.',
     };
+    const resetErrors = () => {
+      Object.keys(formDataErrors).forEach((key) => {
+        formDataErrors[key] = false;
+      });
+    };
+
     const onSubmit = async () => {
       snackbarMessage.value = '';
+      resetErrors();
 
       if (isSubmitting.value) {
         snackbarMessage.value = MESSAEG_SET.REQUEST_DUPLICATE;
@@ -72,20 +86,24 @@ export default defineComponent({
       // (todo) 비활성화 상태 추가되면 필요 없어짐
       if (!formData.nickname) {
         snackbarMessage.value = MESSAEG_SET.NO_NICKNAME;
+        formDataErrors.nickname = true;
         return;
       }
 
       if (formData.password && !formData.beforePassword) {
         snackbarMessage.value = MESSAEG_SET.NO_BEFORE_PASSWORD;
+        formDataErrors.beforePassword = true;
         return;
       }
       if (formData.beforePassword && !formData.password) {
         snackbarMessage.value = MESSAEG_SET.NO_NEW_PASSWORD;
+        formDataErrors.password = true;
         return;
       }
 
       if (formData.nickname.length > 10) {
         snackbarMessage.value = MESSAEG_SET.INVALID_NICKNAME;
+        formDataErrors.nickname = true;
         return;
       }
 
@@ -134,6 +152,7 @@ export default defineComponent({
       snackbarMessage,
       isSubmitting,
       formData,
+      formDataErrors,
       onSubmit,
 
       profile,
@@ -156,6 +175,7 @@ export default defineComponent({
             type="text"
             autofocus
             v-model="formData.nickname"
+            :error="formDataErrors.nickname"
           />
         </div>
         <div class="input-wrapper">
@@ -174,6 +194,7 @@ export default defineComponent({
             type="password"
             placeholder="변경 비밀번호 입력"
             v-model="formData.password"
+            :error="formDataErrors.password"
           />
         </div>
         <div class="input-wrapper">
@@ -184,6 +205,7 @@ export default defineComponent({
             autocomplete="current-password"
             v-model="formData.beforePassword"
             placeholder="현재 비밀번호 입력"
+            :error="formDataErrors.beforePassword"
           />
         </div>
         <BaseButton
