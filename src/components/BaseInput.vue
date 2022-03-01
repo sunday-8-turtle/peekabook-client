@@ -13,6 +13,10 @@ export default defineComponent({
       type: Boolean,
       default: false,
     },
+    error: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ['update:modelValue', 'send-certification-code'],
   setup(props) {
@@ -41,6 +45,7 @@ export default defineComponent({
   <input
     ref="input"
     class="base-input"
+    :class="{ error: error }"
     :value="modelValue"
     @input="$emit('update:modelValue', $event.target.value)"
   />
@@ -60,6 +65,10 @@ export default defineComponent({
 
   caret-color: #ff69b4;
 
+  &:focus {
+    outline: 1px solid #868e96;
+  }
+
   &:disabled {
     background-color: #e9ecef;
     color: #ced4da;
@@ -70,5 +79,9 @@ export default defineComponent({
 .base-input::placeholder {
   font-size: 16px;
   color: #ced4da;
+}
+
+.error {
+  border: 1px solid #e43b3b;
 }
 </style>

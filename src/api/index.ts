@@ -5,7 +5,7 @@ const axiosInstance = axios.create();
 axiosInstance.defaults.baseURL = process.env.VUE_APP_BASE_URL;
 axiosInstance.interceptors.request.use(
   function (config: AxiosRequestConfig) {
-    let token = localStorage.getItem('auth.token');
+    let token = localStorage.getItem('token');
 
     if (!token) return config;
     if (isTokenExpired(token)) token = refreshToken(token);
@@ -37,7 +37,7 @@ const setDefaultHeaders = (config: AxiosRequestConfig, token: string) => {
   if (!config || !config.headers) {
     throw new Error('Headers do not exist on axios.');
   }
-  config.headers.Authorization = `Bearer ${token}`;
+  config.headers.Authorization = `${token}`;
   return config;
 };
 

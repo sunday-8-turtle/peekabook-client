@@ -7,7 +7,6 @@ import { messageToExtension } from '@/types/extension.types';
 function sendMessageToExtension(message: messageToExtension): void {
   const extensionId = 'dfimdmhdpdgmkofepnddmdaobaoedcjo';
   chrome.runtime.sendMessage(extensionId, message);
-  console.log('message', message);
 }
 
 export { sendMessageToExtension };
