@@ -20,7 +20,7 @@ export default defineComponent({
     AuthModalHeader,
     AuthModalFooter,
   },
-  emits: ['open-signup-modal', 'redirect-to-previous-page'],
+  emits: ['open-signup-modal', 'go-to-previous-page'],
   setup(props, { emit }) {
     const baseModal = ref<InstanceType<typeof BaseModal>>();
     const open = () => baseModal.value?.open();
@@ -57,7 +57,7 @@ export default defineComponent({
         baseModal.value?.close();
         isSubmitting.value = false;
 
-        emit('redirect-to-previous-page');
+        emit('go-to-previous-page');
       } catch (err) {
         console.error(err);
         alert(err);

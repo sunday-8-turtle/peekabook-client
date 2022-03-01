@@ -6,6 +6,8 @@ import { messageToExtension } from '@/types/extension.types';
  */
 function sendMessageToExtension(message: messageToExtension): void {
   const extensionId = 'dfimdmhdpdgmkofepnddmdaobaoedcjo';
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   chrome.runtime.sendMessage(extensionId, message);
 }
 
