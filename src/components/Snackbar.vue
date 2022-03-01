@@ -8,11 +8,6 @@ export default defineComponent({
       type: String,
       required: true,
     },
-    display: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
     position: {
       type: String,
       required: false,
@@ -23,7 +18,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <dialog v-if="display" class="snackbar-wrapper">
+  <dialog v-if="message" class="snackbar-wrapper">
     <p class="snackbar">
       {{ message }}
     </p>

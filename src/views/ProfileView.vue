@@ -223,7 +223,7 @@ export default defineComponent({
       </button>
     </footer>
   </main>
-  <Snackbar :display="snackbarMessage" :message="snackbarMessage" />
+  <Snackbar :message="snackbarMessage" />
   <ModalConfirm
     ref="modalConfirm"
     id="modal-confirm"
