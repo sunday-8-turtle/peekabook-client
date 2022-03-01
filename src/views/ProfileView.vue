@@ -64,7 +64,6 @@ export default defineComponent({
       NO_NEW_PASSWORD: '변경 비밀번호를 입력해주세요.',
       NO_BEFORE_PASSWORD: '현재 비밀번호를 입력해주세요.',
       INVALID_NICKNAME: '닉네임은 최대 10자까지만 가능합니다.',
-      INVALID_PASSWORD: '유효하지 않은 비밀번호입니다.',
       REQUEST_SUCCESS: '변경사항이 저장되었습니다.',
       REQUEST_DUPLICATE: '이미 요청하였습니다. 잠시만 기다려주세요.',
     };
