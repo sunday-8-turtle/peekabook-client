@@ -107,6 +107,7 @@ export default defineComponent({
   .confirm-btn:disabled {
     color: #ced4da;
     background: #e9ecef;
+    border: none;
   }
 }
 </style>

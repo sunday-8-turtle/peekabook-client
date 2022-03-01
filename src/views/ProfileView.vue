@@ -218,7 +218,7 @@ export default defineComponent({
     <header v-else class="final-request">
       <p>가입하신 이메일을 입력해주세요.</p>
       <BaseInput
-        placeholder="peekabook@gmail.com"
+        :placeholder="profile.email"
         v-model="confirmEmail"
       ></BaseInput>
     </header>

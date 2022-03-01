@@ -8,6 +8,11 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    position: {
+      type: String,
+      required: false,
+      default: 'top',
+    },
   },
 });
 </script>
@@ -31,7 +36,7 @@ export default defineComponent({
   margin: 0;
 
   position: fixed;
-  top: 0;
+  top: 108px;
   left: 50%;
   transform: translateX(-50%);
 
