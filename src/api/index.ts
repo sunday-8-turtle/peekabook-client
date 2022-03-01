@@ -1,5 +1,4 @@
 import axios from 'axios';
-import useAuthStore from '@/store/auth.store';
 import { getSavedState } from '@/store/helpers';
 import { CurrentUserState } from '@/types/auth.types';
 
@@ -18,7 +17,7 @@ httpClient.interceptors.request.use(
       token = reissueToken(refreshToken);
     }
 
-    httpClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    httpClient.defaults.headers.common['Authorization'] = `${token}`;
     return config;
   },
   function (error) {

@@ -44,7 +44,7 @@ export default defineComponent({
     const { loggedIn } = storeToRefs(authStore);
 
     const $router = useRouter();
-    const redirectToPreviousPage = () => {
+    const goToPreviousPage = () => {
       const targetPage = $route.redirectedFrom ?? 'MainView';
       $router.push(targetPage);
     };
@@ -58,6 +58,9 @@ export default defineComponent({
         ? userContextMenu.value?.open()
         : userContextMenu.value?.close();
     };
+    const goToProfile = () => {
+      $router.push({ name: 'ProfileView' });
+    };
 
     return {
       loginModal,
@@ -65,10 +68,11 @@ export default defineComponent({
       openLoginModal,
       openSignupModal,
       loggedIn,
-      redirectToPreviousPage,
+      goToPreviousPage,
       userContextMenu,
       showUserContextMenu,
       toggleUserContextMenu,
+      goToProfile,
     };
   },
 });
@@ -122,7 +126,9 @@ export default defineComponent({
           <button class="profile" @click="toggleUserContextMenu">
             <img src="@/assets/icons/gnb-user.svg" alt="noti icon" />
             <BaseContextMenu ref="userContextMenu">
-              <BaseContextMenuItem>계정 정보 설정</BaseContextMenuItem>
+              <BaseContextMenuItem @click="goToProfile">
+                계정 정보 설정
+              </BaseContextMenuItem>
               <BaseContextMenuItem>로그아웃</BaseContextMenuItem>
             </BaseContextMenu>
           </button>
@@ -143,7 +149,7 @@ export default defineComponent({
     <AuthModalLogin
       ref="loginModal"
       @open-signup-modal="openSignupModal"
-      @redirect-to-previous-page="redirectToPreviousPage"
+      @redirect-to-previous-page="goToPreviousPage"
     />
     <AuthModalSignup ref="signupModal" @open-login-modal="openLoginModal" />
   </header>

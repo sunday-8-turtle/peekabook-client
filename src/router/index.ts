@@ -1,9 +1,10 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+import useAuthStore from '@/store/auth.store';
+
 import LandingPageView from '../views/LandingPageView.vue';
 import MainView from '../views/MainView.vue';
 import ExploreView from '../views/ExploreView.vue';
 import ProfileView from '../views/ProfileView.vue';
-import useAuthStore from '@/store/auth.store';
 
 const routes: Array<RouteRecordRaw> = [
   {
