@@ -7,6 +7,7 @@ import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import AuthModalHeader from '@/components/AuthModalHeader.vue';
 import AuthModalFooter from '@/components/AuthModalFooter.vue';
+import Snackbar from '@/components/Snackbar.vue';
 
 import { LoginRequest } from '@/types/auth.types';
 import { sendMessageToExtension } from '@/api/extension';
@@ -19,6 +20,7 @@ export default defineComponent({
     BaseButton,
     AuthModalHeader,
     AuthModalFooter,
+    Snackbar,
   },
   emits: ['open-signup-modal', 'go-to-previous-page'],
   setup(props, { emit }) {
@@ -33,34 +35,32 @@ export default defineComponent({
       password: '',
     });
     const onLogin = async () => {
+      snackbarMessage.value = '';
+
+      if (isSubmitting.value) {
+        snackbarMessage.value = '로그인을 시도하고 있습니다.';
+        return;
+      }
+
       try {
-        if (isSubmitting.value) {
-          alert('이전 요청을 처리하고 있습니다.');
-          return;
-        }
-
-        if (!isFormFilled.value) {
-          alert('입력값을 확인해주세요.');
-          return;
-        }
-
         isSubmitting.value = true;
 
         const user = await authStore.login(loginBody);
         if (!user) {
+          snackbarMessage.value = '로그인에 실패하였습니다.';
           throw new Error('Login Error');
         }
 
-        // 익스텐션에 토큰 전달
-        // alert('로그인 성공!');
-        sendMessageToExtension({ token: user.token });
         baseModal.value?.close();
         isSubmitting.value = false;
-
         emit('go-to-previous-page');
-      } catch (err) {
-        console.error(err);
-        alert(err);
+
+        // 익스텐션에 토큰 전달
+        sendMessageToExtension({ token: user.token });
+      } catch (error: any) {
+        console.error(error);
+        snackbarMessage.value = String(error.message);
+        isSubmitting.value = false;
       }
     };
 
@@ -72,12 +72,16 @@ export default defineComponent({
       loginBody.email = '';
       loginBody.password = '';
       isSubmitting.value = false;
+      snackbarMessage.value = '';
     };
 
     const goToSignup = () => {
       baseModal.value?.close();
       emit('open-signup-modal');
     };
+
+    let snackbarMessage = ref('');
+
     return {
       baseModal,
       open,
@@ -88,6 +92,7 @@ export default defineComponent({
       isFormFilled,
       resetData,
       goToSignup,
+      snackbarMessage,
     };
   },
 });
@@ -135,6 +140,7 @@ export default defineComponent({
       </BaseButton>
     </form>
     <AuthModalFooter :type="'login'" @open-signup-modal="goToSignup" />
+    <Snackbar :message="snackbarMessage" />
   </BaseModal>
 </template>
 

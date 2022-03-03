@@ -40,6 +40,7 @@ export default defineComponent({
   left: 50%;
   transform: translateX(-50%);
 
+  border-color: #343a40;
   border-radius: 99px;
   background: #343a40;
   color: white;
