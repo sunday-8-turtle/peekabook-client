@@ -35,11 +35,16 @@ export default defineComponent({
       password: '',
     });
     const snackbarMessage = ref('');
+    // 모듈화
+    const MESSAGE_SET = {
+      REQUEST_DUPLICATE: '이미 요청하였습니다. 잠시만 기다려주세요.',
+      LOGIN_FAIL: '로그인에 실패하였습니다. 다시 시도해주세요.',
+    };
     const onLogin = async () => {
       snackbarMessage.value = '';
 
       if (isSubmitting.value) {
-        snackbarMessage.value = '로그인을 시도하고 있습니다.';
+        snackbarMessage.value = MESSAGE_SET.REQUEST_DUPLICATE;
         return;
       }
 
@@ -48,8 +53,7 @@ export default defineComponent({
 
         const user = await authStore.login(loginBody);
         if (!user) {
-          snackbarMessage.value = '로그인에 실패하였습니다.';
-          throw new Error('Login Error');
+          throw new Error(MESSAGE_SET.LOGIN_FAIL);
         }
 
         baseModal.value?.close();
