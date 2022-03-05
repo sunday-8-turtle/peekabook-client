@@ -26,24 +26,10 @@ export default defineComponent({
       type: String,
       default: '18px',
     },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    // height: {
-    //   type: String,
-    //   default: '100%',
-    // },
-    // width: {
-    //   type: String,
-    //   default: '100%',
-    // },
   },
   setup(props) {
     const customStyle = {
       'font-size': props.fontSize,
-      // width: props.width,
-      // height: props.height,
     };
     return { customStyle };
   },
@@ -51,12 +37,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <button
-    class="base-button"
-    :class="shape"
-    :style="[customStyle]"
-    :disabled="disabled"
-  >
+  <button class="base-button" :class="shape" :style="[customStyle]">
     <BaseLottie
       v-if="isLoading"
       name="loading-btn"
@@ -85,25 +66,25 @@ export default defineComponent({
   line-height: 140%;
   cursor: pointer;
 
-  &:disabled {
+  &.line {
+    color: #ff69b4;
     background: #ffffff;
+    border: 1px solid #ff69b4;
+    font-weight: normal;
+  }
+
+  &.fill {
+    color: #ffffff;
+    background: #ff69b4;
+    border: 1px solid #ff69b4;
+    font-weight: bold;
+  }
+
+  &:disabled {
+    color: #ffffff;
+    background: #ced4da;
     border: 1px solid #ced4da;
-    color: #ced4da;
     cursor: not-allowed;
   }
-}
-
-.line {
-  color: #ff69b4;
-  background: #ffffff;
-  border: 1px solid #ff69b4;
-  font-weight: normal;
-}
-
-.fill {
-  color: #ffffff;
-  background: #ff69b4;
-  border: 1px solid #ff69b4;
-  font-weight: bold;
 }
 </style>

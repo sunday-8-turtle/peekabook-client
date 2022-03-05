@@ -34,6 +34,7 @@ export default defineComponent({
       email: '',
       password: '',
     });
+    const snackbarMessage = ref('');
     const onLogin = async () => {
       snackbarMessage.value = '';
 
@@ -59,7 +60,7 @@ export default defineComponent({
         sendMessageToExtension({ token: user.token });
       } catch (error: any) {
         console.error(error);
-        snackbarMessage.value = String(error.message);
+        snackbarMessage.value = error.message;
         isSubmitting.value = false;
       }
     };
@@ -79,8 +80,6 @@ export default defineComponent({
       baseModal.value?.close();
       emit('open-signup-modal');
     };
-
-    let snackbarMessage = ref('');
 
     return {
       baseModal,
@@ -115,6 +114,7 @@ export default defineComponent({
           name="email"
           required
           placeholder="이메일을 입력하세요."
+          :disabled="isSubmitting"
         />
       </div>
       <div class="input-wrapper">
@@ -126,6 +126,7 @@ export default defineComponent({
           autocomplete="current-password"
           required
           :placeholder="'비밀번호를 입력하세요.'"
+          :disabled="isSubmitting"
         />
       </div>
 

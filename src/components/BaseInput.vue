@@ -41,11 +41,11 @@ export default defineComponent({
   height: 100%;
   padding: 0 12px;
 
+  color: #343a40;
+  font-size: 16px;
+
   border: 1px solid #ced4da;
   border-radius: 4px;
-
-  color: #868e96;
-  font-size: 16px;
 
   caret-color: #ff69b4;
 
@@ -54,7 +54,7 @@ export default defineComponent({
   }
 
   &:disabled {
-    background-color: #e9ecef;
+    background-color: #f8f9fa;
     color: #ced4da;
     cursor: not-allowed;
   }
