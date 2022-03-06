@@ -12,7 +12,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <p>ExporeView</p>
+  <p>ExploreView</p>
 </template>
 
 <style lang="scss" scoped></style>

@@ -44,6 +44,14 @@ interface VerifyCertificationCodeResponse {
   data: null;
 }
 
+interface CheckDuplicateEmailRequest {
+  email: string;
+}
+
+interface CheckDuplicateEmailResponse {
+  duplicate: boolean;
+}
+
 export {
   CurrentUserState,
   LoginRequest,
@@ -54,4 +62,6 @@ export {
   SendCertificationCodeResponse,
   VerifyCertificationCodeRequest,
   VerifyCertificationCodeResponse,
+  CheckDuplicateEmailRequest,
+  CheckDuplicateEmailResponse,
 };

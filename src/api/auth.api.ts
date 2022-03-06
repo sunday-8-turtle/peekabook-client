@@ -9,6 +9,8 @@ import {
   SendCertificationCodeResponse,
   VerifyCertificationCodeRequest,
   VerifyCertificationCodeResponse,
+  CheckDuplicateEmailRequest,
+  CheckDuplicateEmailResponse,
 } from '@/types/auth.types';
 
 async function login(body: LoginRequest): Promise<PKBResponse<LoginResponse>> {
@@ -25,6 +27,9 @@ async function signup(
   return res.data;
 }
 
+/**
+ * 이메일 인증번호 전송
+ */
 async function sendCertificationCode(
   body: SendCertificationCodeRequest
 ): Promise<PKBResponse<SendCertificationCodeResponse>> {
@@ -33,6 +38,9 @@ async function sendCertificationCode(
   return res.data;
 }
 
+/**
+ * 이메일 인증번호 확인
+ */
 async function verifyCertificationCode(
   body: VerifyCertificationCodeRequest
 ): Promise<PKBResponse<VerifyCertificationCodeResponse>> {
@@ -41,4 +49,21 @@ async function verifyCertificationCode(
   return res.data;
 }
 
-export { login, signup, sendCertificationCode, verifyCertificationCode };
+/**
+ * 중복 이메일 확인
+ */
+async function checkDuplicateEmail(
+  body: CheckDuplicateEmailRequest
+): Promise<PKBResponse<CheckDuplicateEmailResponse>> {
+  const CHECK_DUPLICATE_EMAIL_URL = '/user/email/duplicate';
+  const res = await httpClient.post(CHECK_DUPLICATE_EMAIL_URL, body);
+  return res.data;
+}
+
+export {
+  login,
+  signup,
+  sendCertificationCode,
+  verifyCertificationCode,
+  checkDuplicateEmail,
+};

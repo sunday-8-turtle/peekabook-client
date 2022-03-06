@@ -27,7 +27,7 @@ const useAuthStore = defineStore('auth', {
       this.loggedIn = true;
       this.user = user;
       saveState('user', user);
-      return user;
+      return Promise.resolve(user);
     },
     logout() {
       this.loggedIn = false;

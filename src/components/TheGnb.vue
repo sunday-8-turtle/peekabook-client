@@ -43,10 +43,10 @@ export default defineComponent({
     const authStore = useAuthStore();
     const { loggedIn } = storeToRefs(authStore);
 
+    // Login 완료 후 리다이렉트
     const $router = useRouter();
     const goToPreviousPage = () => {
-      const targetPage = $route.redirectedFrom ?? 'MainView';
-      $router.push(targetPage);
+      $router.push($route.redirectedFrom || { name: 'MainView' });
     };
 
     // User Context Menu
@@ -58,6 +58,12 @@ export default defineComponent({
         ? userContextMenu.value?.open()
         : userContextMenu.value?.close();
     };
+
+    const onLogout = () => {
+      authStore.logout();
+      $router.push({ name: 'LandingPageView' });
+    };
+
     const goToProfile = () => {
       $router.push({ name: 'ProfileView' });
     };
@@ -72,6 +78,7 @@ export default defineComponent({
       userContextMenu,
       showUserContextMenu,
       toggleUserContextMenu,
+      onLogout,
       goToProfile,
     };
   },
@@ -129,7 +136,9 @@ export default defineComponent({
               <BaseContextMenuItem @click="goToProfile">
                 계정 정보 설정
               </BaseContextMenuItem>
-              <BaseContextMenuItem>로그아웃</BaseContextMenuItem>
+              <BaseContextMenuItem @click="onLogout">
+                로그아웃
+              </BaseContextMenuItem>
             </BaseContextMenu>
           </button>
         </div>
