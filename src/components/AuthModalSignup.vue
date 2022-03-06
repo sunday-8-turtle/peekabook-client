@@ -361,7 +361,7 @@ export default defineComponent({
       align-items: center;
 
       label.checkbox-container {
-        width: 100%;
+        // width: 100%;
         height: 24px;
         padding-left: 34px;
         position: relative;
