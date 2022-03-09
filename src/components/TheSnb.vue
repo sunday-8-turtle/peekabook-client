@@ -1,10 +1,12 @@
 <script lang="ts">
-import { defineComponent, ref, Ref } from 'vue';
+import { defineComponent, ref, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
 import BaseButton from './BaseButton.vue';
 
-import { getTagList, getBookmarkListByTag } from '@/api/bookmark';
-import { PKBResponse } from '@/types';
-import { Tag, Bookmark } from '@/types/bookmark.types';
+import useTag from '@/composables/useTag';
+import useBookmarkStore from '@/store/bookmark.store';
+import { Bookmark } from '@/types/bookmark.types';
 
 export default defineComponent({
   name: 'TheSnb',
@@ -12,29 +14,62 @@ export default defineComponent({
     BaseButton,
   },
   setup() {
-    const tagList: Ref<{ tag: Tag; bookmarkCount: number }[]> = ref([]);
+    const { initialTagWithBookmarkSet, addTag } = useTag();
+    const bookmarkStore = useBookmarkStore();
+    const $route = useRoute();
+    const $router = useRouter();
 
-    (async () => {
-      const res = await getTagList();
-      const rawTagList = res.data ? res.data : [];
+    const totalTagCount = computed(() => {
+      return Object.keys(initialTagWithBookmarkSet.value).length;
+    });
+    const totalBookmarkList = computed(() => {
+      return Object.values(initialTagWithBookmarkSet.value).reduce(
+        (acc: Bookmark[], tag) => {
+          return acc.concat(tag.bookmarkList);
+        },
+        []
+      );
+    });
 
-      const requests = [] as Promise<PKBResponse<Bookmark[]>>[];
-      for (const tag of rawTagList) {
-        requests.push(getBookmarkListByTag(tag.tagId));
-      }
-      const responseList = await Promise.all(requests);
+    /**
+     * 최초 내 북마크 페이지에 접속시 쿼리값에 따라 북마크 리스트 세팅
+     * 스토어에 우선 전체 리스트를 넣어놓은 뒤 쿼리값을 이용하여 필터링해서 가져옵니다.
+     */
+    const currentTag = ref(($route.query.tag as string) ?? '');
+    watch(initialTagWithBookmarkSet.value, () => {
+      resetBookmarkList();
 
-      for (let i = 0; i <= rawTagList.length - 1; i++) {
-        const bookmarkCount = responseList[i]?.data?.length ?? 0;
-        tagList.value.push({
-          tag: rawTagList[i],
-          bookmarkCount,
-        });
-      }
-    })();
+      const bookmarkListByTagName = bookmarkStore.getBookmarkListByTagName(
+        currentTag.value as string
+      );
+      updateBookmarkListView({
+        tagName: currentTag.value,
+        bookmarkList: bookmarkListByTagName,
+      });
+    });
+
+    function resetBookmarkList() {
+      bookmarkStore.updateBookmarkList(totalBookmarkList.value);
+    }
+    function updateBookmarkListView({
+      tagName,
+      bookmarkList,
+    }: {
+      tagName?: string;
+      bookmarkList?: Bookmark[];
+    }) {
+      $router.push({ name: 'MainView', query: { tag: tagName } });
+
+      if (!tagName) resetBookmarkList();
+      if (!bookmarkList || !bookmarkList.length) return;
+
+      bookmarkStore.updateBookmarkList(bookmarkList);
+    }
 
     return {
-      tagList,
+      initialTagWithBookmarkSet,
+      totalTagCount,
+      updateBookmarkListView,
     };
   },
 });
@@ -50,14 +85,21 @@ export default defineComponent({
       <BaseButton>북마크 추가하기</BaseButton>
     </section>
     <nav class="bookmark-navigator">
-      <div class="tag-total">
+      <div class="tag-total" @click="updateBookmarkListView({})">
         <span>전체</span>
-        <span>1</span>
+        <span>{{ totalTagCount }}</span>
       </div>
-      <ul v-if="tagList.length" class="tag-list">
-        <li v-for="data in tagList" :key="data.tag.tagId" class="tag-item">
-          <span>{{ data.tag.tagName }}</span>
-          <span>{{ data.bookmarkCount }}</span>
+      <ul v-if="Object.keys(initialTagWithBookmarkSet).length" class="tag-list">
+        <li
+          class="tag-item"
+          v-for="(value, key) of initialTagWithBookmarkSet"
+          :key="key"
+          @click="
+            updateBookmarkListView({ tagName: key as string, bookmarkList: value.bookmarkList })
+          "
+        >
+          <span>{{ key }}</span>
+          <span>{{ value?.bookmarkList?.length }}</span>
         </li>
       </ul>
     </nav>
@@ -131,6 +173,10 @@ nav.bookmark-navigator {
     margin-right: 14px;
 
     line-height: 16px;
+
+    &:hover {
+      cursor: pointer;
+    }
 
     :first-child {
       color: #343a40;
