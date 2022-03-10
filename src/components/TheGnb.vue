@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, ref, watch } from 'vue';
+import { computed, defineComponent, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import useAuthStore from '@/store/auth.store';
@@ -9,6 +9,7 @@ import AuthModalSignup from '@/components/AuthModalSignup.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import BaseContextMenu from '@/components/BaseContextMenu.vue';
 import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
+import { useOnScroll } from '@/composables';
 
 export default defineComponent({
   name: 'TheGnb',
@@ -51,22 +52,20 @@ export default defineComponent({
 
     // User Context Menu
     const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
-    const showUserContextMenu = ref(false);
-    const toggleUserContextMenu = () => {
-      showUserContextMenu.value = !showUserContextMenu.value;
-      showUserContextMenu.value
-        ? userContextMenu.value?.open()
-        : userContextMenu.value?.close();
-    };
-
+    const toggleUserContextMenu = () => userContextMenu.value?.toggle();
     const onLogout = () => {
       authStore.logout();
       $router.push({ name: 'LandingPageView' });
     };
-
     const goToProfile = () => {
       $router.push({ name: 'ProfileView' });
     };
+
+    // LandingPageView related
+    const isLandingPage = computed(() => {
+      return $route.path === '/';
+    });
+    const { isTopOfPage } = useOnScroll();
 
     return {
       loginModal,
@@ -76,10 +75,11 @@ export default defineComponent({
       loggedIn,
       goToPreviousPage,
       userContextMenu,
-      showUserContextMenu,
       toggleUserContextMenu,
       onLogout,
       goToProfile,
+      isLandingPage,
+      isTopOfPage,
     };
   },
 });
@@ -87,7 +87,7 @@ export default defineComponent({
 
 <template>
   <header>
-    <nav>
+    <nav :class="{ borderless: isLandingPage && isTopOfPage }">
       <div class="logo-title">
         <router-link
           class="title"
@@ -178,6 +178,10 @@ header {
 
     border-bottom: 1px solid #e9ecef;
     background-color: #ffffff;
+
+    &.borderless {
+      border-bottom: none;
+    }
 
     div.logo-title {
       width: 153px;

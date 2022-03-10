@@ -12,7 +12,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <p>LandingPageView</p>
+  <p style="height: 1500px">LandingPageView</p>
 </template>
 
 <style lang="scss" scoped></style>
