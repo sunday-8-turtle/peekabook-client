@@ -20,6 +20,7 @@ interface SignupRequest {
   password: string;
   nickname: string;
   certificationCode: string;
+  termsAndConditions: boolean;
 }
 
 interface SignupResponse {

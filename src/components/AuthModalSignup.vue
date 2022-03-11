@@ -19,7 +19,6 @@ import {
   signup,
   checkDuplicateEmail,
 } from '@/api/auth.api';
-import { AxiosError } from 'axios';
 
 export default defineComponent({
   name: 'AuthModalSignup',
@@ -43,6 +42,7 @@ export default defineComponent({
       password: '',
       nickname: '',
       certificationCode: '',
+      termsAndConditions: false,
     });
     const snackbarMessage = ref('');
     // 모듈화 필요
@@ -50,10 +50,16 @@ export default defineComponent({
       REQUEST_DUPLICATE: '이미 요청하였습니다. 잠시만 기다려주세요.',
       SEND_EMAIL_SUCCESS: '인증번호를 발송했습니다.',
       INVALID_EMAIL: '이메일 형식이 올바르지 않습니다.',
+      REQUIRE_AGREE: '이용약관 동의가 필요합니다.',
     };
     const onSignup = async () => {
       if (isSubmitting.value) {
         snackbarMessage.value = MESSAGE_SET.REQUEST_DUPLICATE;
+        return;
+      }
+
+      if (!signupBody.termsAndConditions) {
+        snackbarMessage.value = MESSAGE_SET.REQUIRE_AGREE;
         return;
       }
 
@@ -80,13 +86,15 @@ export default defineComponent({
         isSubmitting.value = false;
         goToLogin();
       } catch (error: any) {
-        // if (error.response) {
-        //   console.log(error.response.data);
-        //   console.log(error.response.status);
-        //   console.log(error.response.headers);
-        // }
-        // console.error(error);
-        snackbarMessage.value = error.response.data.message;
+        console.error(error);
+        if (error.response) {
+          snackbarMessage.value = error.response.data.message;
+          //   console.log(error.response.data);
+          //   console.log(error.response.status);
+          //   console.log(error.response.headers);
+        } else {
+          snackbarMessage.value = error.message;
+        }
         isSubmitting.value = false;
       }
     };
@@ -111,6 +119,8 @@ export default defineComponent({
       }
 
       try {
+        isSending.value = true;
+
         // 이메일 중복여부 확인
         const checkDuplicateEmailBody: CheckDuplicateEmailRequest = {
           email: signupBody.email,
@@ -139,7 +149,7 @@ export default defineComponent({
         showCertificationCodeInput.value = true;
         isSending.value = false;
       } catch (err: any) {
-        console.log(err);
+        console.error(err);
         snackbarMessage.value = err.message;
         isSending.value = false;
       }
@@ -147,7 +157,10 @@ export default defineComponent({
 
     const isFormFilled = computed(() => {
       return (
-        signupBody.email && signupBody.password && signupBody.certificationCode
+        signupBody.email &&
+        signupBody.password &&
+        signupBody.certificationCode &&
+        signupBody.termsAndConditions
       );
     });
 
@@ -203,7 +216,7 @@ export default defineComponent({
           name="email"
           required
           :placeholder="'이메일을 입력하세요.'"
-          :isSending="isSending || isSubmitting"
+          :disabled="isSending || isSubmitting"
         />
         <BaseButton
           shape="line"
@@ -249,6 +262,27 @@ export default defineComponent({
           placeholder="닉네임을 입력하세요(선택)"
           :disabled="isSubmitting"
         />
+      </div>
+      <div class="terms-wrapper">
+        <label class="checkbox-container" id="terms-and-conditions">
+          <span class="underline">개인정보처리방침</span> &nbsp;및&nbsp;
+          <span class="underline">이용약관</span>에 동의합니다.
+          <input
+            type="checkbox"
+            id="terms-and-conditions"
+            v-model="signupBody.termsAndConditions"
+          />
+          <span class="checkmark"></span>
+        </label>
+        <!-- 
+        <input
+          type="checkbox"
+          name="terms-and-conditions"
+          id="terms-and-conditions"
+        />
+        <label for="terms-and-conditions">
+          개인정보처리방침 및 이용약관에 동의합니다.
+        </label> -->
       </div>
       <BaseButton
         :shape="'fill'"
@@ -317,8 +351,70 @@ export default defineComponent({
       }
     }
 
+    .terms-wrapper {
+      width: 100%;
+      height: 100%;
+      margin-top: 16px;
+
+      display: flex;
+      justify-content: start;
+      align-items: center;
+
+      label.checkbox-container {
+        // width: 100%;
+        height: 24px;
+        padding-left: 34px;
+        position: relative;
+
+        display: flex;
+        align-items: center;
+
+        font-size: 15px;
+        color: #868e96;
+        cursor: pointer;
+
+        span.checkmark {
+          width: 24px;
+          height: 100%;
+
+          position: absolute;
+          top: 0;
+          left: 0;
+
+          border: 2px solid #dee2e6;
+          border-radius: 4px;
+        }
+
+        input[type='checkbox'] {
+          width: 0;
+          height: 0;
+
+          position: absolute;
+          opacity: 0;
+
+          &:checked ~ .checkmark {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+
+            background-color: #ff69b4;
+            border: 2px solid #ff69b4;
+
+            &:before {
+              content: url('~@/assets/icons/check-white.svg');
+            }
+          }
+        }
+
+        span.underline {
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+      }
+    }
+
     .submit-btn {
-      margin-top: 40px;
+      margin-top: 24px;
       height: 56px;
     }
   }
