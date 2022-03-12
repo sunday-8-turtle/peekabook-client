@@ -4,6 +4,7 @@ interface Tag {
 }
 
 interface Bookmark {
+  bookmarkId: number;
   title: string;
   url: string;
   description: string;

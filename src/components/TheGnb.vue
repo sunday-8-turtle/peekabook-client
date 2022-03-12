@@ -167,8 +167,11 @@ export default defineComponent({
 <style lang="scss" scoped>
 header {
   height: 72px;
+  border-bottom: 1px solid #e9ecef;
 
   nav {
+    max-width: 1440px;
+    margin: 0 auto;
     height: 100%;
     padding: 0 120px;
 
@@ -176,7 +179,6 @@ header {
     justify-content: space-between;
     align-items: center;
 
-    border-bottom: 1px solid #e9ecef;
     background-color: #ffffff;
 
     div.logo-title {

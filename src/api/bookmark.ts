@@ -2,7 +2,7 @@ import httpClient from '.';
 import { PKBResponse } from '@/types';
 import { Tag, Bookmark } from '@/types/bookmark.types';
 
-const getTagList = async (page = 1, size = 10): Promise<PKBResponse<Tag[]>> => {
+const getTagList = async (page = 0, size = 10): Promise<PKBResponse<Tag[]>> => {
   const USER_TAG_LIST = '/bookmark/tags';
   const params = { page, size };
   const res = await httpClient.get(USER_TAG_LIST, { params });

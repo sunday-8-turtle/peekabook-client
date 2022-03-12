@@ -28,7 +28,8 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .wrapper {
-  height: 10000px;
+  max-width: 1440px;
+  margin: 0 auto;
   padding: 48px 120px;
 }
 </style>
