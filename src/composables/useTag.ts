@@ -31,6 +31,13 @@ export default function useTag() {
         initialTagWithBookmarkSet.value[tag].bookmarkList?.push(bookmark);
       }
     }
+
+    // 개수가 0개인 태그는 제거해서 보여줍니다.
+    for (const tag in initialTagWithBookmarkSet.value) {
+      if (!initialTagWithBookmarkSet.value[tag].bookmarkList.length) {
+        delete initialTagWithBookmarkSet.value[tag];
+      }
+    }
   })();
 
   /**

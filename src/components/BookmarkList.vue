@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, computed, ref, Ref, watch } from 'vue';
+import { defineComponent, computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 import useBookmarkStore from '@/store/bookmark.store';

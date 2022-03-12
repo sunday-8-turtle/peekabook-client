@@ -9,7 +9,6 @@ import BookmarkModal from './BookmarkModal.vue';
 import useTag from '@/composables/useTag';
 import useBookmarkStore from '@/store/bookmark.store';
 
-import { Bookmark } from '@/types/bookmark.types';
 import { Profile } from '@/types/profile.types';
 
 import truncate from '@/directives/truncate';

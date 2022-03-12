@@ -48,6 +48,11 @@ const useBookmarkStore = defineStore('bookmark', {
           if (bookmark.bookmarkId !== targetBookmark.bookmarkId)
             return bookmark;
         });
+
+        // 3) 만약 해당 태그의 북마크가 0개라면 태그도 삭제
+        if (!this.tagWithBookmarkSet[tag].bookmarkList.length) {
+          delete this.tagWithBookmarkSet[tag];
+        }
       });
     },
   },
