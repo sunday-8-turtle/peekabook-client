@@ -131,7 +131,7 @@ export default defineComponent({
             <img src="@/assets/icons/gnb-noti.svg" alt="noti icon" />
           </button>
           <button class="profile" @click="toggleUserContextMenu">
-            <img src="@/assets/icons/gnb-user.svg" alt="noti icon" />
+            <img src="@/assets/icons/gnb-user.svg" alt="user icon" />
             <BaseContextMenu ref="userContextMenu">
               <BaseContextMenuItem @click="goToProfile">
                 계정 정보 설정
@@ -306,6 +306,7 @@ header {
 
         &.profile {
           margin-left: 24px;
+          z-index: 200;
         }
       }
     }

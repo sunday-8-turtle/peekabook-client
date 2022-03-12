@@ -28,6 +28,11 @@ export default defineComponent({
       required: false,
       default: false,
     },
+    isLoading: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   setup() {
     const baseModal = ref<InstanceType<typeof BaseModal>>();
@@ -52,6 +57,7 @@ export default defineComponent({
           cancelMsg
         }}</BaseButton>
         <BaseButton
+          :isLoading="isLoading"
           :disabled="disableConfirm"
           class="confirm-btn"
           @click="$emit('confirm')"
@@ -60,6 +66,7 @@ export default defineComponent({
       </template>
       <template v-else>
         <BaseButton
+          :isLoading="isLoading"
           :disabled="disableConfirm"
           class="confirm-btn"
           @click="$emit('confirm')"
@@ -99,14 +106,14 @@ export default defineComponent({
   }
 
   .cancel-btn {
-    color: #343a40;
-    background: #e9ecef;
-    border: 1px solid #e9ecef;
+    color: #343a40 !important;
+    background: #e9ecef !important;
+    border: 1px solid #e9ecef !important;
   }
 
   .confirm-btn:disabled {
-    color: #ced4da;
-    background: #e9ecef;
+    color: #ced4da !important;
+    background: #e9ecef !important;
     border: none;
   }
 }

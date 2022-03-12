@@ -1,76 +1,102 @@
 <script lang="ts">
-import { defineComponent, ref, computed, watch } from 'vue';
+import { defineComponent, ref, Ref, computed, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { getProfile } from '@/api/profile';
 
 import BaseButton from './BaseButton.vue';
+import BookmarkModal from './BookmarkModal.vue';
 
 import useTag from '@/composables/useTag';
 import useBookmarkStore from '@/store/bookmark.store';
+
 import { Bookmark } from '@/types/bookmark.types';
+import { Profile } from '@/types/profile.types';
+
+import truncate from '@/directives/truncate';
 
 export default defineComponent({
   name: 'TheSnb',
   components: {
     BaseButton,
+    BookmarkModal,
   },
   setup() {
+    const user: Ref<Profile | undefined> = ref();
+    const email = computed(() => user.value?.data.email);
+    const nickname = computed(() => user.value?.data.nickname);
+
+    // 컴포넌트 생성 시 유저 정보 API 요청
+    (async () => {
+      const profileRes = await getProfile();
+      user.value = profileRes;
+    })();
+
+    // 태그 정보를 통해 태그와 북마크가 결합된 초기 데이터셋 가공
     const { initialTagWithBookmarkSet, addTag } = useTag();
     const bookmarkStore = useBookmarkStore();
-    const $route = useRoute();
-    const $router = useRouter();
 
-    const totalTagCount = computed(() => {
-      return Object.keys(initialTagWithBookmarkSet.value).length;
+    bookmarkStore.updateTagWithBookmarkSet(initialTagWithBookmarkSet.value);
+    const tagWithBookmarkSet = computed(() => {
+      return bookmarkStore.tagWithBookmarkSet;
     });
     const totalBookmarkList = computed(() => {
-      return Object.values(initialTagWithBookmarkSet.value).reduce(
-        (acc: Bookmark[], tag) => {
-          return acc.concat(tag.bookmarkList);
-        },
-        []
-      );
+      if (!tagWithBookmarkSet.value['전체']) return [];
+      return tagWithBookmarkSet.value['전체'].bookmarkList;
     });
+    const totalTagCount = computed(() => {
+      if (!tagWithBookmarkSet.value['전체']) return 0;
+      return tagWithBookmarkSet.value['전체'].bookmarkList.length;
+    });
+
+    const $route = useRoute();
+    const $router = useRouter();
 
     /**
      * 최초 내 북마크 페이지에 접속시 쿼리값에 따라 북마크 리스트 세팅
      * 스토어에 우선 전체 리스트를 넣어놓은 뒤 쿼리값을 이용하여 필터링해서 가져옵니다.
      */
-    const currentTag = ref(($route.query.tag as string) ?? '');
-    watch(initialTagWithBookmarkSet.value, () => {
-      resetBookmarkList();
+    resetBookmarkList();
 
-      const bookmarkListByTagName = bookmarkStore.getBookmarkListByTagName(
-        currentTag.value as string
-      );
-      updateBookmarkListView({
-        tagName: currentTag.value,
-        bookmarkList: bookmarkListByTagName,
-      });
+    const currentTag = ref(($route.query.tag as string) ?? '');
+    watch(tagWithBookmarkSet.value, () => {
+      updateBookmarkListView(currentTag.value);
     });
 
     function resetBookmarkList() {
       bookmarkStore.updateBookmarkList(totalBookmarkList.value);
     }
-    function updateBookmarkListView({
-      tagName,
-      bookmarkList,
-    }: {
-      tagName?: string;
-      bookmarkList?: Bookmark[];
-    }) {
+    function updateBookmarkListView(tagName: string) {
+      if (!tagName) {
+        resetBookmarkList();
+      } else {
+        const bookmarkList = tagWithBookmarkSet.value[tagName].bookmarkList;
+        bookmarkStore.updateBookmarkList(bookmarkList);
+      }
+
       $router.push({ name: 'MainView', query: { tag: tagName } });
-
-      if (!tagName) resetBookmarkList();
-      if (!bookmarkList || !bookmarkList.length) return;
-
-      bookmarkStore.updateBookmarkList(bookmarkList);
     }
 
+    // bookmark modal
+    const bookmarkModal = ref<InstanceType<typeof BookmarkModal>>();
+    const openBookmarkModal = () => {
+      bookmarkModal.value?.open();
+    };
+
     return {
+      email,
+      nickname,
+
+      bookmarkModal,
+      openBookmarkModal,
+
+      tagWithBookmarkSet,
       initialTagWithBookmarkSet,
       totalTagCount,
       updateBookmarkListView,
     };
+  },
+  directives: {
+    truncate,
   },
 });
 </script>
@@ -78,29 +104,30 @@ export default defineComponent({
 <template>
   <aside>
     <header class="user-info">
-      <h2 class="nickname">닉네임</h2>
-      <h3 class="email">peekabook@gmail.com</h3>
+      <h2 class="nickname">{{ nickname }}</h2>
+      <h3 class="email">{{ email }}</h3>
     </header>
     <section class="bookmark-add">
-      <BaseButton>북마크 추가하기</BaseButton>
+      <BaseButton @click="openBookmarkModal">북마크 추가하기</BaseButton>
     </section>
     <nav class="bookmark-navigator">
-      <div class="tag-total" @click="updateBookmarkListView({})">
+      <div class="tag-total" @click="updateBookmarkListView('')">
         <span>전체</span>
         <span>{{ totalTagCount }}</span>
       </div>
-      <ul v-if="Object.keys(initialTagWithBookmarkSet).length" class="tag-list">
-        <li
-          class="tag-item"
-          v-for="(value, key) of initialTagWithBookmarkSet"
-          :key="key"
-          @click="
-            updateBookmarkListView({ tagName: key as string, bookmarkList: value.bookmarkList })
-          "
-        >
-          <span>{{ key }}</span>
-          <span>{{ value?.bookmarkList?.length }}</span>
-        </li>
+      <ul v-if="Object.keys(tagWithBookmarkSet).length" class="tag-list">
+        <template v-for="(value, key) of initialTagWithBookmarkSet" :key="key">
+          <li
+            v-if="key !== '전체'"
+            class="tag-item"
+            @click="
+              updateBookmarkListView(key as string)
+            "
+          >
+            <span v-truncate>{{ key }}</span>
+            <span>{{ value?.bookmarkList?.length }}</span>
+          </li>
+        </template>
       </ul>
     </nav>
     <section class="tag-add">
@@ -114,6 +141,8 @@ export default defineComponent({
       <a href="#">확장 프로그램</a>
     </footer>
   </aside>
+
+  <BookmarkModal ref="bookmarkModal" />
 </template>
 
 <style lang="scss" scoped>

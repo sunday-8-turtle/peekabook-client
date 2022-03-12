@@ -27,6 +27,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .snackbar-wrapper {
+  z-index: 500;
   height: fit-content;
   width: fit-content;
 

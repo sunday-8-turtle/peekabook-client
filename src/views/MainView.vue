@@ -27,9 +27,17 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+$the-snb-width: 240px;
+$the-nav-height: 72px;
+$the-footer-height: 88px;
+$the-global-top-padding: 56px;
+
 .wrapper {
   max-width: 1440px;
+  min-height: calc(100vh - $the-nav-height - $the-global-top-padding - 48px);
+
+  padding: 0 120px;
   margin: 0 auto;
-  padding: 48px 120px;
+  margin-top: 48px;
 }
 </style>

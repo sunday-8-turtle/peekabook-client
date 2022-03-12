@@ -12,6 +12,10 @@ export default function useTag() {
     ]);
 
     const rawTagList = tagListResponse.data!;
+    initialTagWithBookmarkSet.value['전체'] = {
+      id: -1,
+      bookmarkList: [],
+    };
     for (const tag of rawTagList) {
       initialTagWithBookmarkSet.value[tag.tagName] = {
         id: tag.tagId,
@@ -21,6 +25,8 @@ export default function useTag() {
 
     const rawBookmarkList = bookmarkListResponse.data!;
     for (const bookmark of rawBookmarkList) {
+      initialTagWithBookmarkSet.value['전체'].bookmarkList?.push(bookmark);
+
       for (const tag of bookmark.tags) {
         initialTagWithBookmarkSet.value[tag].bookmarkList?.push(bookmark);
       }

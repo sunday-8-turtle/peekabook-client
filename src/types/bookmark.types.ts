@@ -10,6 +10,7 @@ interface Bookmark {
   description: string;
   image?: string;
   notidate?: string;
+  createdDate: string;
   tags: string[];
 }
 
