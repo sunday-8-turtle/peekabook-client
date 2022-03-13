@@ -4,7 +4,6 @@ import { defineComponent } from 'vue';
 export default defineComponent({
   name: 'AuthModalHeader',
   components: {},
-  props: {},
   setup() {
     return {};
   },

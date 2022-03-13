@@ -4,7 +4,6 @@ import { defineComponent } from 'vue';
 export default defineComponent({
   name: 'BaseContextMenuItem',
   components: {},
-  props: {},
   setup() {
     return {};
   },

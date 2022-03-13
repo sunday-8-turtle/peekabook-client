@@ -29,11 +29,14 @@ export default defineComponent({
       // console.log('buttons', buttons);
       // console.log('firstButton', firstButton);
 
+      document.body.style.overflow = 'hidden';
       this.modalWrapper?.classList.add('black-out');
       this.modal?.setAttribute('open', '');
       document.addEventListener('keydown', this.setEscKeydownEvent);
     },
     close() {
+      document.body.style.overflow = 'auto';
+
       this.modalWrapper?.classList.remove('black-out');
       this.modal?.removeAttribute('open');
       document.removeEventListener('keydown', this.setEscKeydownEvent);
@@ -84,7 +87,7 @@ export default defineComponent({
 
 .modal-wrapper {
   display: none;
-  position: absolute;
+  position: fixed;
   left: 0;
   top: 0;
   z-index: 1010;
