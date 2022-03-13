@@ -1,10 +1,12 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
+
 import BaseButton from '@/components/BaseButton.vue';
+import TheFooter from '@/components/TheFooter.vue';
 
 export default defineComponent({
   name: 'LandingPageView',
-  components: { BaseButton },
+  components: { BaseButton, TheFooter },
   props: {},
   setup() {
     return {};
@@ -38,6 +40,7 @@ export default defineComponent({
       <p>네번째 섹션</p>
     </section>
   </div>
+  <TheFooter class="footer" />
 </template>
 
 <style lang="scss" scoped>
@@ -84,5 +87,10 @@ section {
       color: #212529;
     }
   }
+}
+
+.footer {
+  background: #f8f9fa;
+  margin-top: 0;
 }
 </style>

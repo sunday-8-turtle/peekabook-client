@@ -86,8 +86,8 @@ export default defineComponent({
 </script>
 
 <template>
-  <header>
-    <nav :class="{ borderless: isLandingPage && isTopOfPage }">
+  <header :class="{ borderless: isLandingPage && isTopOfPage }">
+    <nav>
       <div class="logo-title">
         <router-link
           class="title"
@@ -154,19 +154,31 @@ export default defineComponent({
         </div>
       </template>
     </nav>
-
+  </header>
+  <Teleport to="body">
     <AuthModalLogin
       ref="loginModal"
       @open-signup-modal="openSignupModal"
       @go-to-previous-page="goToPreviousPage"
     />
     <AuthModalSignup ref="signupModal" @open-login-modal="openLoginModal" />
-  </header>
+  </Teleport>
 </template>
 
 <style lang="scss" scoped>
 header {
   height: 72px;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  border-bottom: 1px solid #e9ecef;
+
+  &.borderless {
+    border-bottom: 1px solid transparent;
+  }
 
   nav {
     max-width: 1440px;
@@ -178,12 +190,7 @@ header {
     justify-content: space-between;
     align-items: center;
 
-    border-bottom: 1px solid #e9ecef;
     background-color: #ffffff;
-
-    &.borderless {
-      border-bottom: 1px solid transparent;
-    }
 
     div.logo-title {
       width: 153px;
