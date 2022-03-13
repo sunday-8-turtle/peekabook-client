@@ -26,13 +26,6 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
-.wrapper {
-  position: absolute;
-  left: 0;
-  top: 0;
-  background-color: rgba(0, 0, 0, 0.6);
-}
-
 ul.context-menu {
   display: none;
 

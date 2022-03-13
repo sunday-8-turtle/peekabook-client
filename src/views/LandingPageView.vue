@@ -44,6 +44,8 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+@import '@/design/layout.scss';
+
 .container {
   width: 100%;
   // height: 100%;
@@ -68,7 +70,7 @@ section {
   align-items: center;
 
   &.first {
-    height: calc(100vh - 72px);
+    height: calc(100vh - $navbar-height);
   }
 
   p {

@@ -166,14 +166,17 @@ export default defineComponent({
 </template>
 
 <style lang="scss" scoped>
+@import '@/design/layout.scss';
+
 header {
-  height: 72px;
+  height: $navbar-height;
 
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
 
+  background-color: #ffffff;
   border-bottom: 1px solid #e9ecef;
 
   &.borderless {
@@ -189,8 +192,6 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-
-    background-color: #ffffff;
 
     div.logo-title {
       width: 153px;
