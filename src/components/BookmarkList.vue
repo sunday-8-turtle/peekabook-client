@@ -40,9 +40,8 @@ export default defineComponent({
     // context menu
     const bookmarkFilterContextMenu =
       ref<InstanceType<typeof BaseContextMenu>>();
-    const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
-    const showBookmarkFilterContextMenu = ref(false);
-    const toggleUserContextMenu = () => userContextMenu.value?.toggle();
+    const toggleUserContextMenu = () =>
+      bookmarkFilterContextMenu.value?.toggle();
 
     // snackbar
     const snackbarMessage = ref();

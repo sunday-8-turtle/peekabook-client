@@ -20,7 +20,6 @@ export default defineComponent({
     BaseContextMenu,
     BaseContextMenuItem,
   },
-  props: {},
   setup() {
     // Login Modal
     const loginModal = ref<InstanceType<typeof AuthModalLogin>>();

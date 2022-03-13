@@ -61,8 +61,6 @@ export default defineComponent({
 
     // context menu
     const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
-    const showUserContextMenu = ref(false);
-    const showBookmarkFilterContextMenu = ref(false);
     const toggleUserContextMenu = () => userContextMenu.value?.toggle();
 
     return {
