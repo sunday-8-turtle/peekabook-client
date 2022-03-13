@@ -1,6 +1,6 @@
 <template>
   <TheGnb />
-  <main id="main">
+  <main>
     <router-view />
   </main>
 </template>
@@ -21,12 +21,6 @@ export default defineComponent({
 @import 'design/_responsive.scss';
 
 #app {
-  display: flex;
-  flex-direction: column;
-}
-
-#main {
-  margin-top: 72px;
   display: flex;
   flex-direction: column;
 }
