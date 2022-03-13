@@ -1,6 +1,6 @@
 <template>
   <TheGnb />
-  <main>
+  <main id="main">
     <router-view />
   </main>
 </template>
@@ -19,4 +19,15 @@ export default defineComponent({
 @import 'design/_normalize.css';
 @import 'design/_typography.scss';
 @import 'design/_responsive.scss';
+
+#app {
+  display: flex;
+  flex-direction: column;
+}
+
+#main {
+  margin-top: 72px;
+  display: flex;
+  flex-direction: column;
+}
 </style>

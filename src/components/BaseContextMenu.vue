@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { useOnClickOutside } from '@/composables';
 
 export default defineComponent({
@@ -11,11 +11,10 @@ export default defineComponent({
     const open = () => (isShow.value = true);
     const close = () => (isShow.value = false);
 
-    onMounted(() => {
-      useOnClickOutside(contextMenu, close);
-    });
+    const toggle = () => (isShow.value ? close() : open());
+    useOnClickOutside(contextMenu, close);
 
-    return { contextMenu, isShow, open, close };
+    return { contextMenu, isShow, toggle };
   },
 });
 </script>
