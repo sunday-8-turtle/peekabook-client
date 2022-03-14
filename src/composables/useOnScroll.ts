@@ -6,6 +6,15 @@ export default function useOnScroll() {
     return scrollY.value === 0;
   });
 
+  /**
+   * 특정 엘리먼트로 스크롤을 이동한다.
+   *
+   * @param id 이동할 엘리먼트의 ID Selector
+   */
+  const scrollIntoView = (id: string): void => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const onScroll = () => {
     scrollY.value = window.scrollY;
   };
@@ -14,5 +23,6 @@ export default function useOnScroll() {
 
   return {
     isTopOfPage,
+    scrollIntoView,
   };
 }

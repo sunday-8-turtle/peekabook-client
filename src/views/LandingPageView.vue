@@ -1,88 +1,212 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
+
 import BaseButton from '@/components/BaseButton.vue';
+import TheFooter from '@/components/TheFooter.vue';
+import LandingPageSection from '@/components/LandingPageSection.vue';
+import { useOnScroll } from '@/composables';
 
 export default defineComponent({
   name: 'LandingPageView',
-  components: { BaseButton },
+  components: { BaseButton, TheFooter, LandingPageSection },
   props: {},
   setup() {
-    return {};
+    const { scrollIntoView } = useOnScroll();
+
+    return {
+      scrollIntoView,
+    };
   },
 });
 </script>
 
 <template>
-  <div class="container">
-    <section class="first">
-      <p class="large" style="margin-bottom: 28px">북마크, 잘 쓰고 계신가요?</p>
-      <p style="margin-bottom: 56px">
-        나중에 다시 보려던 북마크, 잊진 않으셨나요? <br />
-        언제 어디서나 사용 가능한 피카북이 도와드릴게요!
-      </p>
-      <BaseButton
-        :shape="'fill'"
-        :fontSize="'20px'"
-        style="width: 280px; height: 64px"
-      >
-        피카북 시작하기
-      </BaseButton>
-    </section>
-    <section>
-      <p>두번째 섹션</p>
-    </section>
-    <section>
-      <p>세번째 섹션</p>
-    </section>
-    <section>
-      <p>네번째 섹션</p>
-    </section>
+  <div class="sections-container">
+    <LandingPageSection id="section-1" :isFirst="true">
+      <div class="text-container">
+        <h2 class="h-large text-center">북마크, 잘 쓰고 계신가요?</h2>
+        <p class="p text-center">
+          나중에 다시 보려던 북마크, 잊진 않으셨나요? <br />
+          언제 어디서나 사용 가능한 피카북이 도와드릴게요!
+        </p>
+        <BaseButton
+          :shape="'fill'"
+          :fontSize="'20px'"
+          class="start-peekabook-btn"
+        >
+          피카북 시작하기
+        </BaseButton>
+      </div>
+      <button class="next-section-btn" @click="scrollIntoView('section-2')">
+        <img
+          src="@/assets/images/landing/arrow-bottom.svg"
+          alt="arrow bottom"
+        />
+      </button>
+    </LandingPageSection>
+    <LandingPageSection id="section-2" :hasImage="true">
+      <template #image>
+        <img
+          src="@/assets/images/landing/landing-2.svg"
+          alt="landing image 2"
+        />
+      </template>
+      <div class="text-container left">
+        <h2 class="h-small">카테고리로 정리하고<br />검색으로 쉽게</h2>
+        <p class="p">
+          북마크가 쌓여갈수록 다시 찾기 어려우셨죠?<br />
+          이제 카테고리와 검색 기능으로 쉽게 찾아보세요.
+        </p>
+      </div>
+    </LandingPageSection>
+    <LandingPageSection id="section-3" :hasImage="true" :imagePosition="'left'">
+      <template #image>
+        <img
+          src="@/assets/images/landing/landing-3.svg"
+          alt="landing image 2"
+        />
+      </template>
+      <div class="text-container left">
+        <h2 class="h-small">
+          확장 프로그램으로<br />
+          간편해진 북마크
+        </h2>
+        <p class="p">
+          확장 프로그램으로 북마크를 해보세요!<br />
+          내 북마크 페이지에서 한눈에 확인할 수 있어요.
+        </p>
+        <BaseButton
+          :shape="'line'"
+          :fontSize="'20px'"
+          class="install-extension-btn"
+        >
+          확장 프로그램 설치
+        </BaseButton>
+      </div>
+    </LandingPageSection>
+    <LandingPageSection id="section-4" :hasImage="true">
+      <template #image>
+        <img
+          src="@/assets/images/landing/landing-4.svg"
+          alt="landing image 2"
+        />
+      </template>
+      <div class="text-container left">
+        <h2 class="h-small">
+          다시 볼 수 있도록<br />
+          알려드려요.
+        </h2>
+        <p class="p">
+          북마크 후에 잊어버린 적이 있지 않으신가요?<br />
+          알림 설정하시면 언제 어디서든 피카북이 알려드려요!
+        </p>
+      </div>
+    </LandingPageSection>
   </div>
+  <TheFooter class="footer" />
 </template>
 
 <style lang="scss" scoped>
-.container {
+@import '@/design/layout.scss';
+
+.sections-container {
   width: 100%;
-  // height: 100%;
 
   display: flex;
   flex-direction: column;
+  align-items: center;
 
-  > section {
-    &:nth-child(2n) {
-      background: #f8f9fa;
-    }
+  > section:nth-child(even) {
+    background: #f8f9fa;
   }
 }
 
-section {
-  width: 100%;
-  height: 560px;
+.h-large {
+  margin: 0;
+  margin-bottom: 28px;
+
+  font-weight: 700;
+  font-size: 56px;
+  line-height: 72px;
+  color: #212529;
+}
+
+.h-small {
+  margin: 0;
+  margin-bottom: 20px;
+
+  font-weight: 700;
+  font-size: 38px;
+  line-height: 54px;
+  color: #343a40;
+}
+
+.p {
+  margin: 0;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 34px;
+  color: #343a40;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.start-peekabook-btn {
+  width: 280px;
+  height: 64px;
+  margin-top: 56px;
+}
+
+.install-extension-btn {
+  width: 222px;
+  height: 56px;
+  margin-top: 48px;
+}
+
+.text-container {
+  position: relative;
 
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 
-  &.first {
-    height: calc(100vh - 72px);
+  &.left {
+    align-items: flex-start;
+  }
+}
+
+.next-section-btn {
+  position: absolute;
+  bottom: 63px;
+
+  background-color: unset;
+  border: unset;
+
+  cursor: pointer;
+  animation: moveBelow 1.2s linear infinite alternate;
+}
+
+.footer {
+  background: #f8f9fa;
+  margin-top: 0;
+}
+
+// 키프레임 애니메이션 - 리니어
+// Duration - 1.2s
+//  50%   +8px
+// 100%  - 8px
+// Loop
+
+@keyframes moveBelow {
+  50% {
+    bottom: 68px;
   }
 
-  p {
-    margin: 0;
-    text-align: center;
-
-    font-size: 20px;
-    line-height: 34px;
-    font-weight: 400;
-    color: #343a40;
-
-    &.large {
-      font-weight: 700;
-      font-size: 56px;
-      line-height: 72px;
-      color: #212529;
-    }
+  100% {
+    bottom: 63px;
   }
 }
 </style>
