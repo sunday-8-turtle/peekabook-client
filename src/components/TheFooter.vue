@@ -14,9 +14,23 @@ export default defineComponent({
   <footer>
     <nav>
       <ul>
-        <li>이용약관</li>
+        <li>
+          <a
+            class="link"
+            href="https://www.notion.so/bside/85cf94e445724821a8e4ca10e397a480"
+            target="_blank"
+            >이용약관</a
+          >
+        </li>
         <li></li>
-        <li>개인정보처리방침</li>
+        <li>
+          <a
+            class="link"
+            href="https://www.notion.so/bside/092bf11f20634880b0a4674c89aa4ec0"
+            target="_blank"
+            >개인정보처리방침</a
+          >
+        </li>
         <li></li>
         <li>ⓒ peekabook All Rights Reserved.</li>
       </ul>
@@ -57,6 +71,11 @@ footer {
     font-size: 13px;
     line-height: 20px;
     color: #868e96;
+
+    .link {
+      color: inherit;
+      text-decoration: none;
+    }
   }
 
   li:not(:last-child) {
