@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, onMounted } from 'vue';
 
 import BaseButton from '@/components/BaseButton.vue';
 import TheFooter from '@/components/TheFooter.vue';
