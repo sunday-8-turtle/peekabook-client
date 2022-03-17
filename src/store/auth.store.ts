@@ -13,6 +13,10 @@ const initialUserState = user
 const useAuthStore = defineStore('auth', {
   state: () => {
     return {
+      extension: {
+        accessByExtension: false,
+        extensionId: '',
+      },
       ...initialUserState,
     };
   },

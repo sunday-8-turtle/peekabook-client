@@ -1,4 +1,5 @@
 interface messageToExtension {
+  extensionId: string;
   token: string;
 }
 

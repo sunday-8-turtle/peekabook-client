@@ -1,15 +1,16 @@
 <script lang="ts">
 import { computed, defineComponent, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { LocationQuery, useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import useAuthStore from '@/store/auth.store';
+
+import { useOnScroll } from '@/composables';
 
 import AuthModalLogin from '@/components/AuthModalLogin.vue';
 import AuthModalSignup from '@/components/AuthModalSignup.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import BaseContextMenu from '@/components/BaseContextMenu.vue';
 import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
-import { useOnScroll } from '@/composables';
 
 export default defineComponent({
   name: 'TheGnb',
@@ -22,11 +23,17 @@ export default defineComponent({
   },
   props: {},
   setup() {
-    // Login Modal
+    const $route = useRoute();
+    const $router = useRouter();
+    const $authStore = useAuthStore();
+
+    // 로그인 여부 (GNB 디자인 변경)
+    const { loggedIn } = storeToRefs($authStore);
+
+    // 로그인 모달
     const loginModal = ref<InstanceType<typeof AuthModalLogin>>();
     const openLoginModal = () => loginModal.value?.open();
     // 파라미터를 활용한 로그인 모달 열기 (ex- ?initialLoginModal=true)
-    const $route = useRoute();
     watch(
       () => $route.query.initialLoginModal,
       (initialLoginModal) => {
@@ -40,28 +47,56 @@ export default defineComponent({
     const signupModal = ref<InstanceType<typeof AuthModalSignup>>();
     const openSignupModal = () => signupModal.value?.open();
 
-    // loggedIn
-    const authStore = useAuthStore();
-    const { loggedIn } = storeToRefs(authStore);
+    // 프로그래밍적으로 로그인 모달 열기
+    // 1) 익스텐션: 유효하지 않은 사용자가 익스텐션을 여는 경우
+    // 2) 권한없음: 유효하지 않은 사용자가 authRequired 페이지를 요청하는 경우
+    watch(
+      () => $route.query,
+      (query) => {
+        const LOGIN_TYPE = ['extension', 'unauthorized'];
 
-    // Login 완료 후 리다이렉트
-    const $router = useRouter();
+        const loginType = String(query['login-for']);
+
+        console.log(`Login Type: ${loginType}`);
+        // 로그인 타입 없으면 종료
+        if (!loginType) {
+          return;
+        }
+
+        // 유효하지 않은 로그인 타입이면 종료
+        if (!LOGIN_TYPE.includes(String(loginType))) {
+          return;
+        }
+
+        // 익스텐션 타입인 경우
+        if (loginType === 'extension') {
+          $authStore.$state.extension = {
+            accessByExtension: true,
+            extensionId: String(query['extension-id']),
+          };
+        }
+
+        openLoginModal();
+      }
+    );
+
+    // 로그인 완료 후 리다이렉트
     const goToPreviousPage = () => {
       $router.push($route.redirectedFrom || { name: 'MainView' });
     };
 
-    // User Context Menu
+    // 유저 컨텍스트 메뉴
     const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
     const toggleUserContextMenu = () => userContextMenu.value?.toggle();
     const onLogout = () => {
-      authStore.logout();
+      $authStore.logout();
       $router.push({ name: 'LandingPageView' });
     };
     const goToProfile = () => {
       $router.push({ name: 'ProfileView' });
     };
 
-    // LandingPageView related
+    // 랜딩 페이지 스타일 관련 (borderless)
     const isLandingPage = computed(() => {
       return $route.path === '/';
     });
