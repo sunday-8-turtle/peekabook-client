@@ -30,6 +30,8 @@ li {
   letter-spacing: -0.3px;
   color: #343a40;
 
+  cursor: pointer;
+
   &:hover {
     background: #f8f9fa;
     mix-blend-mode: darken;
