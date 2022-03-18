@@ -9,6 +9,7 @@ const httpClient = axios.create();
 
 httpClient.defaults.baseURL = process.env.VUE_APP_BASE_URL;
 
+let hasRequested = false;
 httpClient.interceptors.request.use(
   async function (config) {
     const user = getCurrentUser();
@@ -16,13 +17,18 @@ httpClient.interceptors.request.use(
 
     const { token, refreshToken } = user;
     const parsedToken = parseJWT(token);
-    if (isTokenExpired(parsedToken.exp)) {
+
+    if (isTokenExpired(parsedToken.exp) && !hasRequested) {
+      hasRequested = true;
       const authStore = useAuthStore();
+      config.headers!.Authorization = '';
+
       const res = await reissueToken({
         accessToken: token,
         refreshToken: refreshToken,
       });
       authStore.setUserState({ loggedIn: true, user: res.data! });
+      hasRequested = false;
     }
 
     config.headers!.Authorization = `${token}`;

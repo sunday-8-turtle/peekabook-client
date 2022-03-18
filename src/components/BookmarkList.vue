@@ -6,8 +6,9 @@ import useBookmarkStore from '@/store/bookmark.store';
 import BookmarkListItem from '@/components/BookmarkListItem.vue';
 import BaseContextMenu from '@/components/BaseContextMenu.vue';
 import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
-import ModalConfirm from '@/components/ModalConfirm.vue';
 import Snackbar from '@/components/Snackbar.vue';
+import ModalConfirm from '@/components/ModalConfirm.vue';
+import BookmarkModal from '@/components/BookmarkModal.vue';
 
 import { Bookmark } from '@/types/bookmark.types';
 import { deleteBookmark } from '@/api/bookmark';
@@ -20,6 +21,7 @@ export default defineComponent({
     BaseContextMenuItem,
     Snackbar,
     ModalConfirm,
+    BookmarkModal,
   },
   setup() {
     const $route = useRoute();
@@ -77,6 +79,14 @@ export default defineComponent({
       closeSnackbar(3000);
     };
 
+    // bookmark modal
+    const bookmarkModal = ref<InstanceType<typeof BookmarkModal>>();
+    const selectedBookmark = ref<Bookmark>();
+    const openBookmarkModal = (bookmark: Bookmark) => {
+      selectedBookmark.value = bookmark;
+      bookmarkModal.value?.open();
+    };
+
     return {
       tagName,
       bookmarkList,
@@ -89,6 +99,10 @@ export default defineComponent({
       modalConfirm,
       openModalConfirm,
       onConfirmDeleteBookmark,
+
+      bookmarkModal,
+      selectedBookmark,
+      openBookmarkModal,
     };
   },
 });
@@ -120,6 +134,7 @@ export default defineComponent({
         :key="bookmark.bookmarkId"
         :bookmark="bookmark"
         @open-modal-confirm="openModalConfirm"
+        @open-modal-bookmark="openBookmarkModal"
       />
     </section>
     <p v-if="!bookmarkList.length" class="empty-message">북마크가 없습니다.</p>
@@ -141,6 +156,8 @@ export default defineComponent({
       </header>
     </ModalConfirm>
   </Teleport>
+
+  <BookmarkModal ref="bookmarkModal" :bookmark="selectedBookmark" />
 </template>
 
 <style lang="scss" scoped>

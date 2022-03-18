@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref, computed, PropType, toRefs, watch } from 'vue';
 
 import BaseModal from '@/components/BaseModal.vue';
 import BaseButton from '@/components/BaseButton.vue';
@@ -19,7 +19,12 @@ type Notidate = '끄기' | '7일' | '14일' | '30일';
 export default defineComponent({
   name: 'BookmarkModal',
   components: { BaseModal, BaseButton, BaseInput },
-  setup() {
+  props: {
+    selectedBookmark: {
+      type: Object as PropType<Bookmark>,
+    },
+  },
+  setup(props) {
     const baseModal = ref<InstanceType<typeof BaseModal>>();
     const open = () => baseModal.value?.open();
     const close = () => baseModal.value?.close();
@@ -87,6 +92,23 @@ export default defineComponent({
       notidate: '',
       tags: [],
     });
+
+    // watch(
+    //   () => props.selectedBookmark,
+    //   () => {
+    //     if (props.selectedBookmark) {
+    //       const selectedBookmark = toRefs(props.selectedBookmark);
+    //       formData.value.title = selectedBookmark.title.value;
+    //       formData.value.url = selectedBookmark.url.value;
+    //       formData.value.description = selectedBookmark.description.value;
+    //       formData.value.notidate = selectedBookmark.notidate?.value;
+    //       formData.value.tags = selectedBookmark.tags?.value;
+    //     }
+    //     console.log('어떄?', formData.value, props.selectedBookmark);
+    //   },
+    //   { deep: true }
+    // );
+
     const addTag = (e: Event) => {
       const tagName = (e.target as HTMLInputElement).value.trim();
       if (!tagName) return;
