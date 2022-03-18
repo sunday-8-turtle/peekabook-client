@@ -65,8 +65,10 @@ export default defineComponent({
       if (!targetBookmark.value) return;
 
       isLoading.value = true;
-      await deleteBookmark(targetBookmark.value?.bookmarkId);
-      bookmarkStore.removeOneFromBookmarkList(targetBookmark.value?.bookmarkId);
+      await deleteBookmark(targetBookmark.value?.bookmarkId as number);
+      bookmarkStore.removeOneFromBookmarkList(
+        targetBookmark.value?.bookmarkId as number
+      );
       bookmarkStore.removeOneFromTagWithBookmarkList(targetBookmark.value);
       isLoading.value = false;
 

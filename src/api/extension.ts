@@ -9,6 +9,7 @@ function sendMessageToExtension(message: messageToExtension): void {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   chrome.runtime.sendMessage(extensionId, message);
+  console.log(chrome.management.getAll(), chrome.runtime.id);
 }
 
 export { sendMessageToExtension };

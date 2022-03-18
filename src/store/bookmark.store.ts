@@ -27,6 +27,21 @@ const useBookmarkStore = defineStore('bookmark', {
     updateTagWithBookmarkSet(tagWithBookmarkSet: TagWithBookmark) {
       this.tagWithBookmarkSet = tagWithBookmarkSet;
     },
+    addOneBookmarkToList(bookmark: Bookmark) {
+      this.bookmarkList.push(bookmark);
+    },
+    addOneBookmarkToTagWithBookmarkSet(bookmark: Bookmark) {
+      bookmark.tags.forEach((tag) => {
+        if (this.tagWithBookmarkSet[tag]) {
+          this.tagWithBookmarkSet[tag].bookmarkList.push(bookmark);
+        } else {
+          this.tagWithBookmarkSet[tag] = {
+            id: bookmark.title,
+            bookmarkList: [bookmark],
+          };
+        }
+      });
+    },
     removeOneFromBookmarkList(targetBookmarkId: number) {
       this.bookmarkList = this.bookmarkList.filter((bookmark) => {
         if (bookmark.bookmarkId !== targetBookmarkId) return bookmark;
@@ -42,6 +57,8 @@ const useBookmarkStore = defineStore('bookmark', {
 
       // 2) 개별 태그에서 삭제
       targetBookmark.tags.forEach((tag) => {
+        if (!this.tagWithBookmarkSet[tag]) return;
+
         this.tagWithBookmarkSet[tag].bookmarkList = this.tagWithBookmarkSet[
           tag
         ].bookmarkList.filter((bookmark) => {

@@ -2,19 +2,28 @@ import axios from 'axios';
 import { getSavedState } from '@/store/helpers';
 import { CurrentUserState } from '@/types/auth.types';
 
+import { reissueToken } from './auth.api';
+import useAuthStore from '@/store/auth.store';
+
 const httpClient = axios.create();
 
 httpClient.defaults.baseURL = process.env.VUE_APP_BASE_URL;
 
 httpClient.interceptors.request.use(
-  function (config) {
+  async function (config) {
     const user = getCurrentUser();
     if (!user) return config;
 
-    let token = user.token;
-    const { refreshToken, expireTime } = user;
-    if (isTokenExpired(token)) {
-      token = reissueToken(refreshToken);
+    // let token = user.token;
+    const { token, refreshToken } = user;
+    const parsedToken = parseJWT(token);
+    if (isTokenExpired(parsedToken.exp)) {
+      const authStore = useAuthStore();
+      const res = await reissueToken({
+        accessToken: token,
+        refreshToken: refreshToken,
+      });
+      authStore.setUserState({ loggedIn: true, user: res.data! });
     }
 
     config.headers!.Authorization = `${token}`;
@@ -42,12 +51,26 @@ const getCurrentUser = (): CurrentUserState | undefined => {
   return user ? user : undefined;
 };
 
-const isTokenExpired = (token: string): boolean => {
+const isTokenExpired = (expireTime: number): boolean => {
+  const now = new Date();
+  const timeDelta = expireTime - now.getTime() / 1000;
+  if (timeDelta < 0) return true;
   return false;
 };
 
-const reissueToken = (token: string) => {
-  return token;
+const parseJWT = (token: string) => {
+  const base64Url = token.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const jsonPayload = decodeURIComponent(
+    atob(base64)
+      .split('')
+      .map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      })
+      .join('')
+  );
+
+  return JSON.parse(jsonPayload);
 };
 
 export default httpClient;

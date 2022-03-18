@@ -202,7 +202,6 @@ export default defineComponent({
             <BaseInput
               name="current-password"
               type="password"
-              autocomplete="current-password"
               v-model="formData.beforePassword"
               placeholder="현재 비밀번호 입력"
               :error="formDataErrors.beforePassword"
