@@ -4,7 +4,7 @@ import { LocationQuery, useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import useAuthStore from '@/store/auth.store';
 
-import { useOnScroll } from '@/composables';
+import { useOnClickOutside, useOnScroll } from '@/composables';
 
 import AuthModalLogin from '@/components/AuthModalLogin.vue';
 import AuthModalSignup from '@/components/AuthModalSignup.vue';
@@ -53,18 +53,15 @@ export default defineComponent({
     watch(
       () => $route.query,
       (query) => {
-        const LOGIN_TYPE = ['extension', 'unauthorized'];
-
+        const LOGIN_TYPES = ['extension', 'unauthorized'];
         const loginType = String(query['login-for']);
 
-        console.log(`Login Type: ${loginType}`);
         // 로그인 타입 없으면 종료
         if (!loginType) {
           return;
         }
-
         // 유효하지 않은 로그인 타입이면 종료
-        if (!LOGIN_TYPE.includes(String(loginType))) {
+        if (!LOGIN_TYPES.includes(String(loginType))) {
           return;
         }
 
@@ -86,7 +83,9 @@ export default defineComponent({
     };
 
     // 유저 컨텍스트 메뉴
+    const userMenu = ref<HTMLElement>(); // 버튼 & 컨텍스트 메뉴
     const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
+    useOnClickOutside(userMenu, () => userContextMenu.value?.close());
     const toggleUserContextMenu = () => userContextMenu.value?.toggle();
     const onLogout = () => {
       $authStore.logout();
@@ -94,6 +93,7 @@ export default defineComponent({
     };
     const goToProfile = () => {
       $router.push({ name: 'ProfileView' });
+      userContextMenu.value?.close();
     };
 
     // 랜딩 페이지 스타일 관련 (borderless)
@@ -109,6 +109,7 @@ export default defineComponent({
       openSignupModal,
       loggedIn,
       goToPreviousPage,
+      userMenu,
       userContextMenu,
       toggleUserContextMenu,
       onLogout,
@@ -156,17 +157,21 @@ export default defineComponent({
             <input type="search" name="query" id="query" placeholder="검색" />
           </div>
         </div>
-        <div class="user-info">
-          <button class="noti">
-            <img
-              src="@/assets/icons/gnb-noti-rectangle.svg"
-              alt="new noti"
-              class="new"
-            />
-            <img src="@/assets/icons/gnb-noti.svg" alt="noti icon" />
-          </button>
-          <button class="profile" @click="toggleUserContextMenu">
-            <img src="@/assets/icons/gnb-user.svg" alt="user icon" />
+        <div class="context-menus">
+          <div ref="notiMenu" class="menu noti">
+            <button class="noti">
+              <img
+                src="@/assets/icons/gnb-noti-rectangle.svg"
+                alt="new noti"
+                class="new"
+              />
+              <img src="@/assets/icons/gnb-noti.svg" alt="noti icon" />
+            </button>
+          </div>
+          <div ref="userMenu" class="menu user">
+            <button class="user" @click="toggleUserContextMenu">
+              <img src="@/assets/icons/gnb-user.svg" alt="user icon" />
+            </button>
             <BaseContextMenu ref="userContextMenu">
               <BaseContextMenuItem @click="goToProfile">
                 계정 정보 설정
@@ -175,7 +180,7 @@ export default defineComponent({
                 로그아웃
               </BaseContextMenuItem>
             </BaseContextMenu>
-          </button>
+          </div>
         </div>
       </template>
       <template v-else>
@@ -334,27 +339,33 @@ header {
       }
     }
 
-    div.user-info {
+    div.context-menus {
       display: flex;
 
-      button {
+      .menu {
         position: relative;
-        background-color: inherit;
-        border: none;
-        cursor: pointer;
 
         &.noti {
-          position: relative;
-
-          img.new {
-            position: absolute;
-            right: 6px;
-          }
         }
 
-        &.profile {
+        &.user {
           margin-left: 24px;
+        }
+
+        button {
+          background-color: inherit;
+          border: none;
+          cursor: pointer;
           z-index: 200;
+
+          &.noti {
+            position: relative;
+
+            img.new {
+              position: absolute;
+              right: 6px;
+            }
+          }
         }
       }
     }
