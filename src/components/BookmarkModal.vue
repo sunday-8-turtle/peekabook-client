@@ -26,13 +26,13 @@ export default defineComponent({
 
     // Notification 설정
     const notidateList = ref<Notidate[]>(['끄기', '7일', '14일', '30일']);
-    const selectedNotidate = ref('끄기');
+    const selectedNotidate = ref('');
     const selectNotidate = (notidate: Notidate) => {
-      selectedNotidate.value = notidate;
+      selectedNotidate.value = convertNotidate(notidate);
       toggleNotificationList();
     };
-    const notidate = computed(() => {
-      switch (selectedNotidate.value) {
+    const convertNotidate = (notidate: Notidate) => {
+      switch (notidate) {
         case '7일': {
           return getRemindDate(7);
         }
@@ -68,7 +68,7 @@ export default defineComponent({
 
         return `${year}-${month}-${day}`;
       }
-    });
+    };
 
     const notificationListContainer = ref();
     const isNotificationListShown = ref(false);
@@ -110,9 +110,13 @@ export default defineComponent({
     const isLoading = ref(false);
     const onSubmitForm = async () => {
       isLoading.value = true;
-      await createBookmark(formData.value);
+      formData.value.notidate = selectedNotidate.value;
+      const res = await createBookmark(formData.value);
+      const createdDate = res.timestamp.split(' ')[0];
+
       isLoading.value = false;
 
+      formData.value.createdDate = createdDate;
       bookmarkStore.addOneBookmarkToList(formData.value);
       bookmarkStore.addOneBookmarkToTagWithBookmarkSet(formData.value);
 
@@ -124,7 +128,6 @@ export default defineComponent({
       open,
       close,
 
-      notidate,
       notidateList,
       selectNotidate,
       selectedNotidate,
@@ -167,7 +170,7 @@ export default defineComponent({
           src="@/assets/icons/bell.svg"
           alt="알람 설정 아이콘"
         />
-        <span>{{ selectedNotidate }}</span>
+        <span>{{ selectedNotidate ? selectedNotidate : '끄기' }}</span>
       </div>
       <ul
         ref="notificationListContainer"

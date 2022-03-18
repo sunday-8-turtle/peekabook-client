@@ -30,9 +30,10 @@ const getBookmarkListByTag = async (
   return res.data;
 };
 
-const createBookmark = async (body: Bookmark): Promise<void> => {
+const createBookmark = async (body: Bookmark): Promise<PKBResponse<null>> => {
   const BOOKMARK_CREATE = '/bookmark';
   const res = await httpClient.post(BOOKMARK_CREATE, body);
+  return res.data;
 };
 
 const deleteBookmark = async (bookmarkId: number): Promise<void> => {

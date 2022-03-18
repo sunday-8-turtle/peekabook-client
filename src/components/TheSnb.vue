@@ -221,6 +221,8 @@ nav.bookmark-navigator {
   .tag-list {
     margin: 0;
     padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
   }
 
   .tag-item {

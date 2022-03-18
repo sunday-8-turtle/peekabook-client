@@ -14,7 +14,6 @@ httpClient.interceptors.request.use(
     const user = getCurrentUser();
     if (!user) return config;
 
-    // let token = user.token;
     const { token, refreshToken } = user;
     const parsedToken = parseJWT(token);
     if (isTokenExpired(parsedToken.exp)) {
