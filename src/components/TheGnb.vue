@@ -125,10 +125,7 @@ export default defineComponent({
   <header :class="{ borderless: isLandingPage && isTopOfPage }">
     <nav>
       <div class="logo-title">
-        <router-link
-          class="title"
-          :to="{ name: loggedIn ? 'MainView' : 'LandingPageView' }"
-        >
+        <router-link class="title" :to="{ name: 'LandingPageView' }">
           <img
             src="@/assets/peekabook-logo-title.svg"
             alt="title"
