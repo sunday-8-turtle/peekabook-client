@@ -119,18 +119,18 @@ const useBookmarkStore = defineStore('bookmark', {
         return bookmark;
       });
 
+      // 현재 구조상 '전체' 태그 또한 따로 업데이트 필요 (Refactoring required)
+      this.tagWithBookmarkSet['전체'].bookmarkList = this.tagWithBookmarkSet[
+        '전체'
+      ].bookmarkList.map((bookmark) => {
+        if (bookmark.bookmarkId === modifiedBookmark.bookmarkId) {
+          return modifiedBookmark;
+        }
+        return bookmark;
+      });
+
       // 2. 현재 북마크에 가지고 있는 모든 태그에 대해 업데이트
       modifiedBookmark.tags.forEach((tag) => {
-        // 현재 구조상 '전체' 태그 또한 따로 업데이트 필요 (Refactoring required)
-        this.tagWithBookmarkSet['전체'].bookmarkList = this.tagWithBookmarkSet[
-          '전체'
-        ].bookmarkList.map((bookmark) => {
-          if (bookmark.bookmarkId === modifiedBookmark.bookmarkId) {
-            return modifiedBookmark;
-          }
-          return bookmark;
-        });
-
         // 새롭게 추가된 태그의 경우, 태그 자체를 추가하고 북마크 리스트 초기화
         if (!this.tagWithBookmarkSet[tag]) {
           this.tagWithBookmarkSet[tag] = {
@@ -160,8 +160,11 @@ const useBookmarkStore = defineStore('bookmark', {
         ].bookmarkList.filter((bookmark) => {
           return bookmark.bookmarkId !== modifiedBookmark.bookmarkId;
         });
+      }
 
-        // 북마크가 0개일 경우 태그 삭제
+      // 북마크가 0개일 경우 태그 삭제
+      for (const tag in this.tagWithBookmarkSet) {
+        if (tag === '전체') continue;
         if (!this.tagWithBookmarkSet[tag].bookmarkList.length) {
           delete this.tagWithBookmarkSet[tag];
         }
