@@ -18,6 +18,7 @@ httpClient.interceptors.request.use(
     const { token, refreshToken } = user;
     const parsedToken = parseJWT(token);
 
+    // 토큰 재발행 (WIP)
     if (isTokenExpired(parsedToken.exp) && !hasRequested) {
       hasRequested = true;
       const authStore = useAuthStore();

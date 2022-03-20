@@ -1,6 +1,6 @@
 import httpClient from '.';
 import { PKBResponse } from '@/types';
-import { Tag, Bookmark } from '@/types/bookmark.types';
+import { Tag, Bookmark, CreateBookmarkResponse } from '@/types/bookmark.types';
 
 const getTagList = async (page = 0, size = 10): Promise<PKBResponse<Tag[]>> => {
   const USER_TAG_LIST = '/bookmark/tags';
@@ -30,9 +30,20 @@ const getBookmarkListByTag = async (
   return res.data;
 };
 
-const createBookmark = async (body: Bookmark): Promise<PKBResponse<null>> => {
+const createBookmark = async (
+  body: Bookmark
+): Promise<PKBResponse<CreateBookmarkResponse>> => {
   const BOOKMARK_CREATE = '/bookmark';
   const res = await httpClient.post(BOOKMARK_CREATE, body);
+  return res.data;
+};
+
+const modifyBookmark = async (
+  bookmarkId: number,
+  body: Bookmark
+): Promise<PKBResponse<null>> => {
+  const BOOKMARK_UPDATE_BY_ID = `/bookmark/modify/${bookmarkId}`;
+  const res = await httpClient.put(BOOKMARK_UPDATE_BY_ID, body);
   return res.data;
 };
 
@@ -46,5 +57,6 @@ export {
   getBookmarkList,
   getBookmarkListByTag,
   createBookmark,
+  modifyBookmark,
   deleteBookmark,
 };

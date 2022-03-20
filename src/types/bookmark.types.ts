@@ -4,14 +4,18 @@ interface Tag {
 }
 
 interface Bookmark {
-  bookmarkId?: number | string;
+  bookmarkId: number;
   title: string;
   url: string;
   description: string;
   tags: string[];
   image?: string;
   notidate?: string;
-  createdDate?: string;
+  createdDate: string;
+}
+
+interface CreateBookmarkResponse {
+  bookmarkId: number;
 }
 
 interface TagWithBookmark {
@@ -21,4 +25,4 @@ interface TagWithBookmark {
   };
 }
 
-export { Tag, Bookmark, TagWithBookmark };
+export { Tag, Bookmark, TagWithBookmark, CreateBookmarkResponse };

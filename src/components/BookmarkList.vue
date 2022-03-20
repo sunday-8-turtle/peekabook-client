@@ -35,11 +35,11 @@ export default defineComponent({
     // bookmark setup
     const bookmarkStore = useBookmarkStore();
     const bookmarkList = computed(() => {
-      return bookmarkStore.bookmarkList;
+      return bookmarkStore.getBookmarkListByFilter(bookmarkFilter.value);
     });
-    // const bookmarkList: any[] = []; // 빈 리스트 메세지 테스트 전용 (추후 삭제)
 
-    // context menu
+    // bookmark fillter with context menu
+    const bookmarkFilter = ref<'최신 순' | '가나다 순'>('최신 순');
     const bookmarkFilterContextMenu =
       ref<InstanceType<typeof BaseContextMenu>>();
     const toggleUserContextMenu = () =>
@@ -90,6 +90,7 @@ export default defineComponent({
     return {
       tagName,
       bookmarkList,
+      bookmarkFilter,
       bookmarkFilterContextMenu,
       toggleUserContextMenu,
 
@@ -117,14 +118,18 @@ export default defineComponent({
         class="bookmark-list-filter"
         @click="toggleUserContextMenu"
       >
-        <span>가나다 순</span>
+        <span>{{ bookmarkFilter }}</span>
         <img src="@/assets/icons/arrow-down.svg" alt="filter arrow" />
         <BaseContextMenu
           class="bookmark-list-filter-context"
           ref="bookmarkFilterContextMenu"
         >
-          <BaseContextMenuItem>최신 순</BaseContextMenuItem>
-          <BaseContextMenuItem>가나다 순</BaseContextMenuItem>
+          <BaseContextMenuItem @click="bookmarkFilter = '최신 순'"
+            >최신 순</BaseContextMenuItem
+          >
+          <BaseContextMenuItem @click="bookmarkFilter = '가나다 순'"
+            >가나다 순</BaseContextMenuItem
+          >
         </BaseContextMenu>
       </div>
     </header>
@@ -157,7 +162,11 @@ export default defineComponent({
     </ModalConfirm>
   </Teleport>
 
-  <BookmarkModal ref="bookmarkModal" :bookmark="selectedBookmark" />
+  <BookmarkModal
+    ref="bookmarkModal"
+    actionType="modify"
+    :selectedBookmark="selectedBookmark"
+  />
 </template>
 
 <style lang="scss" scoped>

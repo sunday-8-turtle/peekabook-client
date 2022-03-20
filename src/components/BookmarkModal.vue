@@ -8,7 +8,7 @@ import BaseInput from '@/components/BaseInput.vue';
 import { useOnClickOutside } from '@/composables';
 import useBookmarkStore from '@/store/bookmark.store';
 
-import { createBookmark } from '@/api/bookmark';
+import { createBookmark, modifyBookmark } from '@/api/bookmark';
 
 import truncate from '@/directives/truncate';
 
@@ -19,21 +19,29 @@ type Notidate = '끄기' | '7일' | '14일' | '30일';
 export default defineComponent({
   name: 'BookmarkModal',
   components: { BaseModal, BaseButton, BaseInput },
+  emits: ['test'],
   props: {
     selectedBookmark: {
       type: Object as PropType<Bookmark>,
     },
+    actionType: {
+      type: String as PropType<'create' | 'modify'>,
+      default: 'create',
+    },
   },
-  setup(props) {
+  setup(props, ctx) {
     const baseModal = ref<InstanceType<typeof BaseModal>>();
     const open = () => baseModal.value?.open();
     const close = () => baseModal.value?.close();
+    const onCloseModal = () => {
+      ctx.emit('test');
+    };
 
     // Notification 설정
     const notidateList = ref<Notidate[]>(['끄기', '7일', '14일', '30일']);
     const selectedNotidate = ref('');
     const selectNotidate = (notidate: Notidate) => {
-      selectedNotidate.value = convertNotidate(notidate);
+      selectedNotidate.value = notidate;
       toggleNotificationList();
     };
     const convertNotidate = (notidate: Notidate) => {
@@ -86,36 +94,62 @@ export default defineComponent({
     // Form 제출 및 유효성 검사
     const bookmarkForm = ref();
     const formData = ref<Bookmark>({
+      bookmarkId: -1,
       title: '',
       url: '',
       description: '',
       notidate: '',
+      createdDate: '',
       tags: [],
     });
+    const resetFormData = () => {
+      formData.value = {
+        bookmarkId: -1,
+        title: '',
+        url: '',
+        description: '',
+        notidate: '',
+        createdDate: '',
+        tags: [],
+      };
+    };
 
-    // watch(
-    //   () => props.selectedBookmark,
-    //   () => {
-    //     if (props.selectedBookmark) {
-    //       const selectedBookmark = toRefs(props.selectedBookmark);
-    //       formData.value.title = selectedBookmark.title.value;
-    //       formData.value.url = selectedBookmark.url.value;
-    //       formData.value.description = selectedBookmark.description.value;
-    //       formData.value.notidate = selectedBookmark.notidate?.value;
-    //       formData.value.tags = selectedBookmark.tags?.value;
-    //     }
-    //     console.log('어떄?', formData.value, props.selectedBookmark);
-    //   },
-    //   { deep: true }
-    // );
+    // 수정하는 경우 초기 formData 설정
+    watch(
+      () => props.selectedBookmark,
+      () => {
+        if (props.selectedBookmark) {
+          const selectedBookmark = toRefs(props.selectedBookmark);
+          if (selectedBookmark.bookmarkId) {
+            formData.value.bookmarkId = selectedBookmark.bookmarkId?.value;
+          }
+          formData.value.title = selectedBookmark.title.value;
+          formData.value.url = selectedBookmark.url.value;
+          formData.value.description = selectedBookmark.description.value;
+          formData.value.image = selectedBookmark.image?.value;
+          formData.value.tags = selectedBookmark.tags?.value;
+          formData.value.notidate = selectedBookmark.notidate?.value;
+        }
+      }
+    );
 
+    // 태그 관련 핸들러
     const addTag = (e: Event) => {
+      // 한글 이슈 핸들링
+      const keyboardEvent = e as KeyboardEvent;
+      if (keyboardEvent.key === 'Enter' && keyboardEvent.isComposing) return;
+
       const tagName = (e.target as HTMLInputElement).value.trim();
       if (!tagName) return;
       if (isTagDuplicate(tagName)) return;
 
       formData.value.tags.push(tagName);
       (e.target as HTMLInputElement).value = '';
+    };
+    const removeTag = (tagNameToDelete: string) => {
+      formData.value.tags = formData.value.tags.filter((tagName) => {
+        return tagNameToDelete !== tagName;
+      });
     };
     const isTagDuplicate = (tagName: string) => {
       for (const tag of formData.value.tags) {
@@ -128,27 +162,48 @@ export default defineComponent({
       return false;
     });
 
+    // 네트워크 요청 (북마크 생성 및 수정)
     const bookmarkStore = useBookmarkStore();
     const isLoading = ref(false);
     const onSubmitForm = async () => {
       isLoading.value = true;
-      formData.value.notidate = selectedNotidate.value;
-      const res = await createBookmark(formData.value);
-      const createdDate = res.timestamp.split(' ')[0];
+
+      // 요청 전 알람 날짜 yy-mm-dd 포맷으로 변경
+      formData.value.notidate = convertNotidate(
+        selectedNotidate.value as Notidate
+      );
+
+      if (props.actionType === 'create') await _createBookmark();
+      if (props.actionType === 'modify') await _modifyBookmark();
 
       isLoading.value = false;
-
-      formData.value.createdDate = createdDate;
-      bookmarkStore.addOneBookmarkToList(formData.value);
-      bookmarkStore.addOneBookmarkToTagWithBookmarkSet(formData.value);
-
+      resetFormData();
       close();
+    };
+    const _createBookmark = async () => {
+      const res = await createBookmark(formData.value);
+      const createdDate = res.timestamp;
+      // 생성일 & 북마크 id는 응답 데이터를 기반으로 store에 저장
+      formData.value.createdDate = createdDate;
+      formData.value.bookmarkId = res.data?.bookmarkId as number;
+      bookmarkStore.addOneBookmarkToTagWithBookmarkSet(formData.value);
+      bookmarkStore.addOneBookmarkToList(formData.value);
+    };
+    const _modifyBookmark = async () => {
+      const res = await modifyBookmark(
+        formData.value.bookmarkId as number,
+        formData.value
+      );
+      const createdDate = res.timestamp;
+      formData.value.createdDate = createdDate;
+      bookmarkStore.updateOneBookmark(formData.value);
     };
 
     return {
       baseModal,
       open,
       close,
+      onCloseModal,
 
       notidateList,
       selectNotidate,
@@ -161,6 +216,7 @@ export default defineComponent({
       formData,
       bookmarkForm,
       addTag,
+      removeTag,
       isReadyToSubmit,
 
       isLoading,
@@ -174,7 +230,12 @@ export default defineComponent({
 </script>
 
 <template>
-  <BaseModal ref="baseModal" id="bookmark-modal" type="confirm">
+  <BaseModal
+    ref="baseModal"
+    id="bookmark-modal"
+    type="confirm"
+    @close-modal="onCloseModal"
+  >
     <header>
       <div class="bookmark-modal-logo">
         <img src="@/assets/peekabook-logo-title.svg" alt="피카북 로고" />
@@ -214,9 +275,9 @@ export default defineComponent({
         class="bookmark-modal-title"
         placeholder="제목"
       />
-      <form @submit.prevent="onSubmitForm" ref="bookmarkForm">
+      <form @submit.prevent.stop="onSubmitForm" ref="bookmarkForm">
         <div class="bookmark-url-container">
-          <BaseInput v-model="formData.url" type="url" placeholder="URL" />
+          <BaseInput v-model="formData.url" placeholder="URL" />
         </div>
         <div class="bookmark-memo-container">
           <textarea
@@ -229,7 +290,11 @@ export default defineComponent({
           <ul class="tag-list">
             <li v-for="tag in formData.tags" :key="tag">
               <span v-truncate>{{ tag }}</span>
-              <img src="@/assets/icons/x-icon.svg" alt="취소 아이콘" />
+              <img
+                @click="removeTag(tag)"
+                src="@/assets/icons/x-icon.svg"
+                alt="취소 아이콘"
+              />
             </li>
           </ul>
         </div>
@@ -454,6 +519,12 @@ main {
             font-size: 12px;
             line-height: 16px;
             color: #ff69b4;
+          }
+        }
+
+        img {
+          &:hover {
+            cursor: pointer;
           }
         }
       }

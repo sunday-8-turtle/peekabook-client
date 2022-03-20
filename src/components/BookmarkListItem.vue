@@ -105,7 +105,7 @@ export default defineComponent({
     </main>
     <footer>
       <div class="date">
-        <div class="save-date">{{ bookmark.createdDate }}</div>
+        <div class="save-date">{{ bookmark.createdDate.split(' ')[0] }}</div>
         <template v-if="humanizedNotiDate > 0">
           <div class="v-divider"></div>
           <div class="noti-date">{{ humanizedNotiDate }}일 후 알림</div>
