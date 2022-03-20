@@ -1,8 +1,9 @@
 <script lang="ts">
-import { computed, defineComponent, ref, watch } from 'vue';
-import { LocationQuery, useRoute, useRouter } from 'vue-router';
+import { computed, defineComponent, onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import useAuthStore from '@/store/auth.store';
+import { fetchNotificationList } from '@/api/noti.api';
 
 import { useOnClickOutside, useOnScroll } from '@/composables';
 
@@ -83,34 +84,16 @@ export default defineComponent({
     };
 
     // 알림 컨텍스트 메뉴
-    const notifications = ref([
-      {
-        title: '서서하는 반복작업의 매력',
-        date: '22. 05. 13',
-        url: 'idontknow',
-      },
-      {
-        title: '히히히 제목을 씁니다아아아아아',
-        date: '22. 05. 13',
-        url: 'idontknow',
-      },
-      {
-        title:
-          '제목이 길 경우의 즐겨찾기가 있다면제목이 길 경우제목이 길어질 수 있습니다',
-        date: '22. 05. 13',
-        url: 'idontknow',
-      },
-      {
-        title: '하이이잇',
-        date: '22. 05. 13',
-        url: 'idontknow',
-      },
-      {
-        title: '포켓몬빵',
-        date: '22. 05. 13',
-        url: 'idontknow',
-      },
-    ]);
+    let notificationList = ref<Notification[]>([]);
+    const getNotificationList = async () => {
+      const res = await fetchNotificationList();
+      if (res.result === 'FAIL' || !res.data) return;
+      notificationList.value = res.data;
+    };
+    onMounted(() => {
+      getNotificationList();
+    });
+
     const notiMenu = ref<HTMLDivElement>();
     const notiContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
     useOnClickOutside(notiMenu, () => notiContextMenu.value?.close());
@@ -146,7 +129,7 @@ export default defineComponent({
       openSignupModal,
       loggedIn,
       goToPreviousPage,
-      notifications,
+      notificationList,
       notiMenu,
       notiContextMenu,
       toggleNotiContextMenu,
@@ -208,39 +191,44 @@ export default defineComponent({
             </button>
             <BaseContextMenu
               ref="notiContextMenu"
-              class="notifications"
-              :class="{ empty: notifications.length === 0 }"
+              class="notificationList"
+              :class="{ empty: notificationList.length === 0 }"
             >
-              <p class="empty-message" v-if="notifications.length === 0">
+              <p class="empty-message" v-if="notificationList.length === 0">
                 알림이 없습니다.
               </p>
               <template v-else>
                 <BaseContextMenuItem
-                  v-for="(noti, idx) in notifications"
-                  :key="idx"
+                  v-for="(noti, idx) in notificationList"
+                  :key="noti.id"
                   :class="{ 'padding-top': idx > 0 }"
                 >
                   <div class="wrapper">
                     <section class="notification">
                       <section class="image">
                         <img
-                          src="@/assets/images/landing/landing-2.svg"
+                          :src="
+                            noti.bookmark.image ||
+                            '../assets/peekabook-empty-card-img.png'
+                          "
                           alt=""
                         />
                       </section>
                       <section class="content">
                         <section class="message">
                           <span class="title">{{
-                            truncateStringWithEllipsis(noti.title, 33)
+                            truncateStringWithEllipsis(noti.bookmark.title, 33)
                           }}</span
                           >을(를) 확인하세요.
                         </section>
-                        <section class="date">{{ noti.date }}</section>
+                        <section class="date">
+                          {{ noti.bookmark.notidate }}
+                        </section>
                       </section>
                     </section>
                     <div
                       class="separator"
-                      v-if="idx + 1 !== notifications.length"
+                      v-if="idx + 1 !== notificationList.length"
                     ></div>
                   </div>
                 </BaseContextMenuItem>
@@ -294,7 +282,7 @@ header {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 101;
 
   background-color: #ffffff;
   border-bottom: 1px solid #e9ecef;
@@ -452,11 +440,23 @@ header {
   }
 }
 
-.notifications {
-  padding: 12px 0;
+.notificationList {
+  &.show {
+    width: 360px;
+    max-height: 320px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    overflow: auto;
+  }
 
-  &.empty {
+  &.show.empty {
+    width: 320px;
+    height: 160px;
     padding: 61px 46px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .padding-top {
@@ -464,7 +464,7 @@ header {
   }
 
   .wrapper {
-    width: 320px;
+    width: 100%;
     height: 100%;
   }
 
@@ -481,9 +481,10 @@ header {
   }
 
   .notification {
-    width: 320px;
+    width: 100%;
     min-height: 40px;
     max-height: 62px;
+    padding: 0 20px;
 
     display: flex;
 

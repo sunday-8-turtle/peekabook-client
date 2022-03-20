@@ -44,15 +44,8 @@ ul.context-menu {
   border-radius: 12px;
 
   &.show {
-    display: block;
-  }
-
-  &.notifications {
-    width: 360px;
-    max-height: 320px;
-
-    padding: 20px 0;
-    overflow: auto;
+    display: flex;
+    flex-direction: column;
   }
 
   &.user-menus {
