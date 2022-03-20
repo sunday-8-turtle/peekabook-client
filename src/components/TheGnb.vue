@@ -1,8 +1,9 @@
 <script lang="ts">
-import { computed, defineComponent, ref, watch } from 'vue';
-import { LocationQuery, useRoute, useRouter } from 'vue-router';
+import { computed, defineComponent, onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import useAuthStore from '@/store/auth.store';
+import { fetchNotificationList } from '@/api/noti.api';
 
 import { useOnClickOutside, useOnScroll } from '@/composables';
 
@@ -81,8 +82,27 @@ export default defineComponent({
       $router.push($route.redirectedFrom || { name: 'MainView' });
     };
 
+    // 알림 컨텍스트 메뉴
+    let notificationList = ref<Notification[]>([]);
+    const getNotificationList = async () => {
+      const res = await fetchNotificationList();
+      if (res.result === 'FAIL' || !res.data) return;
+      notificationList.value = res.data;
+    };
+    onMounted(() => {
+      getNotificationList();
+    });
+
+    const notiMenu = ref<HTMLDivElement>();
+    const notiContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
+    useOnClickOutside(notiMenu, () => notiContextMenu.value?.close());
+    const toggleNotiContextMenu = () => notiContextMenu.value?.toggle();
+    const truncateStringWithEllipsis = (text: string, len: number) => {
+      return text.length > len ? text.substr(0, len - 1) + '...' : text;
+    };
+
     // 유저 컨텍스트 메뉴
-    const userMenu = ref<HTMLElement>(); // 버튼 & 컨텍스트 메뉴
+    const userMenu = ref<HTMLDivElement>(); // 버튼 & 컨텍스트 메뉴
     const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
     useOnClickOutside(userMenu, () => userContextMenu.value?.close());
     const toggleUserContextMenu = () => userContextMenu.value?.toggle();
@@ -108,6 +128,11 @@ export default defineComponent({
       openSignupModal,
       loggedIn,
       goToPreviousPage,
+      notificationList,
+      notiMenu,
+      notiContextMenu,
+      toggleNotiContextMenu,
+      truncateStringWithEllipsis,
       userMenu,
       userContextMenu,
       toggleUserContextMenu,
@@ -124,10 +149,7 @@ export default defineComponent({
   <header :class="{ borderless: isLandingPage && isTopOfPage }">
     <nav>
       <div class="logo-title">
-        <router-link
-          class="title"
-          :to="{ name: loggedIn ? 'MainView' : 'LandingPageView' }"
-        >
+        <router-link class="title" :to="{ name: 'LandingPageView' }">
           <img
             src="@/assets/peekabook-logo-title.svg"
             alt="title"
@@ -158,25 +180,71 @@ export default defineComponent({
         </div>
         <div class="context-menus">
           <div ref="notiMenu" class="menu noti">
-            <button class="noti">
+            <button class="noti" @click="toggleNotiContextMenu">
               <img
+                v-if="notificationList.length > 0"
                 src="@/assets/icons/gnb-noti-rectangle.svg"
                 alt="new noti"
                 class="new"
               />
               <img src="@/assets/icons/gnb-noti.svg" alt="noti icon" />
             </button>
+            <BaseContextMenu
+              ref="notiContextMenu"
+              class="notificationList"
+              :class="{ empty: notificationList.length === 0 }"
+            >
+              <p class="empty-message" v-if="notificationList.length === 0">
+                알림이 없습니다.
+              </p>
+              <template v-else>
+                <BaseContextMenuItem
+                  v-for="(noti, idx) in notificationList"
+                  :key="noti.id"
+                  :class="{ 'padding-top': idx > 0 }"
+                >
+                  <div class="wrapper">
+                    <section class="notification">
+                      <section class="image">
+                        <img
+                          :src="
+                            noti.bookmark.image ||
+                            '../assets/peekabook-empty-card-img.png'
+                          "
+                          alt=""
+                        />
+                      </section>
+                      <section class="content">
+                        <section class="message">
+                          <span class="title">{{
+                            truncateStringWithEllipsis(noti.bookmark.title, 33)
+                          }}</span
+                          >을(를) 확인하세요.
+                        </section>
+                        <section class="date">
+                          {{ noti.bookmark.notidate }}
+                        </section>
+                      </section>
+                    </section>
+                    <div
+                      class="separator"
+                      v-if="idx + 1 !== notificationList.length"
+                    ></div>
+                  </div>
+                </BaseContextMenuItem>
+              </template>
+            </BaseContextMenu>
           </div>
           <div ref="userMenu" class="menu user">
             <button class="user" @click="toggleUserContextMenu">
               <img src="@/assets/icons/gnb-user.svg" alt="user icon" />
             </button>
-            <BaseContextMenu ref="userContextMenu">
+            <BaseContextMenu ref="userContextMenu" class="user-menus">
               <BaseContextMenuItem @click="goToProfile">
-                계정 정보 설정
+                <div class="user-menu profile">계정 정보 설정</div>
               </BaseContextMenuItem>
               <BaseContextMenuItem @click="onLogout">
-                로그아웃
+                <div class="user-menu logout">로그아웃</div>
               </BaseContextMenuItem>
             </BaseContextMenu>
           </div>
@@ -315,14 +383,15 @@ header {
           height: 16px;
 
           position: absolute;
-          top: 14px;
-          left: 28px;
+          top: 12px;
+          left: 22px;
         }
 
         input#query {
           width: 100%;
           height: 100%;
-          padding: 22px 14px 22px 54px;
+          padding-left: 44px;
+          padding-right: 22px;
 
           border: 1px solid #dee2e6;
           border-radius: 88px;
@@ -367,6 +436,136 @@ header {
           }
         }
       }
+    }
+  }
+}
+
+.notificationList {
+  &.show {
+    width: 360px;
+    max-height: 320px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    overflow: auto;
+  }
+
+  &.show.empty {
+    width: 320px;
+    height: 160px;
+    padding: 61px 46px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .padding-top {
+    padding-top: 16px;
+  }
+
+  .wrapper {
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .empty-message {
+    margin: 0;
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 22px;
+
+    text-align: center;
+    letter-spacing: -0.3px;
+
+    color: #343a40;
+  }
+
+  .notification {
+    width: 100%;
+    min-height: 40px;
+    max-height: 62px;
+    padding: 0 20px;
+
+    display: flex;
+
+    .image {
+      width: 40px;
+      height: 40px;
+
+      img {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    .content {
+      width: calc(320px - 40px);
+      height: 100%;
+      padding-left: 12px;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      .message {
+        font-weight: 400;
+        font-size: 15px;
+        line-height: 22px;
+        letter-spacing: -0.3px;
+        color: #212529;
+
+        .title {
+          color: #343a40;
+          font-weight: 600;
+        }
+      }
+
+      .date {
+        // height: 16px;
+
+        font-weight: 400;
+        font-size: 13px;
+        line-height: 16px;
+        /* identical to box height, or 123% */
+
+        /* Gray 6 */
+
+        color: #868e96;
+      }
+    }
+  }
+
+  .separator {
+    width: 320px;
+    height: 1px;
+    margin-top: 16px;
+    background-color: #e9ecef;
+  }
+}
+
+.user-menus {
+  .user-menu {
+    width: 100%;
+    height: 40px;
+    padding: 0 20px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    &:hover {
+      background: #f8f9fa;
+      mix-blend-mode: darken;
+    }
+
+    &.profile {
+    }
+
+    &.logout {
     }
   }
 }

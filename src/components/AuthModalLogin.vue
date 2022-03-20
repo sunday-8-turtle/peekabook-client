@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, ref, reactive, computed } from 'vue';
+import { defineComponent, ref, reactive, computed, onUnmounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import useAuthStore from '@/store/auth.store';
 
@@ -31,6 +31,12 @@ export default defineComponent({
     const baseModal = ref<InstanceType<typeof BaseModal>>();
     const open = () => baseModal.value?.open();
     const onClose = () => resetData();
+
+    // Subscribe 'openLoginModal' action
+    $authStore.$onAction(({ name }) => {
+      if (name !== 'openLoginModal') return;
+      open();
+    }, true);
 
     const isSubmitting = ref(false);
     const loginBody: LoginRequest = reactive({

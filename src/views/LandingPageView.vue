@@ -1,20 +1,27 @@
 <script lang="ts">
-import { defineComponent, onMounted } from 'vue';
+import { defineComponent, onMounted, ref } from 'vue';
+import useAuthStore from '@/store/auth.store';
+
+import { useOnScroll } from '@/composables';
 
 import BaseButton from '@/components/BaseButton.vue';
 import TheFooter from '@/components/TheFooter.vue';
 import LandingPageSection from '@/components/LandingPageSection.vue';
-import { useOnScroll } from '@/composables';
 
 export default defineComponent({
   name: 'LandingPageView',
   components: { BaseButton, TheFooter, LandingPageSection },
   props: {},
+  emits: ['open-login-modal'],
   setup() {
     const { scrollIntoView } = useOnScroll();
 
+    const authStore = useAuthStore();
+    const openLoginModal = () => authStore.openLoginModal();
+
     return {
       scrollIntoView,
+      openLoginModal,
     };
   },
 });
@@ -33,6 +40,7 @@ export default defineComponent({
           :shape="'fill'"
           :fontSize="'20px'"
           class="start-peekabook-btn"
+          @click="openLoginModal"
         >
           피카북 시작하기
         </BaseButton>

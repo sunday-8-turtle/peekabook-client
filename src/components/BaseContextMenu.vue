@@ -26,8 +26,10 @@ export default defineComponent({
 ul.context-menu {
   display: none;
 
+  width: 100%;
   min-width: 128px;
-  padding: 8px 0;
+
+  padding: 0;
   margin: 0;
   margin-top: 6px;
 
@@ -42,7 +44,12 @@ ul.context-menu {
   border-radius: 12px;
 
   &.show {
-    display: block;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &.user-menus {
+    padding: 8px 0;
   }
 }
 </style>

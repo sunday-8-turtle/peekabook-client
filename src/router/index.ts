@@ -14,6 +14,10 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       authRequired: false,
     },
+    beforeEnter(to, from, next) {
+      const { loggedIn } = useAuthStore();
+      loggedIn ? next({ name: 'MainView' }) : next();
+    },
   },
   {
     path: '/bookmark',
@@ -39,15 +43,6 @@ const routes: Array<RouteRecordRaw> = [
       authRequired: true,
     },
   },
-  // {
-  //   path: '/about',
-  //   name: 'About',
-  //   // route level code-splitting
-  //   // this generates a separate chunk (about.[hash].js) for this route
-  //   // which is lazy-loaded when the route is visited.
-  //   component: () =>
-  //     import(/* webpackChunkName: "about" */ '../views/About.vue'),
-  // },
 ];
 
 const router = createRouter({
@@ -60,9 +55,7 @@ router.beforeEach((to, from, next) => {
   if (!authRequired) return next();
 
   const { loggedIn } = useAuthStore();
-  if (loggedIn) {
-    return next();
-  }
+  if (loggedIn) return next();
 
   alert('로그인이 필요합니다.');
   return next({

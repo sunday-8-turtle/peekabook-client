@@ -18,11 +18,11 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 li {
-  height: 40px;
-  padding: 0 20px;
+  width: 100%;
+  height: 100%;
 
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
 
   font-size: 15px;
@@ -32,9 +32,9 @@ li {
 
   cursor: pointer;
 
-  &:hover {
-    background: #f8f9fa;
-    mix-blend-mode: darken;
-  }
+  // &:hover {
+  //   background: #f8f9fa;
+  //   mix-blend-mode: darken;
+  // }
 }
 </style>

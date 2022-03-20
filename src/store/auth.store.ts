@@ -54,6 +54,9 @@ const useAuthStore = defineStore('auth', {
       };
       this.setUserState(newUserState);
     },
+    openLoginModal() {
+      return true;
+    },
   },
 });
 

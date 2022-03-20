@@ -6,6 +6,7 @@ import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
 
 import { Bookmark } from '@/types/bookmark.types';
 import truncate from '@/directives/truncate';
+import { useOnClickOutside } from '@/composables';
 
 export default defineComponent({
   name: 'BookmarkListItem',
@@ -60,8 +61,13 @@ export default defineComponent({
     });
 
     // context menu
+    const bookmarkMenu = ref<HTMLDivElement>();
     const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
+    useOnClickOutside(bookmarkMenu, () => userContextMenu.value?.close());
     const toggleUserContextMenu = () => userContextMenu.value?.toggle();
+
+    const showUserContextMenu = ref(false);
+    const showBookmarkFilterContextMenu = ref(false);
 
     return {
       goToArticle,
@@ -71,6 +77,7 @@ export default defineComponent({
 
       humanizedNotiDate,
 
+      bookmarkMenu,
       userContextMenu,
       toggleUserContextMenu,
     };
@@ -111,7 +118,7 @@ export default defineComponent({
           <div class="noti-date">{{ humanizedNotiDate }}일 후 알림</div>
         </template>
       </div>
-      <div class="actions" @click="toggleUserContextMenu">
+      <div ref="bookmarkMenu" class="actions" @click="toggleUserContextMenu">
         <img
           src="@/assets/icons/dots-vertical.svg"
           alt="카드 수정 및 삭제를 위한 액션 아이콘"
@@ -294,5 +301,23 @@ footer {
 .bookmark-item-context {
   top: 24px;
   right: -24px !important;
+
+  > li {
+    padding: 8px 0;
+
+    &:hover {
+      background: #f8f9fa;
+      mix-blend-mode: darken;
+    }
+    &:first-child {
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+    }
+
+    &:last-child {
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+  }
 }
 </style>
