@@ -38,6 +38,9 @@ const useAuthStore = defineStore('auth', {
       this.user = null;
       localStorage.removeItem('user');
     },
+    openLoginModal() {
+      return true;
+    },
   },
 });
 
