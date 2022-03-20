@@ -264,25 +264,32 @@ export default defineComponent({
         />
       </div>
       <div class="terms-wrapper">
-        <label class="checkbox-container" id="terms-and-conditions">
-          <span class="underline">개인정보처리방침</span> &nbsp;및&nbsp;
-          <span class="underline">이용약관</span>에 동의합니다.
-          <input
-            type="checkbox"
-            id="terms-and-conditions"
-            v-model="signupBody.termsAndConditions"
-          />
-          <span class="checkmark"></span>
-        </label>
         <!-- 
+          컴포넌트화 진행 필요
+          label에 텍스트도 활용 가능하게끔
+         -->
         <input
           type="checkbox"
-          name="terms-and-conditions"
           id="terms-and-conditions"
+          v-model="signupBody.termsAndConditions"
+          style="pointer-events: auto"
         />
-        <label for="terms-and-conditions">
-          개인정보처리방침 및 이용약관에 동의합니다.
-        </label> -->
+        <label for="terms-and-conditions" class="checkmark"></label>
+        <p class="terms-text">
+          <a
+            class="terms-link"
+            href="https://www.notion.so/bside/092bf11f20634880b0a4674c89aa4ec0"
+            target="_blank"
+            >개인정보처리방침</a
+          >
+          및
+          <a
+            class="terms-link"
+            href="https://www.notion.so/bside/85cf94e445724821a8e4ca10e397a480"
+            target="_blank"
+            >이용약관</a
+          >에 동의합니다.
+        </p>
       </div>
       <BaseButton
         :shape="'fill'"
@@ -326,6 +333,7 @@ export default defineComponent({
       height: 56px;
     }
 
+    // 텍스트 필드
     .input-wrapper {
       width: 100%;
       height: 100%;
@@ -351,68 +359,120 @@ export default defineComponent({
       }
     }
 
+    // 이용약관 필드
     .terms-wrapper {
       width: 100%;
-      height: 100%;
+      height: 24px;
       margin-top: 16px;
 
       display: flex;
       justify-content: flex-start;
       align-items: center;
 
-      label.checkbox-container {
-        // width: 100%;
+      .checkmark {
+        width: 24px;
         height: 24px;
-        padding-left: 34px;
-        position: relative;
 
-        display: flex;
-        align-items: center;
-
-        font-size: 15px;
-        color: #868e96;
+        // position: absolute;
+        // top: 0;
+        // left: 0;
         cursor: pointer;
+        border: 2px solid #dee2e6;
+        border-radius: 4px;
+      }
 
-        span.checkmark {
-          width: 24px;
-          height: 100%;
+      input[type='checkbox'] {
+        width: 0;
+        height: 0;
 
-          position: absolute;
-          top: 0;
-          left: 0;
+        position: absolute;
+        opacity: 0;
 
-          border: 2px solid #dee2e6;
-          border-radius: 4px;
-        }
+        &:checked ~ .checkmark {
+          display: flex;
+          justify-content: center;
+          align-items: flex-end;
 
-        input[type='checkbox'] {
-          width: 0;
-          height: 0;
+          background-color: #ff69b4;
+          border: 2px solid #ff69b4;
 
-          position: absolute;
-          opacity: 0;
-
-          &:checked ~ .checkmark {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-
-            background-color: #ff69b4;
-            border: 2px solid #ff69b4;
-
-            &:before {
-              content: url('~@/assets/icons/check-white.svg');
-            }
+          &:before {
+            content: url('~@/assets/icons/check-white.svg');
           }
         }
-
-        span.underline {
-          text-decoration: underline;
-          text-underline-offset: 2px;
-        }
       }
+
+      .terms-text {
+        margin: 0;
+        margin-left: 10px;
+
+        color: #868e96;
+        font-weight: 400;
+        font-size: 15px;
+        line-height: 24px;
+      }
+
+      .terms-link {
+        cursor: pointer;
+        color: inherit;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      // label.checkbox-container {
+      //   // width: 100%;
+      //   height: 24px;
+      //   padding-left: 34px;
+      //   position: relative;
+
+      //   display: flex;
+      //   align-items: center;
+
+      //   font-size: 15px;
+      //   color: #868e96;
+      //   cursor: pointer;
+
+      //   span.checkmark {
+      //     width: 24px;
+      //     height: 100%;
+
+      //     position: absolute;
+      //     top: 0;
+      //     left: 0;
+
+      //     border: 2px solid #dee2e6;
+      //     border-radius: 4px;
+      //   }
+
+      //   input[type='checkbox'] {
+      //     width: 0;
+      //     height: 0;
+
+      //     position: absolute;
+      //     opacity: 0;
+
+      //     &:checked ~ .checkmark {
+      //       display: flex;
+      //       justify-content: center;
+      //       align-items: flex-end;
+
+      //       background-color: #ff69b4;
+      //       border: 2px solid #ff69b4;
+
+      //       &:before {
+      //         content: url('~@/assets/icons/check-white.svg');
+      //       }
+      //     }
+      //   }
+
+      //   span.underline {
+      //     text-decoration: underline;
+      //     text-underline-offset: 2px;
+      //   }
+      // }
     }
 
+    // 제출 버튼
     .submit-btn {
       margin-top: 24px;
       height: 56px;

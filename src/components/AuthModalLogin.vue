@@ -1,5 +1,6 @@
 <script lang="ts">
 import { defineComponent, ref, reactive, computed } from 'vue';
+import { storeToRefs } from 'pinia';
 import useAuthStore from '@/store/auth.store';
 
 import BaseModal from '@/components/BaseModal.vue';
@@ -24,11 +25,13 @@ export default defineComponent({
   },
   emits: ['open-signup-modal', 'go-to-previous-page'],
   setup(props, { emit }) {
+    const $authStore = useAuthStore();
+    const { extension } = storeToRefs($authStore);
+
     const baseModal = ref<InstanceType<typeof BaseModal>>();
     const open = () => baseModal.value?.open();
     const onClose = () => resetData();
 
-    const authStore = useAuthStore();
     const isSubmitting = ref(false);
     const loginBody: LoginRequest = reactive({
       email: '',
@@ -51,17 +54,26 @@ export default defineComponent({
       try {
         isSubmitting.value = true;
 
-        const user = await authStore.login(loginBody);
+        const user = await $authStore.login(loginBody);
         if (!user) {
           throw new Error(MESSAGE_SET.LOGIN_FAIL);
         }
 
+        // 익스텐션에 토큰 전달
+        const { accessByExtension, extensionId } = extension.value;
+        if (accessByExtension && extensionId) {
+          sendMessageToExtension({
+            extensionId,
+            token: user.token,
+          });
+        }
+
         baseModal.value?.close();
         isSubmitting.value = false;
-        emit('go-to-previous-page');
 
-        // 익스텐션에 토큰 전달
-        sendMessageToExtension({ token: user.token });
+        // 정상적인 접근 -> 직전 페이지로 리다이렉트
+        // 익스텐션을 통한 접근 -> 열려있는 탭 기
+        emit('go-to-previous-page');
       } catch (error: any) {
         console.error(error);
         snackbarMessage.value = error.message;

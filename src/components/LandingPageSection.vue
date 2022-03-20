@@ -70,10 +70,14 @@ section {
 
     &.horizontal {
       justify-content: space-around;
+
+      .text {
+        width: 50%;
+      }
     }
 
     .text {
-      width: 50%;
+      width: 100%;
       height: 100%;
       position: relative;
 
