@@ -3,6 +3,8 @@ import { defineComponent, computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 import useBookmarkStore from '@/store/bookmark.store';
+
+import BaseLottie from '@/components/BaseLottie.vue';
 import BookmarkListItem from '@/components/BookmarkListItem.vue';
 import BaseContextMenu from '@/components/BaseContextMenu.vue';
 import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
@@ -17,6 +19,7 @@ import { useOnClickOutside } from '@/composables';
 export default defineComponent({
   name: 'BookmarkList',
   components: {
+    BaseLottie,
     BookmarkListItem,
     BaseContextMenu,
     BaseContextMenuItem,
@@ -27,16 +30,21 @@ export default defineComponent({
   setup() {
     const $route = useRoute();
 
-    // tag setup
-    const tagName = ref(($route.query.tag as string) || '전체');
-    watch($route, (newRoute) => {
-      tagName.value = (newRoute.query.tag as string) || '전체';
-    });
-
     // bookmark setup
     const bookmarkStore = useBookmarkStore();
     const bookmarkList = computed(() => {
       return bookmarkStore.getBookmarkListByFilter(bookmarkFilter.value);
+    });
+
+    // global loading status
+    const isFetchingBookmark = computed(() => {
+      return bookmarkStore.isFetchingBookmark;
+    });
+
+    // tag setup
+    const tagName = ref(($route.query.tag as string) || '전체');
+    watch($route, (newRoute) => {
+      tagName.value = (newRoute.query.tag as string) || '전체';
     });
 
     // bookmark fillter with context menu
@@ -97,6 +105,7 @@ export default defineComponent({
       bookmarkList,
       bookmarkFilter,
       bookmarkFilterContextMenu,
+      isFetchingBookmark,
       toggleUserContextMenu,
 
       snackbarMessage,
@@ -148,7 +157,16 @@ export default defineComponent({
         @open-modal-bookmark="openBookmarkModal"
       />
     </section>
-    <p v-if="!bookmarkList.length" class="empty-message">북마크가 없습니다.</p>
+    <BaseLottie
+      v-if="isFetchingBookmark"
+      class="empty-message"
+      name="loading-btn"
+      width="32px"
+      height="32px"
+    />
+    <p v-if="!isFetchingBookmark && !bookmarkList.length" class="empty-message">
+      북마크가 없습니다.
+    </p>
   </div>
 
   <Snackbar v-if="snackbarMessage" :message="snackbarMessage" />
@@ -252,7 +270,7 @@ $the-global-top-padding: 56px;
   }
 }
 
-p.empty-message {
+.empty-message {
   position: absolute;
   top: 50%;
   left: 50%;
