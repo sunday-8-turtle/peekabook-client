@@ -12,6 +12,7 @@ import BookmarkModal from '@/components/BookmarkModal.vue';
 
 import { Bookmark } from '@/types/bookmark.types';
 import { deleteBookmark } from '@/api/bookmark';
+import { useOnClickOutside } from '@/composables';
 
 export default defineComponent({
   name: 'BookmarkList',
@@ -39,9 +40,13 @@ export default defineComponent({
     });
 
     // bookmark fillter with context menu
+    const filterMenu = ref<HTMLDivElement>();
     const bookmarkFilter = ref<'최신 순' | '가나다 순'>('최신 순');
     const bookmarkFilterContextMenu =
       ref<InstanceType<typeof BaseContextMenu>>();
+    useOnClickOutside(filterMenu, () =>
+      bookmarkFilterContextMenu.value?.close()
+    );
     const toggleUserContextMenu = () =>
       bookmarkFilterContextMenu.value?.toggle();
 
@@ -115,6 +120,7 @@ export default defineComponent({
       <h1># {{ tagName }}</h1>
       <div
         v-if="bookmarkList.length"
+        ref="filterMenu"
         class="bookmark-list-filter"
         @click="toggleUserContextMenu"
       >
@@ -225,6 +231,24 @@ $the-global-top-padding: 56px;
   .bookmark-list-filter-context {
     top: 22px;
     right: 0;
+
+    > li {
+      padding: 8px 0;
+
+      &:hover {
+        background: #f8f9fa;
+        mix-blend-mode: darken;
+      }
+      &:first-child {
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+      }
+
+      &:last-child {
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+      }
+    }
   }
 }
 
