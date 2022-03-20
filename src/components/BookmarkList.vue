@@ -51,7 +51,7 @@ export default defineComponent({
       bookmarkFilterContextMenu.value?.toggle();
 
     // snackbar
-    const snackbarMessage = ref();
+    const snackbarMessage = ref('');
     const showSnackbar = (message: string) => (snackbarMessage.value = message);
     const closeSnackbar = (seconds: number) => {
       setTimeout(() => {
