@@ -92,6 +92,10 @@ export default defineComponent({
     onMounted(() => {
       getNotificationList();
     });
+    const openBookmark = (url: string) => {
+      window.open(url, '_blank');
+      // + bookmark check 처리
+    };
 
     const notiMenu = ref<HTMLDivElement>();
     const notiContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
@@ -128,11 +132,14 @@ export default defineComponent({
       openSignupModal,
       loggedIn,
       goToPreviousPage,
+
       notificationList,
+      openBookmark,
       notiMenu,
       notiContextMenu,
       toggleNotiContextMenu,
       truncateStringWithEllipsis,
+
       userMenu,
       userContextMenu,
       toggleUserContextMenu,
@@ -204,7 +211,10 @@ export default defineComponent({
                   :class="{ 'padding-top': idx > 0 }"
                 >
                   <div class="wrapper">
-                    <section class="notification">
+                    <section
+                      class="notification"
+                      @click="openBookmark(noti.bookmark.url)"
+                    >
                       <section class="image">
                         <img
                           :src="
