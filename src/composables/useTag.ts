@@ -1,15 +1,19 @@
 import { ref, Ref } from 'vue';
 import { getTagList, getBookmarkList } from '@/api/bookmark';
 import { TagWithBookmark } from '@/types/bookmark.types';
+import useBookmarkStore from '@/store/bookmark.store';
 
 export default function useTag() {
   const initialTagWithBookmarkSet: Ref<TagWithBookmark> = ref({});
+  const bookmarkStore = useBookmarkStore();
 
   (async () => {
+    bookmarkStore.toggleFetchingStatus();
     const [tagListResponse, bookmarkListResponse] = await Promise.all([
       getTagList(),
       getBookmarkList(),
     ]);
+    bookmarkStore.toggleFetchingStatus();
 
     const rawTagList = tagListResponse.data!;
     initialTagWithBookmarkSet.value['전체'] = {

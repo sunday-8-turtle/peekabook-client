@@ -8,6 +8,7 @@ const tagWithBookmarkSet: TagWithBookmark = {};
 const useBookmarkStore = defineStore('bookmark', {
   state: () => {
     return {
+      isFetchingBookmark: false,
       bookmarkList,
       tagWithBookmarkSet,
     };
@@ -39,6 +40,9 @@ const useBookmarkStore = defineStore('bookmark', {
     },
   },
   actions: {
+    toggleFetchingStatus() {
+      this.isFetchingBookmark = !this.isFetchingBookmark;
+    },
     updateBookmarkList(bookmarkList: Bookmark[]) {
       this.bookmarkList = bookmarkList;
     },
