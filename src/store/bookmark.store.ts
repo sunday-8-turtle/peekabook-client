@@ -57,7 +57,14 @@ const useBookmarkStore = defineStore('bookmark', {
       this.bookmarkList.unshift(newBookmark);
     },
     addOneBookmarkToTagWithBookmarkSet(bookmark: Bookmark) {
-      this.tagWithBookmarkSet['전체'].bookmarkList.unshift(bookmark);
+      if (this.tagWithBookmarkSet['전체']) {
+        this.tagWithBookmarkSet['전체'].bookmarkList.unshift(bookmark);
+      } else {
+        this.tagWithBookmarkSet['전체'] = {
+          id: -1,
+          bookmarkList: [bookmark],
+        };
+      }
 
       bookmark.tags.forEach((tag) => {
         if (this.tagWithBookmarkSet[tag]) {
@@ -95,7 +102,10 @@ const useBookmarkStore = defineStore('bookmark', {
         });
 
         // 3) 만약 해당 태그의 북마크가 0개라면 태그도 삭제
-        if (!this.tagWithBookmarkSet[tag].bookmarkList.length) {
+        if (
+          tag !== '전체' &&
+          !this.tagWithBookmarkSet[tag].bookmarkList.length
+        ) {
           delete this.tagWithBookmarkSet[tag];
         }
       });
