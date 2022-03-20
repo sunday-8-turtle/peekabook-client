@@ -183,6 +183,7 @@ export default defineComponent({
           <div ref="notiMenu" class="menu noti">
             <button class="noti" @click="toggleNotiContextMenu">
               <img
+                v-if="notificationList.length > 0"
                 src="@/assets/icons/gnb-noti-rectangle.svg"
                 alt="new noti"
                 class="new"
@@ -466,6 +467,10 @@ header {
   .wrapper {
     width: 100%;
     height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .empty-message {
@@ -536,7 +541,7 @@ header {
   }
 
   .separator {
-    width: 100%;
+    width: 320px;
     height: 1px;
     margin-top: 16px;
     background-color: #e9ecef;
