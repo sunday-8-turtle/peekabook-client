@@ -12,6 +12,7 @@ import useBookmarkStore from '@/store/bookmark.store';
 import { Profile } from '@/types/profile.types';
 
 import truncate from '@/directives/truncate';
+import router from '@/router';
 
 export default defineComponent({
   name: 'TheSnb',
@@ -60,6 +61,11 @@ export default defineComponent({
     watch(tagWithBookmarkSet.value, () => {
       updateBookmarkListView(currentTag.value);
     });
+    watch($route, (newRoute) => {
+      if (newRoute.name !== 'MainView') return;
+      currentTag.value = (newRoute.query.tag as string) || '';
+      updateBookmarkListView(currentTag.value);
+    });
 
     function resetBookmarkList() {
       bookmarkStore.updateBookmarkList(totalBookmarkList.value);
@@ -67,12 +73,16 @@ export default defineComponent({
     function updateBookmarkListView(tagName: string) {
       if (!tagName) {
         resetBookmarkList();
+        $router.replace({ name: 'MainView', query: { tag: '' } });
       } else {
-        const bookmarkList = tagWithBookmarkSet.value[tagName].bookmarkList;
-        bookmarkStore.updateBookmarkList(bookmarkList);
+        if (!tagWithBookmarkSet.value[tagName]) {
+          $router.replace({ name: 'MainView', query: { tag: '' } });
+        } else {
+          const bookmarkList = tagWithBookmarkSet.value[tagName].bookmarkList;
+          bookmarkStore.updateBookmarkList(bookmarkList);
+          $router.push({ name: 'MainView', query: { tag: tagName } });
+        }
       }
-
-      $router.push({ name: 'MainView', query: { tag: tagName } });
     }
 
     // bookmark modal
@@ -221,6 +231,8 @@ nav.bookmark-navigator {
   .tag-list {
     margin: 0;
     padding: 0;
+    max-height: 200px;
+    overflow-y: auto;
   }
 
   .tag-item {

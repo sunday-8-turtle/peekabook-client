@@ -28,6 +28,7 @@ export default function useTag() {
       initialTagWithBookmarkSet.value['전체'].bookmarkList?.push(bookmark);
 
       for (const tag of bookmark.tags) {
+        if (!initialTagWithBookmarkSet.value[tag]) continue;
         initialTagWithBookmarkSet.value[tag].bookmarkList?.push(bookmark);
       }
     }

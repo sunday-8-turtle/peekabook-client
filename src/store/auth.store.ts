@@ -21,22 +21,38 @@ const useAuthStore = defineStore('auth', {
     };
   },
   actions: {
+    setUserState({
+      loggedIn,
+      user,
+    }: {
+      loggedIn: boolean;
+      user: CurrentUserState | null;
+    }) {
+      this.loggedIn = loggedIn;
+      this.user = user;
+
+      if (user) saveState('user', user);
+      else localStorage.removeItem('user');
+    },
     async login(body: LoginRequest): Promise<CurrentUserState | undefined> {
       const res = await loginRequest(body);
       if (res.result === 'FAIL' || !res.data) {
         throw new Error(res.message || 'Get Token Error');
       }
       const user = res.data;
-
-      this.loggedIn = true;
-      this.user = user;
-      saveState('user', user);
+      const newUserState = {
+        loggedIn: true,
+        user: user,
+      };
+      this.setUserState(newUserState);
       return Promise.resolve(user);
     },
     logout() {
-      this.loggedIn = false;
-      this.user = null;
-      localStorage.removeItem('user');
+      const newUserState = {
+        loggedIn: false,
+        user: null,
+      };
+      this.setUserState(newUserState);
     },
     openLoginModal() {
       return true;
