@@ -82,8 +82,43 @@ export default defineComponent({
       $router.push($route.redirectedFrom || { name: 'MainView' });
     };
 
+    // 알림 컨텍스트 메뉴
+    const notifications = ref([
+      {
+        title: '서서하는 반복작업의 매력',
+        date: '22. 05. 13',
+        url: 'idontknow',
+      },
+      {
+        title: '히히히 제목을 씁니다아아아아아',
+        date: '22. 05. 13',
+        url: 'idontknow',
+      },
+      {
+        title:
+          '제목이 길 경우의 즐겨찾기가 있다면제목이 길 경우제목이 길어질 수 있습니다',
+        date: '22. 05. 13',
+        url: 'idontknow',
+      },
+      {
+        title: '하이이잇',
+        date: '22. 05. 13',
+        url: 'idontknow',
+      },
+      {
+        title: '포켓몬빵',
+        date: '22. 05. 13',
+        url: 'idontknow',
+      },
+    ]);
+    const notiMenu = ref<HTMLDivElement>();
+    const notiContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
+    useOnClickOutside(notiMenu, () => notiContextMenu.value?.close());
+    const toggleNotiContextMenu = () => notiContextMenu.value?.toggle();
+    // const fetchNotifications = () => {};
+
     // 유저 컨텍스트 메뉴
-    const userMenu = ref<HTMLElement>(); // 버튼 & 컨텍스트 메뉴
+    const userMenu = ref<HTMLDivElement>(); // 버튼 & 컨텍스트 메뉴
     const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
     useOnClickOutside(userMenu, () => userContextMenu.value?.close());
     const toggleUserContextMenu = () => userContextMenu.value?.toggle();
@@ -109,6 +144,10 @@ export default defineComponent({
       openSignupModal,
       loggedIn,
       goToPreviousPage,
+      notifications,
+      notiMenu,
+      notiContextMenu,
+      toggleNotiContextMenu,
       userMenu,
       userContextMenu,
       toggleUserContextMenu,
@@ -156,7 +195,7 @@ export default defineComponent({
         </div>
         <div class="context-menus">
           <div ref="notiMenu" class="menu noti">
-            <button class="noti">
+            <button class="noti" @click="toggleNotiContextMenu">
               <img
                 src="@/assets/icons/gnb-noti-rectangle.svg"
                 alt="new noti"
@@ -164,17 +203,55 @@ export default defineComponent({
               />
               <img src="@/assets/icons/gnb-noti.svg" alt="noti icon" />
             </button>
+            <BaseContextMenu
+              ref="notiContextMenu"
+              class="notifications"
+              :class="{ empty: notifications.length === 0 }"
+            >
+              <p class="empty-message" v-if="notifications.length === 0">
+                알림이 없습니다.
+              </p>
+              <template v-else>
+                <BaseContextMenuItem
+                  v-for="(noti, idx) in notifications"
+                  :key="idx"
+                  :class="{ 'padding-top': idx > 0 }"
+                >
+                  <div class="wrapper">
+                    <section class="notification">
+                      <section class="image">
+                        <img
+                          src="@/assets/images/landing/landing-2.svg"
+                          alt=""
+                        />
+                      </section>
+                      <section class="content">
+                        <section class="message">
+                          <span class="title">{{ noti.title }}</span
+                          >을(를) 확인하세요.
+                        </section>
+                        <section class="date">{{ noti.date }}</section>
+                      </section>
+                    </section>
+                    <div
+                      class="separator"
+                      v-if="idx + 1 !== notifications.length"
+                    ></div>
+                  </div>
+                </BaseContextMenuItem>
+              </template>
+            </BaseContextMenu>
           </div>
           <div ref="userMenu" class="menu user">
             <button class="user" @click="toggleUserContextMenu">
               <img src="@/assets/icons/gnb-user.svg" alt="user icon" />
             </button>
-            <BaseContextMenu ref="userContextMenu">
+            <BaseContextMenu ref="userContextMenu" class="user-menus">
               <BaseContextMenuItem @click="goToProfile">
-                계정 정보 설정
+                <div class="user-menu profile">계정 정보 설정</div>
               </BaseContextMenuItem>
               <BaseContextMenuItem @click="onLogout">
-                로그아웃
+                <div class="user-menu logout">로그아웃</div>
               </BaseContextMenuItem>
             </BaseContextMenu>
           </div>
@@ -313,14 +390,15 @@ header {
           height: 16px;
 
           position: absolute;
-          top: 14px;
-          left: 28px;
+          top: 12px;
+          left: 22px;
         }
 
         input#query {
           width: 100%;
           height: 100%;
-          padding: 22px 14px 22px 54px;
+          padding-left: 44px;
+          padding-right: 22px;
 
           border: 1px solid #dee2e6;
           border-radius: 88px;
@@ -365,6 +443,124 @@ header {
           }
         }
       }
+    }
+  }
+}
+
+.notifications {
+  padding: 12px 0;
+
+  &.empty {
+    padding: 61px 46px;
+  }
+
+  .padding-top {
+    padding-top: 16px;
+  }
+
+  .wrapper {
+    width: 320px;
+    height: 100%;
+  }
+
+  .empty-message {
+    margin: 0;
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 22px;
+
+    text-align: center;
+    letter-spacing: -0.3px;
+
+    color: #343a40;
+  }
+
+  .notification {
+    width: 320px;
+    min-height: 40px;
+    max-height: 62px;
+
+    display: flex;
+
+    .image {
+      width: 40px;
+      height: 40px;
+
+      img {
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    .content {
+      width: calc(320px - 40px);
+      height: 100%;
+      padding-left: 12px;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      .message {
+        // height: 22px;
+
+        font-weight: 400;
+        font-size: 15px;
+        line-height: 22px;
+        /* identical to box height, or 147% */
+
+        letter-spacing: -0.3px;
+
+        /* Gray 8 */
+
+        .title {
+          color: #343a40;
+          font-weight: 600;
+        }
+      }
+
+      .date {
+        // height: 16px;
+
+        font-weight: 400;
+        font-size: 13px;
+        line-height: 16px;
+        /* identical to box height, or 123% */
+
+        /* Gray 6 */
+
+        color: #868e96;
+      }
+    }
+  }
+
+  .separator {
+    width: 100%;
+    height: 1px;
+    margin-top: 16px;
+    background-color: #e9ecef;
+  }
+}
+
+.user-menus {
+  .user-menu {
+    width: 100%;
+    height: 40px;
+    padding: 0 20px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    &:hover {
+      background: #f8f9fa;
+      mix-blend-mode: darken;
+    }
+
+    &.profile {
+    }
+
+    &.logout {
     }
   }
 }

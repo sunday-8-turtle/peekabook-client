@@ -26,8 +26,10 @@ export default defineComponent({
 ul.context-menu {
   display: none;
 
+  width: 100%;
   min-width: 128px;
-  padding: 8px 0;
+
+  padding: 0;
   margin: 0;
   margin-top: 6px;
 
@@ -43,6 +45,18 @@ ul.context-menu {
 
   &.show {
     display: block;
+  }
+
+  &.notifications {
+    width: 360px;
+    max-height: 320px;
+
+    padding: 20px 0;
+    overflow: auto;
+  }
+
+  &.user-menus {
+    padding: 8px 0;
   }
 }
 </style>
