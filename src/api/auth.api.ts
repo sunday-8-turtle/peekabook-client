@@ -11,6 +11,7 @@ import {
   VerifyCertificationCodeResponse,
   CheckDuplicateEmailRequest,
   CheckDuplicateEmailResponse,
+  RefreshTokenRequest,
 } from '@/types/auth.types';
 
 async function login(body: LoginRequest): Promise<PKBResponse<LoginResponse>> {
@@ -60,10 +61,22 @@ async function checkDuplicateEmail(
   return res.data;
 }
 
+/**
+ * 토큰 재발행
+ */
+async function reissueToken(
+  body: RefreshTokenRequest
+): Promise<PKBResponse<LoginResponse>> {
+  const REFRESH_TOKEN_URL = '/user/reissue';
+  const res = await httpClient.post(REFRESH_TOKEN_URL, body);
+  return res.data;
+}
+
 export {
   login,
   signup,
   sendCertificationCode,
   verifyCertificationCode,
   checkDuplicateEmail,
+  reissueToken,
 };

@@ -16,7 +16,7 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['open-modal-confirm'],
+  emits: ['open-modal-confirm', 'open-modal-bookmark'],
   setup(props) {
     const goToArticle = () => {
       window.open(props.bookmark.url, '_blank');
@@ -61,8 +61,6 @@ export default defineComponent({
 
     // context menu
     const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
-    const showUserContextMenu = ref(false);
-    const showBookmarkFilterContextMenu = ref(false);
     const toggleUserContextMenu = () => userContextMenu.value?.toggle();
 
     return {
@@ -107,7 +105,7 @@ export default defineComponent({
     </main>
     <footer>
       <div class="date">
-        <div class="save-date">{{ bookmark.createdDate }}</div>
+        <div class="save-date">{{ bookmark.createdDate.split(' ')[0] }}</div>
         <template v-if="humanizedNotiDate > 0">
           <div class="v-divider"></div>
           <div class="noti-date">{{ humanizedNotiDate }}일 후 알림</div>
@@ -119,7 +117,9 @@ export default defineComponent({
           alt="카드 수정 및 삭제를 위한 액션 아이콘"
         />
         <BaseContextMenu class="bookmark-item-context" ref="userContextMenu">
-          <BaseContextMenuItem>수정하기</BaseContextMenuItem>
+          <BaseContextMenuItem @click="$emit('open-modal-bookmark', bookmark)"
+            >수정하기</BaseContextMenuItem
+          >
           <BaseContextMenuItem @click="$emit('open-modal-confirm', bookmark)"
             >삭제하기</BaseContextMenuItem
           >

@@ -8,17 +8,21 @@ interface Bookmark {
   title: string;
   url: string;
   description: string;
+  tags: string[];
   image?: string;
   notidate?: string;
   createdDate: string;
-  tags: string[];
+}
+
+interface CreateBookmarkResponse {
+  bookmarkId: number;
 }
 
 interface TagWithBookmark {
   [tagName: string]: {
-    id: number;
+    id: number | string;
     bookmarkList: Bookmark[];
   };
 }
 
-export { Tag, Bookmark, TagWithBookmark };
+export { Tag, Bookmark, TagWithBookmark, CreateBookmarkResponse };

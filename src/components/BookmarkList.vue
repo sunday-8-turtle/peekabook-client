@@ -6,8 +6,9 @@ import useBookmarkStore from '@/store/bookmark.store';
 import BookmarkListItem from '@/components/BookmarkListItem.vue';
 import BaseContextMenu from '@/components/BaseContextMenu.vue';
 import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
-import ModalConfirm from '@/components/ModalConfirm.vue';
 import Snackbar from '@/components/Snackbar.vue';
+import ModalConfirm from '@/components/ModalConfirm.vue';
+import BookmarkModal from '@/components/BookmarkModal.vue';
 
 import { Bookmark } from '@/types/bookmark.types';
 import { deleteBookmark } from '@/api/bookmark';
@@ -20,6 +21,7 @@ export default defineComponent({
     BaseContextMenuItem,
     Snackbar,
     ModalConfirm,
+    BookmarkModal,
   },
   setup() {
     const $route = useRoute();
@@ -33,16 +35,15 @@ export default defineComponent({
     // bookmark setup
     const bookmarkStore = useBookmarkStore();
     const bookmarkList = computed(() => {
-      return bookmarkStore.bookmarkList;
+      return bookmarkStore.getBookmarkListByFilter(bookmarkFilter.value);
     });
-    // const bookmarkList: any[] = []; // 빈 리스트 메세지 테스트 전용 (추후 삭제)
 
-    // context menu
+    // bookmark fillter with context menu
+    const bookmarkFilter = ref<'최신 순' | '가나다 순'>('최신 순');
     const bookmarkFilterContextMenu =
       ref<InstanceType<typeof BaseContextMenu>>();
-    const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
-    const showBookmarkFilterContextMenu = ref(false);
-    const toggleUserContextMenu = () => userContextMenu.value?.toggle();
+    const toggleUserContextMenu = () =>
+      bookmarkFilterContextMenu.value?.toggle();
 
     // snackbar
     const snackbarMessage = ref();
@@ -66,8 +67,10 @@ export default defineComponent({
       if (!targetBookmark.value) return;
 
       isLoading.value = true;
-      await deleteBookmark(targetBookmark.value?.bookmarkId);
-      bookmarkStore.removeOneFromBookmarkList(targetBookmark.value?.bookmarkId);
+      await deleteBookmark(targetBookmark.value?.bookmarkId as number);
+      bookmarkStore.removeOneFromBookmarkList(
+        targetBookmark.value?.bookmarkId as number
+      );
       bookmarkStore.removeOneFromTagWithBookmarkList(targetBookmark.value);
       isLoading.value = false;
 
@@ -76,9 +79,18 @@ export default defineComponent({
       closeSnackbar(3000);
     };
 
+    // bookmark modal
+    const bookmarkModal = ref<InstanceType<typeof BookmarkModal>>();
+    const selectedBookmark = ref<Bookmark>();
+    const openBookmarkModal = (bookmark: Bookmark) => {
+      selectedBookmark.value = bookmark;
+      bookmarkModal.value?.open();
+    };
+
     return {
       tagName,
       bookmarkList,
+      bookmarkFilter,
       bookmarkFilterContextMenu,
       toggleUserContextMenu,
 
@@ -88,6 +100,10 @@ export default defineComponent({
       modalConfirm,
       openModalConfirm,
       onConfirmDeleteBookmark,
+
+      bookmarkModal,
+      selectedBookmark,
+      openBookmarkModal,
     };
   },
 });
@@ -102,14 +118,18 @@ export default defineComponent({
         class="bookmark-list-filter"
         @click="toggleUserContextMenu"
       >
-        <span>가나다 순</span>
+        <span>{{ bookmarkFilter }}</span>
         <img src="@/assets/icons/arrow-down.svg" alt="filter arrow" />
         <BaseContextMenu
           class="bookmark-list-filter-context"
           ref="bookmarkFilterContextMenu"
         >
-          <BaseContextMenuItem>최신 순</BaseContextMenuItem>
-          <BaseContextMenuItem>가나다 순</BaseContextMenuItem>
+          <BaseContextMenuItem @click="bookmarkFilter = '최신 순'"
+            >최신 순</BaseContextMenuItem
+          >
+          <BaseContextMenuItem @click="bookmarkFilter = '가나다 순'"
+            >가나다 순</BaseContextMenuItem
+          >
         </BaseContextMenu>
       </div>
     </header>
@@ -119,6 +139,7 @@ export default defineComponent({
         :key="bookmark.bookmarkId"
         :bookmark="bookmark"
         @open-modal-confirm="openModalConfirm"
+        @open-modal-bookmark="openBookmarkModal"
       />
     </section>
     <p v-if="!bookmarkList.length" class="empty-message">북마크가 없습니다.</p>
@@ -140,6 +161,12 @@ export default defineComponent({
       </header>
     </ModalConfirm>
   </Teleport>
+
+  <BookmarkModal
+    ref="bookmarkModal"
+    actionType="modify"
+    :selectedBookmark="selectedBookmark"
+  />
 </template>
 
 <style lang="scss" scoped>

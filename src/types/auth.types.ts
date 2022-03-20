@@ -1,3 +1,8 @@
+interface RefreshTokenRequest {
+  accessToken: string;
+  refreshToken: string;
+}
+
 interface CurrentUserState {
   token: string;
   refreshToken: string;
@@ -54,6 +59,7 @@ interface CheckDuplicateEmailResponse {
 }
 
 export {
+  RefreshTokenRequest,
   CurrentUserState,
   LoginRequest,
   LoginResponse,

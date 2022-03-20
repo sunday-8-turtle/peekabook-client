@@ -21,7 +21,6 @@ export default defineComponent({
     BaseContextMenu,
     BaseContextMenuItem,
   },
-  props: {},
   setup() {
     const $route = useRoute();
     const $router = useRouter();
@@ -215,7 +214,7 @@ header {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 1000;
 
   background-color: #ffffff;
   border-bottom: 1px solid #e9ecef;
