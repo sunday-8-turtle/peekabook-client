@@ -115,7 +115,9 @@ export default defineComponent({
     const notiContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
     useOnClickOutside(notiMenu, () => notiContextMenu.value?.close());
     const toggleNotiContextMenu = () => notiContextMenu.value?.toggle();
-    // const fetchNotifications = () => {};
+    const truncateStringWithEllipsis = (text: string, len: number) => {
+      return text.length > len ? text.substr(0, len - 1) + '...' : text;
+    };
 
     // 유저 컨텍스트 메뉴
     const userMenu = ref<HTMLDivElement>(); // 버튼 & 컨텍스트 메뉴
@@ -148,6 +150,7 @@ export default defineComponent({
       notiMenu,
       notiContextMenu,
       toggleNotiContextMenu,
+      truncateStringWithEllipsis,
       userMenu,
       userContextMenu,
       toggleUserContextMenu,
@@ -227,7 +230,9 @@ export default defineComponent({
                       </section>
                       <section class="content">
                         <section class="message">
-                          <span class="title">{{ noti.title }}</span
+                          <span class="title">{{
+                            truncateStringWithEllipsis(noti.title, 33)
+                          }}</span
                           >을(를) 확인하세요.
                         </section>
                         <section class="date">{{ noti.date }}</section>
@@ -502,16 +507,11 @@ header {
       justify-content: space-between;
 
       .message {
-        // height: 22px;
-
         font-weight: 400;
         font-size: 15px;
         line-height: 22px;
-        /* identical to box height, or 147% */
-
         letter-spacing: -0.3px;
-
-        /* Gray 8 */
+        color: #212529;
 
         .title {
           color: #343a40;
