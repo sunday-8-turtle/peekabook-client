@@ -1,9 +1,9 @@
 <script lang="ts">
-import { computed, defineComponent, onMounted, ref, watch } from 'vue';
+import { computed, defineComponent, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import useAuthStore from '@/store/auth.store';
-import { fetchNotificationList } from '@/api/noti.api';
+import { checkNotification, fetchNotificationList } from '@/api/noti.api';
 
 import { useOnClickOutside, useOnScroll } from '@/composables';
 
@@ -12,6 +12,7 @@ import AuthModalSignup from '@/components/AuthModalSignup.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import BaseContextMenu from '@/components/BaseContextMenu.vue';
 import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
+import { BookmarkNotification } from '@/types/noti.types';
 
 export default defineComponent({
   name: 'TheGnb',
@@ -83,18 +84,36 @@ export default defineComponent({
     };
 
     // 알림 컨텍스트 메뉴
-    let notificationList = ref<Notification[]>([]);
+    let notificationList = ref<BookmarkNotification[]>([]);
     const getNotificationList = async () => {
       const res = await fetchNotificationList();
       if (res.result === 'FAIL' || !res.data) return;
       notificationList.value = res.data;
     };
-    onMounted(() => {
-      getNotificationList();
-    });
-    const openBookmark = (url: string) => {
-      window.open(url, '_blank');
-      // + bookmark check 처리
+
+    // 페이지 이동 시 알림 정보 갱신 (하루에 한 번만 갱신되는거면 굳이?)
+    watch(
+      () => $route.path,
+      () => {
+        getNotificationList(); // 비효율적? -> 캐싱?
+      }
+    );
+
+    const openNotification = (notification: BookmarkNotification) => {
+      const { id, bookmark } = notification;
+
+      // 브라우저 새 탭 오픈
+      window.open(bookmark.url, '_blank');
+
+      // 읽음처리 API 요청 -> State 읽음 정보 갱신
+      checkNotification(id)
+        .then(() => readClickedNotification(id))
+        .catch((err) => console.error(err));
+    };
+
+    const readClickedNotification = (targetId: number) => {
+      const noti = notificationList.value.find((noti) => noti.id === targetId);
+      if (noti) noti.check = true;
     };
 
     const notiMenu = ref<HTMLDivElement>();
@@ -134,7 +153,7 @@ export default defineComponent({
       goToPreviousPage,
 
       notificationList,
-      openBookmark,
+      openNotification,
       notiMenu,
       notiContextMenu,
       toggleNotiContextMenu,
@@ -206,19 +225,19 @@ export default defineComponent({
               </p>
               <template v-else>
                 <BaseContextMenuItem
-                  v-for="(noti, idx) in notificationList"
-                  :key="noti.id"
+                  v-for="(notification, idx) in notificationList"
+                  :key="notification.id"
                   :class="{ 'padding-top': idx > 0 }"
                 >
                   <div class="wrapper">
                     <section
                       class="notification"
-                      @click="openBookmark(noti.bookmark.url)"
+                      @click="openNotification(notification)"
                     >
                       <section class="image">
                         <img
                           :src="
-                            noti.bookmark.image ||
+                            notification.bookmark.image ||
                             '../assets/peekabook-empty-card-img.png'
                           "
                           alt=""
@@ -227,12 +246,15 @@ export default defineComponent({
                       <section class="content">
                         <section class="message">
                           <span class="title">{{
-                            truncateStringWithEllipsis(noti.bookmark.title, 33)
+                            truncateStringWithEllipsis(
+                              notification.bookmark.title,
+                              33
+                            )
                           }}</span
                           >을(를) 확인하세요.
                         </section>
                         <section class="date">
-                          {{ noti.bookmark.notidate }}
+                          {{ notification.bookmark.notidate }}
                         </section>
                       </section>
                     </section>
