@@ -192,7 +192,7 @@ export default defineComponent({
               <router-link :to="{ name: 'MainView' }">내 북마크</router-link>
             </li>
             <li>
-              <router-link :to="{ name: 'ExploreView' }">탐색</router-link>
+              <router-link :to="{ name: 'LandingPageView' }">탐색</router-link>
             </li>
           </ul>
           <div class="search-container">

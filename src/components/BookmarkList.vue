@@ -103,6 +103,8 @@ export default defineComponent({
     return {
       tagName,
       bookmarkList,
+
+      filterMenu,
       bookmarkFilter,
       bookmarkFilterContextMenu,
       isFetchingBookmark,
