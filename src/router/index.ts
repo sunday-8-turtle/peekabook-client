@@ -14,6 +14,10 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       authRequired: false,
     },
+    beforeEnter(to, from, next) {
+      const { loggedIn } = useAuthStore();
+      loggedIn ? next({ name: 'MainView' }) : next();
+    },
   },
   {
     path: '/bookmark',
