@@ -13,6 +13,7 @@ import BaseButton from '@/components/BaseButton.vue';
 import BaseContextMenu from '@/components/BaseContextMenu.vue';
 import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
 import { BookmarkNotification } from '@/types/noti.types';
+import { sendMessageToExtension } from '@/api/extension';
 
 export default defineComponent({
   name: 'TheGnb',
@@ -68,9 +69,18 @@ export default defineComponent({
 
         // 익스텐션 타입인 경우
         if (loginType === 'extension') {
+          // 괴뢰군 코드
+          // 리팩터링 지원자 연락 주세요
+          const extensionId = String(query['extension-id']);
+          const token = $authStore.$state.user?.token;
+
+          if (extensionId && token) {
+            sendMessageToExtension({ extensionId, token });
+          }
+
           $authStore.$state.extension = {
             accessByExtension: true,
-            extensionId: String(query['extension-id']),
+            extensionId,
           };
         }
 
@@ -124,6 +134,15 @@ export default defineComponent({
       return text.length > len ? text.substr(0, len - 1) + '...' : text;
     };
 
+    const defaultImgSrc = computed(() => {
+      return require('../assets/peekabook-empty-card-img.png');
+    });
+    const setDefaultImage = (e: Event) => {
+      (
+        e.target as HTMLImageElement
+      ).src = require('../assets/peekabook-empty-card-img.png');
+    };
+
     // 유저 컨텍스트 메뉴
     const userMenu = ref<HTMLDivElement>(); // 버튼 & 컨텍스트 메뉴
     const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
@@ -158,6 +177,8 @@ export default defineComponent({
       notiContextMenu,
       toggleNotiContextMenu,
       truncateStringWithEllipsis,
+      defaultImgSrc,
+      setDefaultImage,
 
       userMenu,
       userContextMenu,
@@ -237,12 +258,12 @@ export default defineComponent({
                     >
                       <section class="image">
                         <img
-                          :src="
-                            notification.bookmark.image ||
-                            '../assets/peekabook-empty-card-img.png'
-                          "
-                          alt=""
+                          v-if="notification.bookmark.image"
+                          @error="setDefaultImage"
+                          :src="notification.bookmark.image"
+                          alt="bookmark image"
                         />
+                        <img v-else :src="defaultImgSrc" alt="default image" />
                       </section>
                       <section class="content">
                         <section class="message">
@@ -255,7 +276,7 @@ export default defineComponent({
                           >을(를) 확인하세요.
                         </section>
                         <section class="date">
-                          {{ notification.bookmark.notidate }}
+                          {{ notification.notidate }}
                         </section>
                       </section>
                     </section>
