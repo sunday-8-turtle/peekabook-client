@@ -232,6 +232,7 @@ export default defineComponent({
                   <div class="wrapper">
                     <section
                       class="notification"
+                      :class="{ read: notification.check }"
                       @click="openNotification(notification)"
                     >
                       <section class="image">
@@ -472,6 +473,7 @@ header {
   }
 }
 
+// 알림 컨텍스트 메뉴
 .notificationList {
   &.show {
     width: 360px;
@@ -516,6 +518,7 @@ header {
     color: #343a40;
   }
 
+  // 알림 단건
   .notification {
     width: 100%;
     min-height: 40px;
@@ -567,6 +570,23 @@ header {
         /* Gray 6 */
 
         color: #868e96;
+      }
+    }
+
+    // 확인한 알림
+    &.read {
+      .content {
+        .message {
+          color: #adb5bd;
+
+          .title {
+            color: inherit;
+          }
+        }
+
+        .date {
+          color: #ced4da;
+        }
       }
     }
   }
