@@ -13,6 +13,7 @@ import BaseButton from '@/components/BaseButton.vue';
 import BaseContextMenu from '@/components/BaseContextMenu.vue';
 import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
 import { BookmarkNotification } from '@/types/noti.types';
+import { sendMessageToExtension } from '@/api/extension';
 
 export default defineComponent({
   name: 'TheGnb',
@@ -28,13 +29,11 @@ export default defineComponent({
     const $router = useRouter();
     const $authStore = useAuthStore();
 
-    // 로그인 여부 (GNB 디자인 변경)
     const { loggedIn } = storeToRefs($authStore);
 
-    // 로그인 모달
+    // Login Modal
     const loginModal = ref<InstanceType<typeof AuthModalLogin>>();
     const openLoginModal = () => loginModal.value?.open();
-    // 파라미터를 활용한 로그인 모달 열기 (ex- ?initialLoginModal=true)
     watch(
       () => $route.query.initialLoginModal,
       (initialLoginModal) => {
@@ -44,13 +43,7 @@ export default defineComponent({
       }
     );
 
-    // Signup Modal
-    const signupModal = ref<InstanceType<typeof AuthModalSignup>>();
-    const openSignupModal = () => signupModal.value?.open();
-
-    // 프로그래밍적으로 로그인 모달 열기
-    // 1) 익스텐션: 유효하지 않은 사용자가 익스텐션을 여는 경우
-    // 2) 권한없음: 유효하지 않은 사용자가 authRequired 페이지를 요청하는 경우
+    // Login with Extension
     watch(
       () => $route.query,
       (query) => {
@@ -68,9 +61,18 @@ export default defineComponent({
 
         // 익스텐션 타입인 경우
         if (loginType === 'extension') {
+          // 괴뢰군 코드
+          // 리팩터링 지원자 연락 주세요
+          const extensionId = String(query['extension-id']);
+          const token = $authStore.$state.user?.token;
+
+          if (extensionId && token) {
+            sendMessageToExtension({ extensionId, token });
+          }
+
           $authStore.$state.extension = {
             accessByExtension: true,
-            extensionId: String(query['extension-id']),
+            extensionId,
           };
         }
 
@@ -78,12 +80,18 @@ export default defineComponent({
       }
     );
 
-    // 로그인 완료 후 리다이렉트
+    // Signup Modal
+    const signupModal = ref<InstanceType<typeof AuthModalSignup>>();
+    const openSignupModal = () => signupModal.value?.open();
+
     const goToPreviousPage = () => {
       $router.push($route.redirectedFrom || { name: 'MainView' });
     };
 
-    // 알림 컨텍스트 메뉴
+    // Search bookmarks, tags related
+    const query = ref('');
+
+    // Notifications with context menu
     let notificationList = ref<BookmarkNotification[]>([]);
     const getNotificationList = async () => {
       const res = await fetchNotificationList();
@@ -124,6 +132,15 @@ export default defineComponent({
       return text.length > len ? text.substr(0, len - 1) + '...' : text;
     };
 
+    const defaultImgSrc = computed(() => {
+      return require('../assets/peekabook-empty-card-img.png');
+    });
+    const setDefaultImage = (e: Event) => {
+      (
+        e.target as HTMLImageElement
+      ).src = require('../assets/peekabook-empty-card-img.png');
+    };
+
     // 유저 컨텍스트 메뉴
     const userMenu = ref<HTMLDivElement>(); // 버튼 & 컨텍스트 메뉴
     const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
@@ -152,12 +169,16 @@ export default defineComponent({
       loggedIn,
       goToPreviousPage,
 
+      query,
+
       notificationList,
       openNotification,
       notiMenu,
       notiContextMenu,
       toggleNotiContextMenu,
       truncateStringWithEllipsis,
+      defaultImgSrc,
+      setDefaultImage,
 
       userMenu,
       userContextMenu,
@@ -201,7 +222,13 @@ export default defineComponent({
               alt="search icon"
               class="search"
             />
-            <input type="search" name="query" id="query" placeholder="검색" />
+            <input
+              v-model="query"
+              type="search"
+              name="query"
+              id="query"
+              placeholder="검색"
+            />
           </div>
         </div>
         <div class="context-menus">
@@ -232,16 +259,17 @@ export default defineComponent({
                   <div class="wrapper">
                     <section
                       class="notification"
+                      :class="{ read: notification.check }"
                       @click="openNotification(notification)"
                     >
                       <section class="image">
                         <img
-                          :src="
-                            notification.bookmark.image ||
-                            '../assets/peekabook-empty-card-img.png'
-                          "
-                          alt=""
+                          v-if="notification.bookmark.image"
+                          @error="setDefaultImage"
+                          :src="notification.bookmark.image"
+                          alt="bookmark image"
                         />
+                        <img v-else :src="defaultImgSrc" alt="default image" />
                       </section>
                       <section class="content">
                         <section class="message">
@@ -254,7 +282,7 @@ export default defineComponent({
                           >을(를) 확인하세요.
                         </section>
                         <section class="date">
-                          {{ notification.bookmark.notidate }}
+                          {{ notification.notidate }}
                         </section>
                       </section>
                     </section>
@@ -472,6 +500,7 @@ header {
   }
 }
 
+// 알림 컨텍스트 메뉴
 .notificationList {
   &.show {
     width: 360px;
@@ -516,6 +545,7 @@ header {
     color: #343a40;
   }
 
+  // 알림 단건
   .notification {
     width: 100%;
     min-height: 40px;
@@ -567,6 +597,23 @@ header {
         /* Gray 6 */
 
         color: #868e96;
+      }
+    }
+
+    // 확인한 알림
+    &.read {
+      .content {
+        .message {
+          color: #adb5bd;
+
+          .title {
+            color: inherit;
+          }
+        }
+
+        .date {
+          color: #ced4da;
+        }
       }
     }
   }
