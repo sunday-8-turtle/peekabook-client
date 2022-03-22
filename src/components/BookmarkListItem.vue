@@ -66,9 +66,6 @@ export default defineComponent({
     useOnClickOutside(bookmarkMenu, () => userContextMenu.value?.close());
     const toggleUserContextMenu = () => userContextMenu.value?.toggle();
 
-    const showUserContextMenu = ref(false);
-    const showBookmarkFilterContextMenu = ref(false);
-
     return {
       goToArticle,
 

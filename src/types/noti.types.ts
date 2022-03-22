@@ -1,6 +1,6 @@
 import { Bookmark } from './bookmark.types';
 
-interface Notification {
+interface BookmarkNotification {
   id: number;
   notiType: 'BROWSER';
   message: string;
@@ -10,4 +10,4 @@ interface Notification {
   bookmark: Bookmark;
 }
 
-export { Notification };
+export { BookmarkNotification };
