@@ -29,13 +29,11 @@ export default defineComponent({
     const $router = useRouter();
     const $authStore = useAuthStore();
 
-    // 로그인 여부 (GNB 디자인 변경)
     const { loggedIn } = storeToRefs($authStore);
 
-    // 로그인 모달
+    // Login Modal
     const loginModal = ref<InstanceType<typeof AuthModalLogin>>();
     const openLoginModal = () => loginModal.value?.open();
-    // 파라미터를 활용한 로그인 모달 열기 (ex- ?initialLoginModal=true)
     watch(
       () => $route.query.initialLoginModal,
       (initialLoginModal) => {
@@ -45,13 +43,7 @@ export default defineComponent({
       }
     );
 
-    // Signup Modal
-    const signupModal = ref<InstanceType<typeof AuthModalSignup>>();
-    const openSignupModal = () => signupModal.value?.open();
-
-    // 프로그래밍적으로 로그인 모달 열기
-    // 1) 익스텐션: 유효하지 않은 사용자가 익스텐션을 여는 경우
-    // 2) 권한없음: 유효하지 않은 사용자가 authRequired 페이지를 요청하는 경우
+    // Login with Extension
     watch(
       () => $route.query,
       (query) => {
@@ -88,12 +80,18 @@ export default defineComponent({
       }
     );
 
-    // 로그인 완료 후 리다이렉트
+    // Signup Modal
+    const signupModal = ref<InstanceType<typeof AuthModalSignup>>();
+    const openSignupModal = () => signupModal.value?.open();
+
     const goToPreviousPage = () => {
       $router.push($route.redirectedFrom || { name: 'MainView' });
     };
 
-    // 알림 컨텍스트 메뉴
+    // Search bookmarks, tags related
+    const query = ref('');
+
+    // Notifications with context menu
     let notificationList = ref<BookmarkNotification[]>([]);
     const getNotificationList = async () => {
       const res = await fetchNotificationList();
@@ -171,6 +169,8 @@ export default defineComponent({
       loggedIn,
       goToPreviousPage,
 
+      query,
+
       notificationList,
       openNotification,
       notiMenu,
@@ -222,7 +222,13 @@ export default defineComponent({
               alt="search icon"
               class="search"
             />
-            <input type="search" name="query" id="query" placeholder="검색" />
+            <input
+              v-model="query"
+              type="search"
+              name="query"
+              id="query"
+              placeholder="검색"
+            />
           </div>
         </div>
         <div class="context-menus">
