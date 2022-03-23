@@ -216,7 +216,7 @@ export default defineComponent({
               <router-link :to="{ name: 'LandingPageView' }">탐색</router-link>
             </li>
           </ul>
-          <div class="search-container">
+          <div class="search-container" style="display: none">
             <img
               src="@/assets/icons/search.svg"
               alt="search icon"
