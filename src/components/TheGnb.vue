@@ -64,6 +64,8 @@ export default defineComponent({
           // 괴뢰군 코드
           // 리팩터링 지원자 연락 주세요
           const extensionId = String(query['extension-id']);
+          localStorage.setItem('extensionId', JSON.stringify(extensionId));
+
           const token = $authStore.$state.user?.token;
 
           if (extensionId && token) {
@@ -148,6 +150,11 @@ export default defineComponent({
     const toggleUserContextMenu = () => userContextMenu.value?.toggle();
     const onLogout = () => {
       $authStore.logout();
+
+      const extensionId = JSON.parse(localStorage.getItem('extensionId') || '');
+      sendMessageToExtension({ extensionId, token: '' });
+      localStorage.removeItem('extensionId');
+
       $router.push({ name: 'LandingPageView' });
     };
     const goToProfile = () => {

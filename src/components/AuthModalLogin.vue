@@ -67,6 +67,7 @@ export default defineComponent({
 
         // 익스텐션에 토큰 전달
         const { accessByExtension, extensionId } = extension.value;
+
         if (accessByExtension && extensionId) {
           sendMessageToExtension({
             extensionId,
