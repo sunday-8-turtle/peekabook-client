@@ -1,4 +1,9 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+import {
+  createRouter,
+  createWebHistory,
+  RouteRecordRaw,
+  useRoute,
+} from 'vue-router';
 import useAuthStore from '@/store/auth.store';
 
 import LandingPageView from '../views/LandingPageView.vue';
@@ -14,10 +19,10 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       authRequired: false,
     },
-    beforeEnter(to, from, next) {
-      const { loggedIn } = useAuthStore();
-      loggedIn ? next({ name: 'MainView' }) : next();
-    },
+    // beforeEnter(to, from, next) {
+    //   const { loggedIn } = useAuthStore();
+    //   loggedIn ? next({ name: 'MainView' }) : next();
+    // },
   },
   {
     path: '/bookmark',

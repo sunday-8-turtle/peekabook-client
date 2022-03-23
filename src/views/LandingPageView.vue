@@ -1,5 +1,6 @@
 <script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent, onBeforeMount, onMounted, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import useAuthStore from '@/store/auth.store';
 
 import { useOnScroll } from '@/composables';
@@ -14,10 +15,24 @@ export default defineComponent({
   props: {},
   emits: ['open-login-modal'],
   setup() {
+    const authStore = useAuthStore();
+    const $router = useRouter();
+    const $route = useRoute();
+
     const { scrollIntoView } = useOnScroll();
 
-    const authStore = useAuthStore();
+    // Login Modal
     const openLoginModal = () => authStore.openLoginModal();
+
+    // Extension Login related
+    onBeforeMount(() => {
+      const extensionLogin = $route.query['login-for'] === 'extension';
+      const loggedIn = authStore.$state.loggedIn;
+
+      if (!extensionLogin && loggedIn) {
+        $router.push({ name: 'MainView' });
+      }
+    });
 
     return {
       scrollIntoView,
