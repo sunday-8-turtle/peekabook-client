@@ -151,8 +151,13 @@ export default defineComponent({
     const onLogout = () => {
       $authStore.logout();
 
-      const extensionId = JSON.parse(localStorage.getItem('extensionId') || '');
-      sendMessageToExtension({ extensionId, token: '' });
+      const extensionId = localStorage.getItem('extensionId');
+      if (extensionId) {
+        sendMessageToExtension({
+          extensionId: JSON.parse(extensionId),
+          token: '',
+        });
+      }
       localStorage.removeItem('extensionId');
 
       $router.push({ name: 'LandingPageView' });
