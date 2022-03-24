@@ -30,12 +30,6 @@ export default defineComponent({
   setup() {
     const $route = useRoute();
 
-    // bookmark setup
-    const bookmarkStore = useBookmarkStore();
-    const bookmarkList = computed(() => {
-      return bookmarkStore.getBookmarkListByFilter(bookmarkFilter.value);
-    });
-
     // global loading status
     const isFetchingBookmark = computed(() => {
       return bookmarkStore.isFetchingBookmark;
@@ -45,6 +39,12 @@ export default defineComponent({
     const tagName = ref(($route.query.tag as string) || '전체');
     watch($route, (newRoute) => {
       tagName.value = (newRoute.query.tag as string) || '전체';
+    });
+
+    // bookmark setup
+    const bookmarkStore = useBookmarkStore();
+    const bookmarkList = computed(() => {
+      return bookmarkStore.getBookmarkListByFilter(bookmarkFilter.value);
     });
 
     // bookmark fillter with context menu
@@ -57,7 +57,6 @@ export default defineComponent({
     );
     const toggleUserContextMenu = () =>
       bookmarkFilterContextMenu.value?.toggle();
-
     // snackbar
     const snackbarMessage = ref('');
     const showSnackbar = (message: string) => (snackbarMessage.value = message);

@@ -9,19 +9,21 @@ const useBookmarkStore = defineStore('bookmark', {
   state: () => {
     return {
       isFetchingBookmark: false,
-      bookmarkList,
-      tagWithBookmarkSet,
+      bookmarkList, // 오른쪽 태그별 리스트에서 사용하는 데이터
+      tagWithBookmarkSet, // 왼쪽 사이드바에서 태그별로 분류하기 위해 모아놓은 데이터
     };
   },
   getters: {
     getBookmarkListByTagName(state) {
-      return (tagName: string) =>
-        state.bookmarkList.filter((bookmark) =>
-          bookmark.tags.includes(tagName)
-        );
+      return (tagName: string) => {
+        return state.tagWithBookmarkSet[tagName].bookmarkList;
+      };
     },
     getBookmarkListByFilter(state) {
       return (filterBy: '최신 순' | '가나다 순') => {
+        // const bookmarkList = this.getBookmarkListByTagName(tagName);
+        // console.log(bookmarkList, tagName);
+
         switch (filterBy) {
           case '최신 순':
             return state.bookmarkList.sort((a, b) => {
