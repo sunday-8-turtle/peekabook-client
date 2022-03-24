@@ -187,7 +187,6 @@ export default defineComponent({
       formData.value.createdDate = createdDate;
       formData.value.bookmarkId = res.data?.bookmarkId as number;
       bookmarkStore.addOneBookmarkToTagWithBookmarkSet(formData.value);
-      bookmarkStore.addOneBookmarkToList(formData.value);
     };
     const _modifyBookmark = async () => {
       const res = await modifyBookmark(
