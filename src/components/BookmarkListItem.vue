@@ -8,6 +8,8 @@ import { Bookmark } from '@/types/bookmark.types';
 import truncate from '@/directives/truncate';
 import { useOnClickOutside } from '@/composables';
 
+import defaultImg from '../assets/peekabook-empty-card-img.png';
+
 export default defineComponent({
   name: 'BookmarkListItem',
   components: { BaseContextMenu, BaseContextMenuItem },
@@ -25,12 +27,10 @@ export default defineComponent({
 
     // bookmark image
     const defaultImgSrc = computed(() => {
-      return require('../assets/peekabook-empty-card-img.png');
+      return defaultImg;
     });
     const setDefaultImage = (e: Event) => {
-      (
-        e.target as HTMLImageElement
-      ).src = require('../assets/peekabook-empty-card-img.png');
+      (e.target as HTMLImageElement).src = defaultImg;
     };
 
     /**

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent, onMounted, PropType, ref } from 'vue';
 import lottie from 'lottie-web';
+import lottiJson from '../assets/lotties/loading-btn.json?raw';
 
 type LottieName = 'loading-btn';
 
@@ -28,7 +29,7 @@ export default defineComponent({
     };
 
     const lottieAssets: { [lottie in LottieName]: string } = {
-      'loading-btn': require('@/assets/lotties/loading-btn.json'),
+      'loading-btn': JSON.parse(lottiJson),
     };
 
     onMounted(() => {
