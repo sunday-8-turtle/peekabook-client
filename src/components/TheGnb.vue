@@ -6,6 +6,7 @@ import useAuthStore from '@/store/auth.store';
 import { checkNotification, fetchNotificationList } from '@/api/noti.api';
 
 import { useOnClickOutside, useOnScroll } from '@/composables';
+import useNotification from '@/composables/useNotification';
 
 import AuthModalLogin from '@/components/AuthModalLogin.vue';
 import AuthModalSignup from '@/components/AuthModalSignup.vue';
@@ -38,41 +39,20 @@ const goToPreviousPage = () =>
 const query = ref('');
 
 // 알림
-const notificationList = ref<BookmarkNotification[]>([]);
-const loadNotificationList = async () => {
-  const res = await fetchNotificationList();
-  if (res.result === 'FAIL' || !res.data) return;
-  notificationList.value = res.data;
-};
-
-const openNotification = (notification: BookmarkNotification) => {
-  const { id, bookmark } = notification;
-
-  // 브라우저 새 탭 오픈
-  window.open(bookmark.url, '_blank');
-
-  // 읽음처리 API 요청 -> State 읽음 정보 갱신
-  checkNotification(id)
-    .then(() => readClickedNotification(id))
-    .catch((err) => console.error(err));
-};
-
-const readClickedNotification = (targetId: number) => {
-  const noti = notificationList.value.find((noti) => noti.id === targetId);
-  if (noti) noti.check = true;
-};
+const { notificationList, openNotificationWithNewTab } = useNotification();
 
 const notiMenu = ref<HTMLDivElement>();
 const notiContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
+
 useOnClickOutside(notiMenu, () => notiContextMenu.value?.close());
 const toggleNotiContextMenu = () => notiContextMenu.value?.toggle();
 const truncateStringWithEllipsis = (text: string, len: number) => {
   return text.length > len ? text.substr(0, len - 1) + '...' : text;
 };
 
-const defaultImgSrc = computed(() => {
-  return defaultImg;
-});
+// const defaultImgSrc = computed(() => {
+//   return defaultImg;
+// });
 const setDefaultImage = (e: Event) => {
   (e.target as HTMLImageElement).src = defaultImg;
 };
@@ -179,7 +159,7 @@ const { isTopOfPage } = useOnScroll();
                     <section
                       class="notification"
                       :class="{ read: notification.check }"
-                      @click="openNotification(notification)"
+                      @click="openNotificationWithNewTab(notification)"
                     >
                       <section class="image">
                         <img
@@ -188,7 +168,7 @@ const { isTopOfPage } = useOnScroll();
                           :src="notification.bookmark.image"
                           alt="bookmark image"
                         />
-                        <img v-else :src="defaultImgSrc" alt="default image" />
+                        <img v-else :src="defaultImg" alt="default image" />
                       </section>
                       <section class="content">
                         <section class="message">
