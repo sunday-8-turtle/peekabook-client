@@ -1,4 +1,4 @@
-<script lang="ts">
+<script setup lang="ts">
 import { computed, defineComponent, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
@@ -17,191 +17,98 @@ import { sendMessageToExtension } from '@/api/extension';
 
 import defaultImg from '../assets/peekabook-empty-card-img.png';
 
-export default defineComponent({
-  name: 'TheGnb',
-  components: {
-    AuthModalLogin,
-    AuthModalSignup,
-    BaseButton,
-    BaseContextMenu,
-    BaseContextMenuItem,
-  },
-  setup() {
-    const $route = useRoute();
-    const $router = useRouter();
-    const $authStore = useAuthStore();
+const authStore = useAuthStore();
+const { loggedIn } = storeToRefs(authStore);
 
-    const { loggedIn } = storeToRefs($authStore);
+// 로그인 모달
+const loginModal = ref<InstanceType<typeof AuthModalLogin>>();
+const openLoginModal = () => loginModal.value?.open();
 
-    // Login Modal
-    const loginModal = ref<InstanceType<typeof AuthModalLogin>>();
-    const openLoginModal = () => loginModal.value?.open();
-    watch(
-      () => $route.query.initialLoginModal,
-      (initialLoginModal) => {
-        if (initialLoginModal) {
-          openLoginModal();
-        }
-      }
-    );
+// 회원가입 모달
+const signupModal = ref<InstanceType<typeof AuthModalSignup>>();
+const openSignupModal = () => signupModal.value?.open();
 
-    // Login with Extension
-    watch(
-      () => $route.query,
-      (query) => {
-        const LOGIN_TYPES = ['extension', 'unauthorized'];
-        const loginType = String(query['login-for']);
+// 페이지 이동
+const $route = useRoute();
+const $router = useRouter();
+const goToPreviousPage = () =>
+  $router.push($route.redirectedFrom || { name: 'MainView' });
 
-        // 로그인 타입 없으면 종료
-        if (!loginType) {
-          return;
-        }
-        // 유효하지 않은 로그인 타입이면 종료
-        if (!LOGIN_TYPES.includes(String(loginType))) {
-          return;
-        }
+// 검색
+const query = ref('');
 
-        // 익스텐션 타입인 경우
-        if (loginType === 'extension') {
-          // 괴뢰군 코드
-          // 리팩터링 지원자 연락 주세요
-          const extensionId = String(query['extension-id']);
-          localStorage.setItem('extensionId', JSON.stringify(extensionId));
+// 알림
+const notificationList = ref<BookmarkNotification[]>([]);
+const loadNotificationList = async () => {
+  const res = await fetchNotificationList();
+  if (res.result === 'FAIL' || !res.data) return;
+  notificationList.value = res.data;
+};
 
-          const token = $authStore.$state.user?.token;
+const openNotification = (notification: BookmarkNotification) => {
+  const { id, bookmark } = notification;
 
-          if (extensionId && token) {
-            sendMessageToExtension({ extensionId, token });
-          }
+  // 브라우저 새 탭 오픈
+  window.open(bookmark.url, '_blank');
 
-          $authStore.$state.extension = {
-            accessByExtension: true,
-            extensionId,
-          };
-        }
+  // 읽음처리 API 요청 -> State 읽음 정보 갱신
+  checkNotification(id)
+    .then(() => readClickedNotification(id))
+    .catch((err) => console.error(err));
+};
 
-        openLoginModal();
-      }
-    );
+const readClickedNotification = (targetId: number) => {
+  const noti = notificationList.value.find((noti) => noti.id === targetId);
+  if (noti) noti.check = true;
+};
 
-    // Signup Modal
-    const signupModal = ref<InstanceType<typeof AuthModalSignup>>();
-    const openSignupModal = () => signupModal.value?.open();
+const notiMenu = ref<HTMLDivElement>();
+const notiContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
+useOnClickOutside(notiMenu, () => notiContextMenu.value?.close());
+const toggleNotiContextMenu = () => notiContextMenu.value?.toggle();
+const truncateStringWithEllipsis = (text: string, len: number) => {
+  return text.length > len ? text.substr(0, len - 1) + '...' : text;
+};
 
-    const goToPreviousPage = () => {
-      $router.push($route.redirectedFrom || { name: 'MainView' });
-    };
-
-    // Search bookmarks, tags related
-    const query = ref('');
-
-    // Notifications with context menu
-    let notificationList = ref<BookmarkNotification[]>([]);
-    const getNotificationList = async () => {
-      const res = await fetchNotificationList();
-      if (res.result === 'FAIL' || !res.data) return;
-      notificationList.value = res.data;
-    };
-
-    // 페이지 이동 시 알림 정보 갱신 (하루에 한 번만 갱신되는거면 굳이?)
-    watch(
-      () => $route.path,
-      () => {
-        getNotificationList(); // 비효율적? -> 캐싱?
-      }
-    );
-
-    const openNotification = (notification: BookmarkNotification) => {
-      const { id, bookmark } = notification;
-
-      // 브라우저 새 탭 오픈
-      window.open(bookmark.url, '_blank');
-
-      // 읽음처리 API 요청 -> State 읽음 정보 갱신
-      checkNotification(id)
-        .then(() => readClickedNotification(id))
-        .catch((err) => console.error(err));
-    };
-
-    const readClickedNotification = (targetId: number) => {
-      const noti = notificationList.value.find((noti) => noti.id === targetId);
-      if (noti) noti.check = true;
-    };
-
-    const notiMenu = ref<HTMLDivElement>();
-    const notiContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
-    useOnClickOutside(notiMenu, () => notiContextMenu.value?.close());
-    const toggleNotiContextMenu = () => notiContextMenu.value?.toggle();
-    const truncateStringWithEllipsis = (text: string, len: number) => {
-      return text.length > len ? text.substr(0, len - 1) + '...' : text;
-    };
-
-    const defaultImgSrc = computed(() => {
-      return defaultImg;
-    });
-    const setDefaultImage = (e: Event) => {
-      (e.target as HTMLImageElement).src = defaultImg;
-    };
-
-    // 유저 컨텍스트 메뉴
-    const userMenu = ref<HTMLDivElement>(); // 버튼 & 컨텍스트 메뉴
-    const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
-    useOnClickOutside(userMenu, () => userContextMenu.value?.close());
-    const toggleUserContextMenu = () => userContextMenu.value?.toggle();
-    const onLogout = () => {
-      $authStore.logout();
-
-      const extensionId = localStorage.getItem('extensionId');
-      if (extensionId) {
-        sendMessageToExtension({
-          extensionId: JSON.parse(extensionId),
-          token: '',
-        });
-      }
-      localStorage.removeItem('extensionId');
-
-      $router.push({ name: 'LandingPageView' });
-    };
-    const goToProfile = () => {
-      $router.push({ name: 'ProfileView' });
-      userContextMenu.value?.close();
-    };
-
-    // 랜딩 페이지 스타일 관련 (borderless)
-    const isLandingPage = computed(() => {
-      return $route.path === '/';
-    });
-    const { isTopOfPage } = useOnScroll();
-
-    return {
-      loginModal,
-      signupModal,
-      openLoginModal,
-      openSignupModal,
-      loggedIn,
-      goToPreviousPage,
-
-      query,
-
-      notificationList,
-      openNotification,
-      notiMenu,
-      notiContextMenu,
-      toggleNotiContextMenu,
-      truncateStringWithEllipsis,
-      defaultImgSrc,
-      setDefaultImage,
-
-      userMenu,
-      userContextMenu,
-      toggleUserContextMenu,
-      onLogout,
-      goToProfile,
-      isLandingPage,
-      isTopOfPage,
-    };
-  },
+const defaultImgSrc = computed(() => {
+  return defaultImg;
 });
+const setDefaultImage = (e: Event) => {
+  (e.target as HTMLImageElement).src = defaultImg;
+};
+
+// 유저 컨텍스트 메뉴
+const userMenu = ref<HTMLDivElement>(); // 버튼 & 컨텍스트 메뉴
+const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
+useOnClickOutside(userMenu, () => userContextMenu.value?.close());
+const toggleUserContextMenu = () => userContextMenu.value?.toggle();
+
+const onLogout = () => {
+  authStore.logout();
+
+  const extensionId = localStorage.getItem('extensionId');
+  if (extensionId) {
+    sendMessageToExtension({
+      extensionId: JSON.parse(extensionId),
+      token: '',
+    });
+  }
+  localStorage.removeItem('extensionId');
+
+  $router.push({ name: 'LandingPageView' });
+};
+
+const goToProfile = () => {
+  $router.push({ name: 'ProfileView' });
+  userContextMenu.value?.close();
+};
+
+// 랜딩 페이지 스타일 관련 (borderless)
+const isLandingPage = computed(() => {
+  return $route.path === '/';
+});
+
+const { isTopOfPage } = useOnScroll();
 </script>
 
 <template>
