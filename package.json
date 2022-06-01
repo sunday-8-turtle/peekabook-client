@@ -6,8 +6,6 @@
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "test:unit": "vue-cli-service test:unit",
-    "test:e2e": "vue-cli-service test:e2e",
     "lint": "eslint --ext .js,.ts,.vue --ignore-path .gitignore --fix src"
   },
   "dependencies": {
