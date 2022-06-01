@@ -15,6 +15,8 @@ import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
 import { BookmarkNotification } from '@/types/noti.types';
 import { sendMessageToExtension } from '@/api/extension';
 
+import defaultImg from '../assets/peekabook-empty-card-img.png';
+
 export default defineComponent({
   name: 'TheGnb',
   components: {
@@ -135,12 +137,10 @@ export default defineComponent({
     };
 
     const defaultImgSrc = computed(() => {
-      return require('../assets/peekabook-empty-card-img.png');
+      return defaultImg;
     });
     const setDefaultImage = (e: Event) => {
-      (
-        e.target as HTMLImageElement
-      ).src = require('../assets/peekabook-empty-card-img.png');
+      (e.target as HTMLImageElement).src = defaultImg;
     };
 
     // 유저 컨텍스트 메뉴
