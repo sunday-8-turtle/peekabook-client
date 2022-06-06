@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { computed, defineComponent, ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import useAuthStore from '@/store/auth.store';
-import { checkNotification, fetchNotificationList } from '@/api/noti.api';
 
 import { useOnClickOutside, useOnScroll } from '@/composables';
 import useNotification from '@/composables/useNotification';
@@ -13,33 +11,101 @@ import AuthModalSignup from '@/components/AuthModalSignup.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import BaseContextMenu from '@/components/BaseContextMenu.vue';
 import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
-import { BookmarkNotification } from '@/types/noti.types';
+
+import useAuthStore from '@/store/auth.store';
 import { sendMessageToExtension } from '@/api/extension';
 
 import defaultImg from '../assets/peekabook-empty-card-img.png';
+import { getSavedState, saveState } from '@/store/helpers';
+import { getProfile } from '@/api/profile';
+import { CurrentUserState } from '@/types/auth.types';
 
+const route = useRoute();
+const router = useRouter();
 const authStore = useAuthStore();
 const { loggedIn } = storeToRefs(authStore);
 
-// 로그인 모달
+// watch(() => loggedIn.value, () => {
+// })
+
+// Login Modal
 const loginModal = ref<InstanceType<typeof AuthModalLogin>>();
 const openLoginModal = () => loginModal.value?.open();
+const onClickLoginBtn = () => {
+  // 로컬 스토리지에 User 토큰 정보 있는지 확인 (=> 다른 페이지/탭에서 로그인한 경우)
+  // 없으면 모달 열기
+  // 있으면 유효하지 않은 토큰이면 열기
+  const user: CurrentUserState | undefined = getSavedState('user');
+  if (user && isValidToken()) {
+    window.location.reload();
+    return;
+  }
+  openLoginModal();
+};
 
-// 회원가입 모달
+watch(
+  () => route.query,
+  (query) => {
+    const loginType = String(query['login-for']);
+    const extensionId = String(query['extension-id']);
+    const token = authStore.$state.user?.token;
+    // eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5b29jbzA2MThAZ21haWwuY29tIiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImlhdCI6MTY1NDQyNjk2OCwiZXhwIjoxNjU0NTEzMzY4fQ.VC_9d7iBtczoxLrOBbtGJLbPesbRze2BuET8TyIM6FA
+
+    // 익스텐션에게 유효한 토큰 전송하기
+    // 1. 토큰 없음 -> 로그인 모달 열기
+    // 2. 토큰 있음, 무효함 -> 로그아웃 처리 후 로그인 모달 열기
+    // 3. 토큰 있음, 유효함 -> 즉시 sendMessage
+
+    // 익스텐션을 통한 로그인 요청
+    if (loginType === 'extension' && extensionId) {
+      // 익스텐션 ID 저장
+      saveState('extensionId', extensionId);
+      authStore.$state.extension = {
+        accessByExtension: true,
+        extensionId,
+      };
+
+      // Global State에 토큰 없는 경우
+      if (!token) {
+        openLoginModal();
+        return;
+      }
+
+      // Global State에 토큰 있는 경우
+      // 유효하지 않으면  로그아웃 후 로그인 모달 열기
+      if (!isValidToken()) {
+        onLogout();
+        openLoginModal();
+        return;
+      }
+
+      // 유효하면 메시지 전송
+      if (token && isValidToken()) {
+        sendMessageToExtension({ extensionId, token });
+      }
+    }
+  }
+);
+
+const isValidToken = async (): Promise<boolean> => {
+  const res = await getProfile();
+  return !!res.data;
+};
+
+// SignUp Modal
 const signupModal = ref<InstanceType<typeof AuthModalSignup>>();
 const openSignupModal = () => signupModal.value?.open();
 
-// 페이지 이동
-const $route = useRoute();
-const $router = useRouter();
+// Routes
 const goToPreviousPage = () =>
-  $router.push($route.redirectedFrom || { name: 'MainView' });
+  router.push(route.redirectedFrom || { name: 'MainView' });
 
-// 검색
+// Search
 const query = ref('');
 
-// 알림
-const { notificationList, openNotificationWithNewTab } = useNotification();
+// Notification Menu
+const { notificationList, loadNotificationList, openNotificationWithNewTab } =
+  useNotification();
 
 const notiMenu = ref<HTMLDivElement>();
 const notiContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
@@ -50,14 +116,17 @@ const truncateStringWithEllipsis = (text: string, len: number) => {
   return text.length > len ? text.substr(0, len - 1) + '...' : text;
 };
 
-// const defaultImgSrc = computed(() => {
-//   return defaultImg;
-// });
-const setDefaultImage = (e: Event) => {
-  (e.target as HTMLImageElement).src = defaultImg;
-};
+watch(
+  () => loggedIn.value,
+  () => {
+    if (loggedIn.value) {
+      console.log('로그인 완료', loggedIn.value);
+      loadNotificationList();
+    }
+  }
+);
 
-// 유저 컨텍스트 메뉴
+// User Menu
 const userMenu = ref<HTMLDivElement>(); // 버튼 & 컨텍스트 메뉴
 const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
 useOnClickOutside(userMenu, () => userContextMenu.value?.close());
@@ -75,20 +144,20 @@ const onLogout = () => {
   }
   localStorage.removeItem('extensionId');
 
-  $router.push({ name: 'LandingPageView' });
+  router.push({ name: 'LandingPageView' });
 };
 
 const goToProfile = () => {
-  $router.push({ name: 'ProfileView' });
+  router.push({ name: 'ProfileView' });
   userContextMenu.value?.close();
 };
 
-// 랜딩 페이지 스타일 관련 (borderless)
-const isLandingPage = computed(() => {
-  return $route.path === '/';
-});
-
+// Styles
 const { isTopOfPage } = useOnScroll();
+const isLandingPage = computed(() => route.path === '/');
+const setDefaultImage = (e: Event) => {
+  (e.target as HTMLImageElement).src = defaultImg;
+};
 </script>
 
 <template>
@@ -211,7 +280,7 @@ const { isTopOfPage } = useOnScroll();
       </template>
       <template v-else>
         <div class="auth-buttons">
-          <BaseButton class="login" :shape="'line'" @click="openLoginModal">
+          <BaseButton class="login" :shape="'line'" @click="onClickLoginBtn">
             로그인
           </BaseButton>
           <BaseButton class="signup" :shape="'fill'" @click="openSignupModal">

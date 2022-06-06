@@ -22,8 +22,8 @@ export default defineComponent({
   },
   setup() {
     const user: Ref<Profile | undefined> = ref();
-    const email = computed(() => user.value?.data.email);
-    const nickname = computed(() => user.value?.data.nickname);
+    const email = computed(() => user.value?.data?.email || '');
+    const nickname = computed(() => user.value?.data?.nickname || '');
 
     // 컴포넌트 생성 시 유저 정보 API 요청
     (async () => {

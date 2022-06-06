@@ -4,6 +4,8 @@ import { CurrentUserState } from '@/types/auth.types';
 
 import { reissueToken } from './auth.api';
 import useAuthStore from '@/store/auth.store';
+import { useRouter } from 'vue-router';
+import { PKBResponse } from '@/types';
 
 const httpClient = axios.create();
 
@@ -16,38 +18,39 @@ httpClient.interceptors.request.use(
     if (!user) return config;
 
     const { token, refreshToken } = user;
-    const parsedToken = parseJWT(token);
-
+    // const parsedToken = parseJWT(token);
     // 토큰 재발행 (WIP)
-    if (isTokenExpired(parsedToken.exp) && !hasRequested) {
-      hasRequested = true;
-      const authStore = useAuthStore();
-      config.headers!.Authorization = '';
+    // if (isTokenExpired(parsedToken.exp) && !hasRequested) {
+    //   hasRequested = true;
+    //   const authStore = useAuthStore();
+    //   config.headers!.Authorization = '';
 
-      const res = await reissueToken({
-        accessToken: token,
-        refreshToken: refreshToken,
-      });
-      authStore.setUserState({ loggedIn: true, user: res.data! });
-      hasRequested = false;
-    }
+    //   const res = await reissueToken({
+    //     accessToken: token,
+    //     refreshToken: refreshToken,
+    //   });
+    //   authStore.setUserState({ loggedIn: true, user: res.data! });
+    //   hasRequested = false;
+    // }
 
     config.headers!.Authorization = `${token}`;
     return config;
   },
   function (error) {
+    console.log(error.response);
     return Promise.reject(error);
   }
 );
 
 httpClient.interceptors.response.use(
   function (response) {
+    const data: PKBResponse<null> = response.data;
+    if (data.result === 'FAIL' && data.errorCode === 'AUTH_INVALID_TOKEN') {
+      useAuthStore().logout();
+    }
     return response;
   },
   function (error) {
-    if (!error.response) {
-      console.error(error);
-    }
     return Promise.reject(error);
   }
 );

@@ -10,8 +10,10 @@ export default function useNotification() {
     notificationList.value = [];
 
     const res = await fetchNotificationList();
-    if (res.result === 'FAIL' || !res.data) return;
-    notificationList.value = res.data;
+    if (res.result === 'SUCCESS' && res.data) {
+      notificationList.value = res.data;
+      console.log('Load Notifications', notificationList.value);
+    }
   };
 
   const openNotificationWithNewTab = (notification: BookmarkNotification) => {
@@ -26,9 +28,6 @@ export default function useNotification() {
     const target = notificationList.value.find((noti) => noti.id === notiId);
     if (target) target.check = true;
   };
-
-  // Initial Fetching
-  loadNotificationList();
 
   return {
     notificationList,
