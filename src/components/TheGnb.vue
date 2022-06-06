@@ -3,30 +3,27 @@ import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 
-import { useOnClickOutside, useOnScroll } from '@/composables';
-import useNotification from '@/composables/useNotification';
-
 import AuthModalLogin from '@/components/AuthModalLogin.vue';
 import AuthModalSignup from '@/components/AuthModalSignup.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import BaseContextMenu from '@/components/BaseContextMenu.vue';
 import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
 
-import useAuthStore from '@/store/auth.store';
-import { sendMessageToExtension } from '@/api/extension';
+import { useOnClickOutside, useOnScroll } from '@/composables';
+import useNotification from '@/composables/useNotification';
 
-import defaultImg from '../assets/peekabook-empty-card-img.png';
+import useAuthStore from '@/store/auth.store';
 import { getSavedState, saveState } from '@/store/helpers';
+
+import { sendMessageToExtension } from '@/api/extension';
 import { getProfile } from '@/api/profile';
 import { CurrentUserState } from '@/types/auth.types';
+
+import defaultImg from '../assets/peekabook-empty-card-img.png';
 
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
-const { loggedIn } = storeToRefs(authStore);
-
-// watch(() => loggedIn.value, () => {
-// })
 
 // Login Modal
 const loginModal = ref<InstanceType<typeof AuthModalLogin>>();
@@ -116,6 +113,7 @@ const truncateStringWithEllipsis = (text: string, len: number) => {
   return text.length > len ? text.substr(0, len - 1) + '...' : text;
 };
 
+const { loggedIn } = storeToRefs(authStore);
 watch(
   () => loggedIn.value,
   () => {
