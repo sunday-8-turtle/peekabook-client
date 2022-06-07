@@ -5,14 +5,8 @@
   </main>
 </template>
 
-<script lang="ts">
-import { defineComponent } from '@vue/runtime-core';
+<script setup lang="ts">
 import TheGnb from '@/components/TheGnb.vue';
-
-export default defineComponent({
-  name: 'App',
-  components: { TheGnb },
-});
 </script>
 
 <style lang="scss">
