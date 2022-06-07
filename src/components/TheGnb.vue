@@ -34,24 +34,26 @@ const onClickLoginBtn = () => {
   // 있으면 유효하지 않은 토큰이면 열기
   const user: CurrentUserState | undefined = getSavedState('user');
   if (user && isValidToken()) {
-    window.location.reload();
+    authStore.user = user;
+    authStore.loggedIn = true;
+    router.push({ name: 'MainView' });
     return;
   }
   openLoginModal();
 };
 
+// Composable 분리 예정
 watch(
   () => route.query,
   (query) => {
     const loginType = String(query['login-for']);
     const extensionId = String(query['extension-id']);
     const token = authStore.$state.user?.token;
-    // eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ5b29jbzA2MThAZ21haWwuY29tIiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImlhdCI6MTY1NDQyNjk2OCwiZXhwIjoxNjU0NTEzMzY4fQ.VC_9d7iBtczoxLrOBbtGJLbPesbRze2BuET8TyIM6FA
 
-    // 익스텐션에게 유효한 토큰 전송하기
-    // 1. 토큰 없음 -> 로그인 모달 열기
-    // 2. 토큰 있음, 무효함 -> 로그아웃 처리 후 로그인 모달 열기
-    // 3. 토큰 있음, 유효함 -> 즉시 sendMessage
+    if (loginType === 'loginRequired') {
+      openLoginModal();
+      return;
+    }
 
     // 익스텐션을 통한 로그인 요청
     if (loginType === 'extension' && extensionId) {
@@ -62,24 +64,17 @@ watch(
         extensionId,
       };
 
-      // Global State에 토큰 없는 경우
-      if (!token) {
-        openLoginModal();
-        return;
-      }
-
-      // Global State에 토큰 있는 경우
-      // 유효하지 않으면  로그아웃 후 로그인 모달 열기
-      if (!isValidToken()) {
-        onLogout();
-        openLoginModal();
-        return;
-      }
-
-      // 유효하면 메시지 전송
+      // 토큰 유효하면 메시지 전송
       if (token && isValidToken()) {
         sendMessageToExtension({ extensionId, token });
       }
+
+      // 토큰 유효하지 않으면 로그아웃 처리
+      if (!isValidToken()) {
+        onLogout();
+        return;
+      }
+      openLoginModal();
     }
   }
 );

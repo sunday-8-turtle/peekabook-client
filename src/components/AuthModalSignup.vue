@@ -1,4 +1,4 @@
-<script lang="ts">
+<script setup lang="ts">
 import { computed, defineComponent, reactive, ref } from 'vue';
 
 import BaseModal from '@/components/BaseModal.vue';
@@ -20,183 +20,157 @@ import {
   checkDuplicateEmail,
 } from '@/api/auth.api';
 
-export default defineComponent({
-  name: 'AuthModalSignup',
-  components: {
-    BaseModal,
-    BaseInput,
-    BaseButton,
-    AuthModalHeader,
-    AuthModalFooter,
-    Snackbar,
-  },
-  emits: ['open-login-modal'],
-  setup(props, { emit }) {
-    const baseModal = ref<InstanceType<typeof BaseModal>>();
-    const open = () => baseModal.value?.open();
-    const onClose = () => resetData();
+const emit = defineEmits(['open-login-modal']);
 
-    const isSubmitting = ref(false); // 회원가입 제출 중
-    const signupBody: SignupRequest = reactive({
-      email: '',
-      password: '',
-      nickname: '',
-      certificationCode: '',
-      termsAndConditions: false,
-    });
-    const snackbarMessage = ref('');
-    // 모듈화 필요
-    const MESSAGE_SET = {
-      REQUEST_DUPLICATE: '이미 요청하였습니다. 잠시만 기다려주세요.',
-      SEND_EMAIL_SUCCESS: '인증번호를 발송했습니다.',
-      INVALID_EMAIL: '이메일 형식이 올바르지 않습니다.',
-      REQUIRE_AGREE: '이용약관 동의가 필요합니다.',
-    };
-    const onSignup = async () => {
-      if (isSubmitting.value) {
-        snackbarMessage.value = MESSAGE_SET.REQUEST_DUPLICATE;
-        return;
-      }
+const baseModal = ref<InstanceType<typeof BaseModal>>();
+const open = () => baseModal.value?.open();
+const onClose = () => resetData();
 
-      if (!signupBody.termsAndConditions) {
-        snackbarMessage.value = MESSAGE_SET.REQUIRE_AGREE;
-        return;
-      }
-
-      try {
-        isSubmitting.value = true;
-
-        // 인증번호 확인
-        const verifyBody: VerifyCertificationCodeRequest = {
-          email: signupBody.email,
-          certificationCode: signupBody.certificationCode,
-        };
-        const verifyResult = await verifyCertificationCode(verifyBody);
-        if (verifyResult.result !== 'SUCCESS') {
-          throw new Error(verifyResult.message || '인증번호 확인 에러');
-        }
-
-        // 회원가입
-        const signupResult = await signup(signupBody);
-        if (signupResult.result !== 'SUCCESS') {
-          throw new Error(signupResult.message || '회원가입 에러');
-        }
-
-        alert('회원가입 성공! 로그인 후 피카북을 이용해보세요 :)');
-        isSubmitting.value = false;
-        goToLogin();
-      } catch (error: any) {
-        console.error(error);
-        if (error.response) {
-          snackbarMessage.value = error.response.data.message;
-          //   console.log(error.response.data);
-          //   console.log(error.response.status);
-          //   console.log(error.response.headers);
-        } else {
-          snackbarMessage.value = error.message;
-        }
-        isSubmitting.value = false;
-      }
-    };
-
-    const isSending = ref(false); // 인증코드 발송 중
-    const showCertificationCodeInput = ref(false); // 인증코드 입력창 디스플레이 여부
-    const onClickCertificationEmail = async () => {
-      snackbarMessage.value = '';
-
-      // 중복 요청 방지
-      if (isSending.value) {
-        snackbarMessage.value = MESSAGE_SET.REQUEST_DUPLICATE;
-        return;
-      }
-
-      // 이메일 유효성 검사
-      const VALID_EMAIL_REGEX =
-        /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-      if (!VALID_EMAIL_REGEX.test(signupBody.email)) {
-        snackbarMessage.value = MESSAGE_SET.INVALID_EMAIL;
-        return;
-      }
-
-      try {
-        isSending.value = true;
-
-        // 이메일 중복여부 확인
-        const checkDuplicateEmailBody: CheckDuplicateEmailRequest = {
-          email: signupBody.email,
-        };
-        const checkDuplicateEmailResult = await checkDuplicateEmail(
-          checkDuplicateEmailBody
-        );
-        if (checkDuplicateEmailResult.result !== 'SUCCESS') {
-          throw new Error(
-            checkDuplicateEmailResult.message || '이메일 중복 확인 에러'
-          );
-        }
-
-        // 인증번호 전송
-        isSending.value = true;
-        const sendCodeResult = await sendCertificationCode({
-          email: signupBody.email,
-        });
-        if (sendCodeResult.result !== 'SUCCESS') {
-          throw new Error(
-            sendCodeResult.message || '인증코드 발송을 실패했습니다.'
-          );
-        }
-
-        snackbarMessage.value = MESSAGE_SET.SEND_EMAIL_SUCCESS;
-        showCertificationCodeInput.value = true;
-        isSending.value = false;
-      } catch (err: any) {
-        console.error(err);
-        snackbarMessage.value = err.message;
-        isSending.value = false;
-      }
-    };
-
-    const isFormFilled = computed(() => {
-      return (
-        signupBody.email &&
-        signupBody.password &&
-        signupBody.certificationCode &&
-        signupBody.termsAndConditions
-      );
-    });
-
-    const resetData = () => {
-      signupBody.email = '';
-      signupBody.password = '';
-      signupBody.nickname = '';
-      signupBody.certificationCode = '';
-      showCertificationCodeInput.value = false;
-      isSubmitting.value = false;
-      isSending.value = false;
-      snackbarMessage.value = '';
-    };
-
-    const goToLogin = () => {
-      baseModal.value?.close();
-      emit('open-login-modal');
-    };
-
-    return {
-      baseModal,
-      open,
-      onClose,
-      isSubmitting,
-      signupBody,
-      snackbarMessage,
-      onSignup,
-      isSending,
-      onClickCertificationEmail,
-      showCertificationCodeInput,
-      isFormFilled,
-      resetData,
-      goToLogin,
-    };
-  },
+const isSubmitting = ref(false); // 회원가입 제출 중
+const signupBody: SignupRequest = reactive({
+  email: '',
+  password: '',
+  nickname: '',
+  certificationCode: '',
+  termsAndConditions: false,
 });
+const snackbarMessage = ref('');
+// 모듈화 필요
+const MESSAGE_SET = {
+  REQUEST_DUPLICATE: '이미 요청하였습니다. 잠시만 기다려주세요.',
+  SEND_EMAIL_SUCCESS: '인증번호를 발송했습니다.',
+  INVALID_EMAIL: '이메일 형식이 올바르지 않습니다.',
+  REQUIRE_AGREE: '이용약관 동의가 필요합니다.',
+};
+const onSignup = async () => {
+  if (isSubmitting.value) {
+    snackbarMessage.value = MESSAGE_SET.REQUEST_DUPLICATE;
+    return;
+  }
+
+  if (!signupBody.termsAndConditions) {
+    snackbarMessage.value = MESSAGE_SET.REQUIRE_AGREE;
+    return;
+  }
+
+  try {
+    isSubmitting.value = true;
+
+    // 인증번호 확인
+    const verifyBody: VerifyCertificationCodeRequest = {
+      email: signupBody.email,
+      certificationCode: signupBody.certificationCode,
+    };
+    const verifyResult = await verifyCertificationCode(verifyBody);
+    if (verifyResult.result !== 'SUCCESS') {
+      throw new Error(verifyResult.message || '인증번호 확인 에러');
+    }
+
+    // 회원가입
+    const signupResult = await signup(signupBody);
+    if (signupResult.result !== 'SUCCESS') {
+      throw new Error(signupResult.message || '회원가입 에러');
+    }
+
+    alert('회원가입 성공! 로그인 후 피카북을 이용해보세요 :)');
+    isSubmitting.value = false;
+    goToLogin();
+  } catch (error: any) {
+    console.error(error);
+    if (error.response) {
+      snackbarMessage.value = error.response.data.message;
+      //   console.log(error.response.data);
+      //   console.log(error.response.status);
+      //   console.log(error.response.headers);
+    } else {
+      snackbarMessage.value = error.message;
+    }
+    isSubmitting.value = false;
+  }
+};
+
+const isSending = ref(false); // 인증코드 발송 중
+const showCertificationCodeInput = ref(false); // 인증코드 입력창 디스플레이 여부
+const onClickCertificationEmail = async () => {
+  snackbarMessage.value = '';
+
+  // 중복 요청 방지
+  if (isSending.value) {
+    snackbarMessage.value = MESSAGE_SET.REQUEST_DUPLICATE;
+    return;
+  }
+
+  // 이메일 유효성 검사
+  const VALID_EMAIL_REGEX =
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+  if (!VALID_EMAIL_REGEX.test(signupBody.email)) {
+    snackbarMessage.value = MESSAGE_SET.INVALID_EMAIL;
+    return;
+  }
+
+  try {
+    isSending.value = true;
+
+    // 이메일 중복여부 확인
+    const checkDuplicateEmailBody: CheckDuplicateEmailRequest = {
+      email: signupBody.email,
+    };
+    const checkDuplicateEmailResult = await checkDuplicateEmail(
+      checkDuplicateEmailBody
+    );
+    if (checkDuplicateEmailResult.result !== 'SUCCESS') {
+      throw new Error(
+        checkDuplicateEmailResult.message || '이메일 중복 확인 에러'
+      );
+    }
+
+    // 인증번호 전송
+    isSending.value = true;
+    const sendCodeResult = await sendCertificationCode({
+      email: signupBody.email,
+    });
+    if (sendCodeResult.result !== 'SUCCESS') {
+      throw new Error(
+        sendCodeResult.message || '인증코드 발송을 실패했습니다.'
+      );
+    }
+
+    snackbarMessage.value = MESSAGE_SET.SEND_EMAIL_SUCCESS;
+    showCertificationCodeInput.value = true;
+    isSending.value = false;
+  } catch (err: any) {
+    console.error(err);
+    snackbarMessage.value = err.message;
+    isSending.value = false;
+  }
+};
+
+const isFormFilled = computed(() => {
+  return (
+    signupBody.email &&
+    signupBody.password &&
+    signupBody.certificationCode &&
+    signupBody.termsAndConditions
+  );
+});
+
+const resetData = () => {
+  signupBody.email = '';
+  signupBody.password = '';
+  signupBody.nickname = '';
+  signupBody.certificationCode = '';
+  showCertificationCodeInput.value = false;
+  isSubmitting.value = false;
+  isSending.value = false;
+  snackbarMessage.value = '';
+};
+
+const goToLogin = () => {
+  baseModal.value?.close();
+  emit('open-login-modal');
+};
+
+defineExpose({ open });
 </script>
 
 <template>
@@ -397,7 +371,7 @@ export default defineComponent({
           border: 2px solid #ff69b4;
 
           &:before {
-            content: url('~@/assets/icons/check-white.svg');
+            content: url('@/assets/icons/check-white.svg');
           }
         }
       }
