@@ -7,7 +7,7 @@ import useAuthStore from '@/store/auth.store';
 
 const httpClient = axios.create();
 
-httpClient.defaults.baseURL = import.meta.env.VITE_BASE_URL;
+httpClient.defaults.baseURL = import.meta.env.VITE_API_BASE_URL;
 
 let hasRequested = false;
 httpClient.interceptors.request.use(
