@@ -12,6 +12,9 @@ const fetchNotificationList = async (
   return res.data;
 };
 
+/**
+ * 선택한 알림을 읽음 처리한다.
+ */
 const checkNotification = async (id: number): Promise<PKBResponse<null>> => {
   const CHECK_NOTIFICATION = `/notification/check/${id}`;
   const res = await httpClient.post(CHECK_NOTIFICATION);

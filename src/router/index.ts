@@ -1,9 +1,5 @@
-import {
-  createRouter,
-  createWebHistory,
-  RouteRecordRaw,
-  useRoute,
-} from 'vue-router';
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+
 import useAuthStore from '@/store/auth.store';
 
 import LandingPageView from '../views/LandingPageView.vue';
@@ -17,19 +13,22 @@ const routes: Array<RouteRecordRaw> = [
     name: 'LandingPageView',
     component: LandingPageView,
     meta: {
-      authRequired: false,
+      loginRequired: false,
     },
-    // beforeEnter(to, from, next) {
-    //   const { loggedIn } = useAuthStore();
-    //   loggedIn ? next({ name: 'MainView' }) : next();
-    // },
+    beforeEnter(to, from, next) {
+      const { loggedIn } = useAuthStore();
+      if (loggedIn) {
+        return next({ name: 'MainView' });
+      }
+      next();
+    },
   },
   {
     path: '/bookmark',
     name: 'MainView',
     component: MainView,
     meta: {
-      authRequired: true,
+      loginRequired: true,
     },
   },
   {
@@ -37,7 +36,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'ExploreView',
     component: ExploreView,
     meta: {
-      authRequired: true,
+      loginRequired: true,
     },
   },
   {
@@ -45,7 +44,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'ProfileView',
     component: ProfileView,
     meta: {
-      authRequired: true,
+      loginRequired: true,
     },
   },
 ];
@@ -55,18 +54,21 @@ const router = createRouter({
   routes,
 });
 
+// Global Before Guards
+// https://router.vuejs.org/guide/advanced/navigation-guards.html#global-before-guards
 router.beforeEach((to, from, next) => {
-  const authRequired = to.matched.some((route) => route.meta.authRequired);
-  if (!authRequired) return next();
-
+  const loginRequired = to.matched.some((route) => route.meta.loginRequired);
   const { loggedIn } = useAuthStore();
-  if (loggedIn) return next();
 
-  alert('로그인이 필요합니다.');
-  return next({
-    name: 'LandingPageView',
-    query: { initialLoginModal: 'true' },
-  });
+  if (loginRequired && !loggedIn) {
+    alert('로그인이 필요합니다.');
+    return next({
+      name: 'LandingPageView',
+      query: { 'login-for': 'loginRequired' },
+    });
+  }
+
+  next();
 });
 
 export default router;

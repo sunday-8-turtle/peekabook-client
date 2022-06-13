@@ -20,7 +20,7 @@ import TheGnb from '@/components/TheGnb.vue';
   flex-direction: column;
 }
 
-main#main {
+#main {
   margin-top: $navbar-height;
 }
 </style>

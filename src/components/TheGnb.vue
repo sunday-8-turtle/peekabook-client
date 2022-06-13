@@ -1,207 +1,156 @@
-<script lang="ts">
-import { computed, defineComponent, ref, watch } from 'vue';
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import useAuthStore from '@/store/auth.store';
-import { checkNotification, fetchNotificationList } from '@/api/noti.api';
-
-import { useOnClickOutside, useOnScroll } from '@/composables';
 
 import AuthModalLogin from '@/components/AuthModalLogin.vue';
 import AuthModalSignup from '@/components/AuthModalSignup.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import BaseContextMenu from '@/components/BaseContextMenu.vue';
 import BaseContextMenuItem from '@/components/BaseContextMenuItem.vue';
-import { BookmarkNotification } from '@/types/noti.types';
+
+import { useOnClickOutside, useOnScroll } from '@/composables';
+import useNotification from '@/composables/useNotification';
+
+import useAuthStore from '@/store/auth.store';
+import { getSavedState, saveState } from '@/store/helpers';
+
 import { sendMessageToExtension } from '@/api/extension';
+import { getProfile } from '@/api/profile';
+import { CurrentUserState } from '@/types/auth.types';
 
 import defaultImg from '../assets/peekabook-empty-card-img.png';
 
-export default defineComponent({
-  name: 'TheGnb',
-  components: {
-    AuthModalLogin,
-    AuthModalSignup,
-    BaseButton,
-    BaseContextMenu,
-    BaseContextMenuItem,
-  },
-  setup() {
-    const $route = useRoute();
-    const $router = useRouter();
-    const $authStore = useAuthStore();
+const route = useRoute();
+const router = useRouter();
+const authStore = useAuthStore();
 
-    const { loggedIn } = storeToRefs($authStore);
+// Login Modal
+const loginModal = ref<InstanceType<typeof AuthModalLogin>>();
+const openLoginModal = () => loginModal.value?.open();
+const onClickLoginBtn = () => {
+  // 로컬 스토리지에 User 토큰 정보 있는지 확인 (=> 다른 페이지/탭에서 로그인한 경우)
+  // 없으면 모달 열기
+  // 있으면 유효하지 않은 토큰이면 열기
+  const user: CurrentUserState | undefined = getSavedState('user');
+  if (user && isValidToken()) {
+    authStore.user = user;
+    authStore.loggedIn = true;
+    router.push({ name: 'MainView' });
+    return;
+  }
+  openLoginModal();
+};
 
-    // Login Modal
-    const loginModal = ref<InstanceType<typeof AuthModalLogin>>();
-    const openLoginModal = () => loginModal.value?.open();
-    watch(
-      () => $route.query.initialLoginModal,
-      (initialLoginModal) => {
-        if (initialLoginModal) {
-          openLoginModal();
-        }
+// Composable 분리 예정
+watch(
+  () => route.query,
+  (query) => {
+    const loginType = String(query['login-for']);
+    const extensionId = String(query['extension-id']);
+    const token = authStore.$state.user?.token;
+
+    if (loginType === 'loginRequired') {
+      openLoginModal();
+      return;
+    }
+
+    // 익스텐션을 통한 로그인 요청
+    if (loginType === 'extension' && extensionId) {
+      // 익스텐션 ID 저장
+      saveState('extensionId', extensionId);
+      authStore.$state.extension = {
+        accessByExtension: true,
+        extensionId,
+      };
+
+      // 토큰 유효하면 메시지 전송
+      if (token && isValidToken()) {
+        sendMessageToExtension({ extensionId, token });
       }
-    );
 
-    // Login with Extension
-    watch(
-      () => $route.query,
-      (query) => {
-        const LOGIN_TYPES = ['extension', 'unauthorized'];
-        const loginType = String(query['login-for']);
-
-        // 로그인 타입 없으면 종료
-        if (!loginType) {
-          return;
-        }
-        // 유효하지 않은 로그인 타입이면 종료
-        if (!LOGIN_TYPES.includes(String(loginType))) {
-          return;
-        }
-
-        // 익스텐션 타입인 경우
-        if (loginType === 'extension') {
-          // 괴뢰군 코드
-          // 리팩터링 지원자 연락 주세요
-          const extensionId = String(query['extension-id']);
-          localStorage.setItem('extensionId', JSON.stringify(extensionId));
-
-          const token = $authStore.$state.user?.token;
-
-          if (extensionId && token) {
-            sendMessageToExtension({ extensionId, token });
-          }
-
-          $authStore.$state.extension = {
-            accessByExtension: true,
-            extensionId,
-          };
-        }
-
-        openLoginModal();
+      // 토큰 유효하지 않으면 로그아웃 처리
+      if (!isValidToken()) {
+        onLogout();
+        return;
       }
-    );
+      openLoginModal();
+    }
+  }
+);
 
-    // Signup Modal
-    const signupModal = ref<InstanceType<typeof AuthModalSignup>>();
-    const openSignupModal = () => signupModal.value?.open();
+const isValidToken = async (): Promise<boolean> => {
+  const res = await getProfile();
+  return !!res.data;
+};
 
-    const goToPreviousPage = () => {
-      $router.push($route.redirectedFrom || { name: 'MainView' });
-    };
+// SignUp Modal
+const signupModal = ref<InstanceType<typeof AuthModalSignup>>();
+const openSignupModal = () => signupModal.value?.open();
 
-    // Search bookmarks, tags related
-    const query = ref('');
+// Routes
+const goToPreviousPage = () =>
+  router.push(route.redirectedFrom || { name: 'MainView' });
 
-    // Notifications with context menu
-    let notificationList = ref<BookmarkNotification[]>([]);
-    const getNotificationList = async () => {
-      const res = await fetchNotificationList();
-      if (res.result === 'FAIL' || !res.data) return;
-      notificationList.value = res.data;
-    };
+// Search
+const query = ref('');
 
-    // 페이지 이동 시 알림 정보 갱신 (하루에 한 번만 갱신되는거면 굳이?)
-    watch(
-      () => $route.path,
-      () => {
-        getNotificationList(); // 비효율적? -> 캐싱?
-      }
-    );
+// Notification Menu
+const { notificationList, loadNotificationList, openNotificationWithNewTab } =
+  useNotification();
 
-    const openNotification = (notification: BookmarkNotification) => {
-      const { id, bookmark } = notification;
+const notiMenu = ref<HTMLDivElement>();
+const notiContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
 
-      // 브라우저 새 탭 오픈
-      window.open(bookmark.url, '_blank');
+useOnClickOutside(notiMenu, () => notiContextMenu.value?.close());
+const toggleNotiContextMenu = () => notiContextMenu.value?.toggle();
+const truncateStringWithEllipsis = (text: string, len: number) => {
+  return text.length > len ? text.substr(0, len - 1) + '...' : text;
+};
 
-      // 읽음처리 API 요청 -> State 읽음 정보 갱신
-      checkNotification(id)
-        .then(() => readClickedNotification(id))
-        .catch((err) => console.error(err));
-    };
+const { loggedIn } = storeToRefs(authStore);
+watch(
+  () => loggedIn.value,
+  () => {
+    if (loggedIn.value) {
+      console.log('로그인 완료', loggedIn.value);
+      loadNotificationList();
+    }
+  }
+);
 
-    const readClickedNotification = (targetId: number) => {
-      const noti = notificationList.value.find((noti) => noti.id === targetId);
-      if (noti) noti.check = true;
-    };
+// User Menu
+const userMenu = ref<HTMLDivElement>(); // 버튼 & 컨텍스트 메뉴
+const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
+useOnClickOutside(userMenu, () => userContextMenu.value?.close());
+const toggleUserContextMenu = () => userContextMenu.value?.toggle();
 
-    const notiMenu = ref<HTMLDivElement>();
-    const notiContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
-    useOnClickOutside(notiMenu, () => notiContextMenu.value?.close());
-    const toggleNotiContextMenu = () => notiContextMenu.value?.toggle();
-    const truncateStringWithEllipsis = (text: string, len: number) => {
-      return text.length > len ? text.substr(0, len - 1) + '...' : text;
-    };
+const onLogout = () => {
+  authStore.logout();
 
-    const defaultImgSrc = computed(() => {
-      return defaultImg;
+  const extensionId = localStorage.getItem('extensionId');
+  if (extensionId) {
+    sendMessageToExtension({
+      extensionId: JSON.parse(extensionId),
+      token: '',
     });
-    const setDefaultImage = (e: Event) => {
-      (e.target as HTMLImageElement).src = defaultImg;
-    };
+  }
+  localStorage.removeItem('extensionId');
 
-    // 유저 컨텍스트 메뉴
-    const userMenu = ref<HTMLDivElement>(); // 버튼 & 컨텍스트 메뉴
-    const userContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
-    useOnClickOutside(userMenu, () => userContextMenu.value?.close());
-    const toggleUserContextMenu = () => userContextMenu.value?.toggle();
-    const onLogout = () => {
-      $authStore.logout();
+  router.push({ name: 'LandingPageView' });
+};
 
-      const extensionId = localStorage.getItem('extensionId');
-      if (extensionId) {
-        sendMessageToExtension({
-          extensionId: JSON.parse(extensionId),
-          token: '',
-        });
-      }
-      localStorage.removeItem('extensionId');
+const goToProfile = () => {
+  router.push({ name: 'ProfileView' });
+  userContextMenu.value?.close();
+};
 
-      $router.push({ name: 'LandingPageView' });
-    };
-    const goToProfile = () => {
-      $router.push({ name: 'ProfileView' });
-      userContextMenu.value?.close();
-    };
-
-    // 랜딩 페이지 스타일 관련 (borderless)
-    const isLandingPage = computed(() => {
-      return $route.path === '/';
-    });
-    const { isTopOfPage } = useOnScroll();
-
-    return {
-      loginModal,
-      signupModal,
-      openLoginModal,
-      openSignupModal,
-      loggedIn,
-      goToPreviousPage,
-
-      query,
-
-      notificationList,
-      openNotification,
-      notiMenu,
-      notiContextMenu,
-      toggleNotiContextMenu,
-      truncateStringWithEllipsis,
-      defaultImgSrc,
-      setDefaultImage,
-
-      userMenu,
-      userContextMenu,
-      toggleUserContextMenu,
-      onLogout,
-      goToProfile,
-      isLandingPage,
-      isTopOfPage,
-    };
-  },
-});
+// Styles
+const { isTopOfPage } = useOnScroll();
+const isLandingPage = computed(() => route.path === '/');
+const setDefaultImage = (e: Event) => {
+  (e.target as HTMLImageElement).src = defaultImg;
+};
 </script>
 
 <template>
@@ -272,7 +221,7 @@ export default defineComponent({
                     <section
                       class="notification"
                       :class="{ read: notification.check }"
-                      @click="openNotification(notification)"
+                      @click="openNotificationWithNewTab(notification)"
                     >
                       <section class="image">
                         <img
@@ -281,7 +230,7 @@ export default defineComponent({
                           :src="notification.bookmark.image"
                           alt="bookmark image"
                         />
-                        <img v-else :src="defaultImgSrc" alt="default image" />
+                        <img v-else :src="defaultImg" alt="default image" />
                       </section>
                       <section class="content">
                         <section class="message">
@@ -324,7 +273,7 @@ export default defineComponent({
       </template>
       <template v-else>
         <div class="auth-buttons">
-          <BaseButton class="login" :shape="'line'" @click="openLoginModal">
+          <BaseButton class="login" :shape="'line'" @click="onClickLoginBtn">
             로그인
           </BaseButton>
           <BaseButton class="signup" :shape="'fill'" @click="openSignupModal">

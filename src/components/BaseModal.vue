@@ -1,67 +1,52 @@
 <script lang="ts">
-import { defineComponent, ref, PropType } from 'vue';
+export default {
+  inheritAttrs: false,
+};
+</script>
+
+<script setup lang="ts">
+import { ref, useAttrs } from 'vue';
+const attrs = useAttrs();
 
 type ModalType = 'auth' | 'confirm';
 
-export default defineComponent({
-  name: 'BaseModal',
-  inheritAttrs: false,
-  props: {
-    type: {
-      type: String as PropType<ModalType>,
-      required: false,
-    },
-  },
-  emits: ['close-modal'],
-  setup(props, { attrs }) {
-    const modalWrapper = ref<HTMLDivElement>();
-    const modal = ref<HTMLElement>();
+const props = defineProps<{ type?: ModalType; onClose?: () => void }>();
+const emit = defineEmits(['close-modal']);
 
-    return { attrs, modalWrapper, modal };
-  },
-  methods: {
-    open() {
-      // console.log(document.activeElement);
+const modalWrapper = ref<HTMLDivElement | null>(null);
+const modal = ref<HTMLElement | null>(null);
 
-      // if (!this.modal) return;
-      // const buttons = this.getAllFocusableButtons(this.modal);
-      // const firstButton = this.getFirstFocusableButton(buttons);
-      // console.log('buttons', buttons);
-      // console.log('firstButton', firstButton);
+const open = () => {
+  document.body.style.overflow = 'hidden';
+  if (!modalWrapper.value || !modal.value) return;
 
-      document.body.style.overflow = 'hidden';
-      this.modalWrapper?.classList.add('black-out');
-      this.modal?.setAttribute('open', '');
-      document.addEventListener('keydown', this.setEscKeydownEvent);
-    },
-    close() {
-      document.body.style.overflow = 'auto';
+  modalWrapper.value.classList.add('black-out');
+  modal.value.setAttribute('open', '');
+  document.addEventListener('keydown', setEscKeydownEvent);
+};
+const close = () => {
+  document.body.style.overflow = 'auto';
+  if (!modalWrapper.value || !modal.value) return;
 
-      this.modalWrapper?.classList.remove('black-out');
-      this.modal?.removeAttribute('open');
-      document.removeEventListener('keydown', this.setEscKeydownEvent);
-      this.$emit('close-modal');
-    },
-    preventModalClosing(e: MouseEvent) {
-      e.stopPropagation();
-    },
-    setEscKeydownEvent(e: KeyboardEvent) {
-      if (e.key !== 'Escape') return;
-      this.close();
-    },
-    // getAllFocusableButtons(modal: HTMLElement) {
-    //   return Array.from(modal.querySelectorAll('button'));
-    // },
-    // getFirstFocusableButton(buttons: HTMLButtonElement[]) {
-    //   if (buttons.length === 0) return;
-    //   return buttons[0];
-    // },
-  },
-});
+  modalWrapper.value.classList.remove('black-out');
+  modal.value.removeAttribute('open');
+  document.removeEventListener('keydown', setEscKeydownEvent);
+
+  if (props.onClose) props.onClose();
+  emit('close-modal');
+};
+
+const preventModalClosing = (e: MouseEvent) => e.stopPropagation();
+const setEscKeydownEvent = (e: KeyboardEvent) => {
+  if (e.key !== 'Escape') return;
+  close();
+};
+
+defineExpose({ open, close });
 </script>
 
 <template>
-  <div ref="modalWrapper" class="modal-wrapper" @click="close">
+  <div ref="modalWrapper" class="modal-wrapper">
     <dialog
       ref="modal"
       class="modal"
