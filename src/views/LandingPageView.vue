@@ -26,12 +26,11 @@ export default defineComponent({
 
     // Extension Login related
     onBeforeMount(() => {
-      const extensionLogin = $route.query['login-for'] === 'extension';
-      const loggedIn = authStore.$state.loggedIn;
-
-      if (!extensionLogin && loggedIn) {
-        $router.push({ name: 'MainView' });
-      }
+      // const extensionLogin = $route.query['login-for'] === 'extension';
+      // const loggedIn = authStore.$state.loggedIn;
+      // if (!extensionLogin && loggedIn) {
+      //   $router.push({ name: 'MainView' });
+      // }
     });
 
     return {

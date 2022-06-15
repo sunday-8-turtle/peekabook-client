@@ -1,11 +1,13 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 
 import useAuthStore from '@/store/auth.store';
+import useAuth from '@/composables/useAuth';
 
 import LandingPageView from '../views/LandingPageView.vue';
 import MainView from '../views/MainView.vue';
 import ExploreView from '../views/ExploreView.vue';
 import ProfileView from '../views/ProfileView.vue';
+import { sendMessageToExtension } from '@/api/extension';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -15,12 +17,32 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       loginRequired: false,
     },
-    beforeEnter(to, from, next) {
-      const { loggedIn } = useAuthStore();
-      if (loggedIn) {
-        return next({ name: 'MainView' });
+    async beforeEnter(to, from, next) {
+      // 로그인하지 않고 접근 시
+      const authStore = useAuthStore();
+      if (!authStore.loggedIn) {
+        return next();
       }
-      next();
+
+      // 로그인 되어있고 익스텐션 활성화를 위해 접근 시
+      const { getCurrentAccessToken, isValidUser } = useAuth();
+      const loginType = to.query['login-for']?.toString();
+      const extensionId = to.query['extension-id']?.toString();
+      const accessToken = getCurrentAccessToken();
+      if (loginType === 'extension' && extensionId && accessToken) {
+        if (await isValidUser()) {
+          sendMessageToExtension({
+            token: accessToken,
+            extensionId,
+          });
+        } else {
+          authStore.logout();
+        }
+
+        return next();
+      }
+
+      return next({ name: 'MainView' });
     },
   },
   {

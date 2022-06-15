@@ -50,9 +50,7 @@ const onLogin = async () => {
     isSubmitting.value = true;
 
     const user = await authStore.login(loginBody);
-    if (!user) {
-      throw new Error(MESSAGE_SET.LOGIN_FAIL);
-    }
+    if (!user) throw new Error(MESSAGE_SET.LOGIN_FAIL);
 
     // 익스텐션에 토큰 전달
     const { accessByExtension, extensionId } = extension.value;
