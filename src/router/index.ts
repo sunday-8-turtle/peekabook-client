@@ -23,6 +23,7 @@ const routes: Array<RouteRecordRaw> = [
         const deleted = await caches.delete(name);
         console.log(`${name} delete ${deleted}`);
       }
+      next();
     },
     // async beforeEnter(to, from, next) {
     //   // 로그인하지 않고 접근 시
