@@ -17,6 +17,13 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       loginRequired: false,
     },
+    async beforeEnter(to, from, next) {
+      const cacheNames = await caches.keys();
+      for (const name of cacheNames) {
+        const deleted = caches.delete(name);
+        console.log(`${name} delete ${deleted}`);
+      }
+    },
     // async beforeEnter(to, from, next) {
     //   // 로그인하지 않고 접근 시
     //   const authStore = useAuthStore();
