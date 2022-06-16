@@ -17,33 +17,35 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       loginRequired: false,
     },
-    async beforeEnter(to, from, next) {
-      // 로그인하지 않고 접근 시
-      const authStore = useAuthStore();
-      if (!authStore.loggedIn) {
-        return next();
-      }
+    // async beforeEnter(to, from, next) {
+    //   // 로그인하지 않고 접근 시
+    //   const authStore = useAuthStore();
+    //   if (!authStore.loggedIn) {
+    //     return next();
+    //   }
 
-      // 로그인 되어있고 익스텐션 활성화를 위해 접근 시
-      const { getCurrentAccessToken, isValidUser } = useAuth();
-      const loginType = to.query['login-for']?.toString();
-      const extensionId = to.query['extension-id']?.toString();
-      const accessToken = getCurrentAccessToken();
-      if (loginType === 'extension' && extensionId && accessToken) {
-        if (await isValidUser()) {
-          sendMessageToExtension({
-            token: accessToken,
-            extensionId,
-          });
-        } else {
-          authStore.logout();
-        }
+    //   // 로그인 되어있고 익스텐션 활성화를 위해 접근 시
+    //   const { getCurrentAccessToken, isValidUser } = useAuth();
+    //   const loginType = to.query['login-for']?.toString();
+    //   const extensionId = to.query['extension-id']?.toString();
+    //   const accessToken = getCurrentAccessToken();
+    //   if (loginType === 'extension' && extensionId && accessToken) {
+    //     if (await isValidUser()) {
+    //       sendMessageToExtension({
+    //         token: accessToken,
+    //         extensionId,
+    //       });
+    //     } else {
+    //       authStore.logout();
+    //     }
 
-        return next();
-      }
+    //     authStore.extension = { accessByExtension: true, extensionId };
 
-      return next({ name: 'MainView' });
-    },
+    //     return next();
+    //   }
+
+    //   return next({ name: 'MainView' });
+    // },
   },
   {
     path: '/bookmark',
