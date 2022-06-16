@@ -46,36 +46,40 @@ const onClickLoginBtn = () => {
 watch(
   () => route.query,
   (query) => {
-    const loginType = String(query['login-for']);
-    const extensionId = String(query['extension-id']);
-    const token = authStore.$state.user?.token;
+    const loginType = query['login-for']?.toString();
+    const extensionId = query['extension-id']?.toString();
 
     if (loginType === 'loginRequired') {
       openLoginModal();
       return;
     }
 
-    // 익스텐션을 통한 로그인 요청
     if (loginType === 'extension' && extensionId) {
-      // 익스텐션 ID 저장
-      saveState('extensionId', extensionId);
-      authStore.$state.extension = {
-        accessByExtension: true,
-        extensionId,
-      };
-
-      // 토큰 유효하면 메시지 전송
-      if (token && isValidToken()) {
-        sendMessageToExtension({ extensionId, token });
-      }
-
-      // 토큰 유효하지 않으면 로그아웃 처리
-      if (!isValidToken()) {
-        onLogout();
-        return;
-      }
       openLoginModal();
+      return;
     }
+
+    // 익스텐션을 통한 로그인 요청
+    // if (loginType === 'extension' && extensionId) {
+    //   // 익스텐션 ID 저장
+    //   saveState('extensionId', extensionId);
+    //   authStore.$state.extension = {
+    //     accessByExtension: true,
+    //     extensionId,
+    //   };
+
+    //   // 토큰 유효하면 메시지 전송
+    //   if (token && isValidToken()) {
+    //     sendMessageToExtension({ extensionId, token });
+    //   }
+
+    //   // 토큰 유효하지 않으면 로그아웃 처리
+    //   if (!isValidToken()) {
+    //     onLogout();
+    //     return;
+    //   }
+    //   openLoginModal();
+    // }
   }
 );
 

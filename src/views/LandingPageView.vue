@@ -1,5 +1,5 @@
-<script lang="ts">
-import { defineComponent, onBeforeMount, onMounted, ref, watch } from 'vue';
+<script setup lang="ts">
+import { onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import useAuthStore from '@/store/auth.store';
 
@@ -8,37 +8,44 @@ import { useOnScroll } from '@/composables';
 import BaseButton from '@/components/BaseButton.vue';
 import TheFooter from '@/components/TheFooter.vue';
 import LandingPageSection from '@/components/LandingPageSection.vue';
+import useAuth from '@/composables/useAuth';
+import { sendMessageToExtension } from '@/api/extension';
 
-export default defineComponent({
-  name: 'LandingPageView',
-  components: { BaseButton, TheFooter, LandingPageSection },
-  props: {},
-  emits: ['open-login-modal'],
-  setup() {
-    const authStore = useAuthStore();
-    const $router = useRouter();
-    const $route = useRoute();
+const emit = defineEmits(['open-login-modal']);
 
-    const { scrollIntoView } = useOnScroll();
+const { scrollIntoView } = useOnScroll();
 
-    // Login Modal
-    const openLoginModal = () => authStore.openLoginModal();
+const authStore = useAuthStore();
+const openLoginModal = () => authStore.openLoginModal();
 
-    // Extension Login related
-    onBeforeMount(() => {
-      const extensionLogin = $route.query['login-for'] === 'extension';
-      const loggedIn = authStore.$state.loggedIn;
+const { isValidUser } = useAuth();
+const route = useRoute();
+const router = useRouter();
+onMounted(async () => {
+  const loginType = route.query['login-for']?.toString();
+  const extensionId = route.query['extension-id']?.toString();
+  const token = authStore.user?.token;
 
-      if (!extensionLogin && loggedIn) {
-        $router.push({ name: 'MainView' });
-      }
-    });
+  if (loginType === 'extension' && extensionId) {
+    if (token) {
+      (await isValidUser())
+        ? sendMessageToExtension({ token, extensionId })
+        : authStore.logout();
 
-    return {
-      scrollIntoView,
-      openLoginModal,
-    };
-  },
+      console.debug('토큰 전송했으니 저리가줄래?');
+      router.push({ name: 'MainView' });
+    } else {
+      authStore.extension = {
+        accessByExtension: true,
+        extensionId: extensionId,
+      };
+    }
+  }
+
+  if (token) {
+    console.debug('로그인 유저는 오지못해!');
+    router.push({ name: 'MainView' });
+  }
 });
 </script>
 
