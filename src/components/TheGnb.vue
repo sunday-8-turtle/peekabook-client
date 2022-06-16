@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 
@@ -116,12 +116,13 @@ const { loggedIn } = storeToRefs(authStore);
 watch(
   () => loggedIn.value,
   () => {
-    if (loggedIn.value) {
-      console.log('로그인 완료', loggedIn.value);
-      loadNotificationList();
-    }
+    if (loggedIn.value) loadNotificationList();
   }
 );
+
+onMounted(() => {
+  loadNotificationList();
+});
 
 // User Menu
 const userMenu = ref<HTMLDivElement>(); // 버튼 & 컨텍스트 메뉴
