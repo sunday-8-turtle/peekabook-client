@@ -20,7 +20,7 @@ const routes: Array<RouteRecordRaw> = [
     async beforeEnter(to, from, next) {
       const cacheNames = await caches.keys();
       for (const name of cacheNames) {
-        const deleted = caches.delete(name);
+        const deleted = await caches.delete(name);
         console.log(`${name} delete ${deleted}`);
       }
     },
