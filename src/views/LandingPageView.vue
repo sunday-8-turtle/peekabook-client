@@ -10,6 +10,8 @@ import TheFooter from '@/components/TheFooter.vue';
 import LandingPageSection from '@/components/LandingPageSection.vue';
 import useAuth from '@/composables/useAuth';
 import { sendMessageToExtension } from '@/api/extension';
+import { getSavedState } from '@/store/helpers';
+import { CurrentUserState } from '@/types/auth.types';
 
 const emit = defineEmits(['open-login-modal']);
 
@@ -24,12 +26,12 @@ const router = useRouter();
 onMounted(async () => {
   const loginType = route.query['login-for']?.toString();
   const extensionId = route.query['extension-id']?.toString();
-  const token = authStore.user?.token;
+  const user: CurrentUserState | undefined = getSavedState('user');
 
   if (loginType === 'extension' && extensionId) {
-    if (token) {
+    if (user?.token) {
       (await isValidUser())
-        ? sendMessageToExtension({ token, extensionId })
+        ? sendMessageToExtension({ token: user.token, extensionId })
         : authStore.logout();
 
       console.debug('토큰 전송했으니 저리가줄래?');
@@ -42,7 +44,7 @@ onMounted(async () => {
     }
   }
 
-  if (token) {
+  if (user?.token) {
     console.debug('로그인 유저는 오지못해!');
     router.push({ name: 'MainView' });
   }
