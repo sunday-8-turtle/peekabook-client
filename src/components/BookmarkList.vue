@@ -1,8 +1,5 @@
-<script lang="ts">
-import { defineComponent, computed, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
-
-import useBookmarkStore from '@/store/bookmark.store';
+<script setup lang="ts">
+import { ref } from 'vue';
 
 import BaseLottie from '@/components/BaseLottie.vue';
 import BookmarkListItem from '@/components/BookmarkListItem.vue';
@@ -13,184 +10,143 @@ import ModalConfirm from '@/components/ModalConfirm.vue';
 import BookmarkModal from '@/components/BookmarkModal.vue';
 
 import { Bookmark } from '@/types/bookmark.types';
-import { deleteBookmark } from '@/api/bookmark';
 import { useOnClickOutside } from '@/composables';
 
-export default defineComponent({
-  name: 'BookmarkList',
-  components: {
-    BaseLottie,
-    BookmarkListItem,
-    BaseContextMenu,
-    BaseContextMenuItem,
-    Snackbar,
-    ModalConfirm,
-    BookmarkModal,
-  },
-  setup() {
-    const $route = useRoute();
+/**
+ * props & emits
+ */
+const props = defineProps<{
+  bookmarkList: Bookmark[] | null;
+  selectedTagName: string;
+  selectedSort: '최신 순' | '가나다';
+  isLoading: boolean;
+}>();
+const emits = defineEmits<{
+  (e: 'updateSort', newSelectedSort: typeof props.selectedSort): void;
+  (e: 'modifyBookmark', targetBookmark: Bookmark, callback: () => void): void;
+  (e: 'deleteBookmark', targetBookmark: Bookmark, callback: () => void): void;
+}>();
 
-    // global loading status
-    const isFetchingBookmark = computed(() => {
-      return bookmarkStore.isFetchingBookmark;
-    });
+/**
+ * sort & context menu
+ */
+const sortMenu = ref<HTMLDivElement>();
+const bookmarkSortContextMenu = ref<InstanceType<typeof BaseContextMenu>>();
+useOnClickOutside(sortMenu, () => bookmarkSortContextMenu.value?.close());
+const toggleUserContextMenu = () => bookmarkSortContextMenu.value?.toggle();
 
-    // tag setup
-    const tagName = ref(($route.query.tag as string) || '전체');
-    watch($route, (newRoute) => {
-      tagName.value = (newRoute.query.tag as string) || '전체';
-    });
+/**
+ * snackbar
+ */
+const snackbarMessage = ref('');
+const showSnackbar = (message: string) => {
+  snackbarMessage.value = message;
+  setTimeout(() => {
+    snackbarMessage.value = '';
+  }, 3000);
+};
 
-    // bookmark setup
-    const bookmarkStore = useBookmarkStore();
-    const bookmarkList = computed(() => {
-      return bookmarkStore.getBookmarkListByFilter(bookmarkFilter.value);
-    });
+/**
+ * modal for confirming on deletion
+ */
+const selectedBookmark = ref<Bookmark>();
 
-    // bookmark fillter with context menu
-    const filterMenu = ref<HTMLDivElement>();
-    const bookmarkFilter = ref<'최신 순' | '가나다 순'>('최신 순');
-    const bookmarkFilterContextMenu =
-      ref<InstanceType<typeof BaseContextMenu>>();
-    useOnClickOutside(filterMenu, () =>
-      bookmarkFilterContextMenu.value?.close()
-    );
-    const toggleUserContextMenu = () =>
-      bookmarkFilterContextMenu.value?.toggle();
-    // snackbar
-    const snackbarMessage = ref('');
-    const showSnackbar = (message: string) => (snackbarMessage.value = message);
-    const closeSnackbar = (seconds: number) => {
-      setTimeout(() => {
-        snackbarMessage.value = '';
-      }, seconds);
-    };
+const modalConfirm = ref<InstanceType<typeof ModalConfirm>>();
+const openModalConfirm = (bookmark: Bookmark) => {
+  selectedBookmark.value = bookmark;
+  modalConfirm.value?.open();
+};
+const closeModalConFirm = () => modalConfirm.value?.close();
+const onConfirmDeleteBookmark = async () => {
+  if (!selectedBookmark.value) return;
+  emits('deleteBookmark', selectedBookmark.value, closeModalConFirm);
+};
 
-    // modal confirm
-    const isLoading = ref(false);
-    const targetBookmark = ref<Bookmark>();
-    const modalConfirm = ref<InstanceType<typeof ModalConfirm>>();
-    const openModalConfirm = (bookmark: Bookmark) => {
-      targetBookmark.value = bookmark;
-      modalConfirm.value?.open();
-    };
-    const closeModalConFirm = () => modalConfirm.value?.close();
-    const onConfirmDeleteBookmark = async () => {
-      if (!targetBookmark.value) return;
-
-      isLoading.value = true;
-      await deleteBookmark(targetBookmark.value?.bookmarkId as number);
-      bookmarkStore.removeOneFromBookmarkList(
-        targetBookmark.value?.bookmarkId as number
-      );
-      bookmarkStore.removeOneFromTagWithBookmarkList(targetBookmark.value);
-      isLoading.value = false;
-
-      showSnackbar('북마크가 삭제되었습니다.');
-      closeModalConFirm();
-      closeSnackbar(3000);
-    };
-
-    // bookmark modal
-    const bookmarkModal = ref<InstanceType<typeof BookmarkModal>>();
-    const selectedBookmark = ref<Bookmark>();
-    const openBookmarkModal = (bookmark: Bookmark) => {
-      selectedBookmark.value = bookmark;
-      bookmarkModal.value?.open();
-    };
-
-    return {
-      tagName,
-      bookmarkList,
-
-      filterMenu,
-      bookmarkFilter,
-      bookmarkFilterContextMenu,
-      isFetchingBookmark,
-      toggleUserContextMenu,
-
-      snackbarMessage,
-
-      isLoading,
-      modalConfirm,
-      openModalConfirm,
-      onConfirmDeleteBookmark,
-
-      bookmarkModal,
-      selectedBookmark,
-      openBookmarkModal,
-    };
-  },
-});
+/**
+ * modal for bookmark
+ */
+const bookmarkModal = ref<InstanceType<typeof BookmarkModal>>();
+const openBookmarkModal = (bookmark: Bookmark) => {
+  selectedBookmark.value = bookmark;
+  bookmarkModal.value?.open();
+};
+const onModifyBookmark = (formData: Bookmark, callback: any) => {
+  emits('modifyBookmark', formData, callback);
+};
 </script>
 
 <template>
   <div class="bookmark-list-container">
-    <header>
-      <h1># {{ tagName }}</h1>
-      <div
-        v-if="bookmarkList.length"
-        ref="filterMenu"
-        class="bookmark-list-filter"
-        @click="toggleUserContextMenu"
-      >
-        <span>{{ bookmarkFilter }}</span>
-        <img src="@/assets/icons/arrow-down.svg" alt="filter arrow" />
-        <BaseContextMenu
-          class="bookmark-list-filter-context"
-          ref="bookmarkFilterContextMenu"
-        >
-          <BaseContextMenuItem @click="bookmarkFilter = '최신 순'"
-            >최신 순</BaseContextMenuItem
-          >
-          <BaseContextMenuItem @click="bookmarkFilter = '가나다 순'"
-            >가나다 순</BaseContextMenuItem
-          >
-        </BaseContextMenu>
-      </div>
-    </header>
-    <section class="bookmark-list" v-if="bookmarkList.length">
-      <BookmarkListItem
-        v-for="bookmark in bookmarkList"
-        :key="bookmark.bookmarkId"
-        :bookmark="bookmark"
-        @open-modal-confirm="openModalConfirm"
-        @open-modal-bookmark="openBookmarkModal"
+    <template v-if="isLoading">
+      <BaseLottie
+        class="empty-message"
+        name="loading-btn"
+        width="32px"
+        height="32px"
       />
-    </section>
-    <BaseLottie
-      v-if="isFetchingBookmark"
-      class="empty-message"
-      name="loading-btn"
-      width="32px"
-      height="32px"
-    />
-    <p v-if="!isFetchingBookmark && !bookmarkList.length" class="empty-message">
-      북마크가 없습니다.
-    </p>
+    </template>
+    <template v-else>
+      <header>
+        <h1># {{ selectedTagName }}</h1>
+        <div
+          v-if="bookmarkList && bookmarkList.length"
+          ref="sortMenu"
+          class="bookmark-list-sort"
+          @click="toggleUserContextMenu"
+        >
+          <span>{{ selectedSort }}</span>
+          <img src="@/assets/icons/arrow-down.svg" alt="sort arrow" />
+          <BaseContextMenu
+            class="bookmark-list-sort-context"
+            ref="bookmarkSortContextMenu"
+          >
+            <BaseContextMenuItem @click="$emit('updateSort', '최신 순')"
+              >최신 순</BaseContextMenuItem
+            >
+            <BaseContextMenuItem @click="$emit('updateSort', '가나다')"
+              >가나다 순</BaseContextMenuItem
+            >
+          </BaseContextMenu>
+        </div>
+      </header>
+      <section class="bookmark-list" v-if="bookmarkList && bookmarkList.length">
+        <BookmarkListItem
+          v-for="bookmark in bookmarkList"
+          :key="bookmark.bookmarkId"
+          :bookmark="bookmark"
+          @open-modal-confirm="openModalConfirm"
+          @open-modal-bookmark="openBookmarkModal"
+        />
+      </section>
+      <p
+        v-else-if="!bookmarkList || !bookmarkList.length"
+        class="empty-message"
+      >
+        북마크가 없습니다.
+      </p>
+    </template>
   </div>
 
   <Snackbar v-if="snackbarMessage" :message="snackbarMessage" />
-  <Teleport to="body">
-    <ModalConfirm
-      ref="modalConfirm"
-      id="modal-confirm"
-      confirmMsg="네"
-      cancelMsg="아니오"
-      :is-loading="isLoading"
-      @confirm="onConfirmDeleteBookmark"
-    >
-      <header class="decision-request">
-        <p>등록된 북마크를</p>
-        <p>삭제하시겠니까?</p>
-      </header>
-    </ModalConfirm>
-  </Teleport>
-
+  <ModalConfirm
+    ref="modalConfirm"
+    id="modal-confirm"
+    confirmMsg="네"
+    cancelMsg="아니오"
+    :is-loading="isLoading"
+    @confirm="onConfirmDeleteBookmark"
+  >
+    <header class="decision-request">
+      <p>등록된 북마크를</p>
+      <p>삭제하시겠니까?</p>
+    </header>
+  </ModalConfirm>
   <BookmarkModal
     ref="bookmarkModal"
     actionType="modify"
+    :is-loading="isLoading"
     :selectedBookmark="selectedBookmark"
+    @onConfirm="onModifyBookmark"
   />
 </template>
 
@@ -203,7 +159,7 @@ $the-global-top-padding: 56px;
 .bookmark-list-container {
   position: relative;
   min-height: calc(100vh - $the-nav-height - $the-global-top-padding - 48px);
-  margin-left: $the-snb-width + $the-global-top-padding;
+  margin-left: $the-global-top-padding;
 
   h1 {
     margin-top: 0;
@@ -226,7 +182,7 @@ $the-global-top-padding: 56px;
   grid-template-columns: 288px 288px 288px;
 }
 
-.bookmark-list-filter {
+.bookmark-list-sort {
   display: flex;
   align-items: center;
 
@@ -247,7 +203,7 @@ $the-global-top-padding: 56px;
     cursor: pointer;
   }
 
-  .bookmark-list-filter-context {
+  .bookmark-list-sort-context {
     top: 22px;
     right: 0;
 

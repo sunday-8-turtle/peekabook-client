@@ -1,175 +1,105 @@
 import { defineStore } from 'pinia';
+import {
+  getBookmarkSet,
+  modifyBookmark,
+  deleteBookmark,
+} from '@/api/bookmark-service/bookmark';
+import { Bookmark, BookmarkByTagName } from '@/types/bookmark.types';
 
-import { Bookmark, TagWithBookmark } from '@/types/bookmark.types';
-
-const bookmarkList: Bookmark[] = [];
-const tagWithBookmarkSet: TagWithBookmark = {};
+interface BookmarkState {
+  bookmarkSetByTagName: BookmarkByTagName | null;
+  selectedTagName: string;
+  selectedSort: '최신 순' | '가나다';
+  isLoading: boolean;
+}
 
 const useBookmarkStore = defineStore('bookmark', {
-  state: () => {
+  state: (): BookmarkState => {
     return {
-      isFetchingBookmark: false,
-      bookmarkList, // 오른쪽 태그별 리스트에서 사용하는 데이터
-      tagWithBookmarkSet, // 왼쪽 사이드바에서 태그별로 분류하기 위해 모아놓은 데이터
+      bookmarkSetByTagName: null,
+      selectedTagName: '전체',
+      selectedSort: '최신 순',
+      isLoading: false,
     };
   },
   getters: {
-    getBookmarkListByTagName(state) {
-      return (tagName: string) => {
-        return state.tagWithBookmarkSet[tagName].bookmarkList;
-      };
-    },
-    getBookmarkListByFilter(state) {
-      return (filterBy: '최신 순' | '가나다 순') => {
-        // const bookmarkList = this.getBookmarkListByTagName(tagName);
-        // console.log(bookmarkList, tagName);
+    getBookmarkSetByTagName(state) {
+      if (!state.bookmarkSetByTagName) return null;
 
-        switch (filterBy) {
-          case '최신 순':
-            return state.bookmarkList.sort((a, b) => {
-              return Number(b.bookmarkId) - Number(a.bookmarkId); // createdDate 값이ymd라서 비교 불가
-              // return (
-              //   new Date(b.createdDate).getTime() -
-              //   new Date(a.createdDate).getTime()
-              // );
-            });
-          case '가나다 순':
-            return state.bookmarkList.sort((a, b) => {
-              return a.title.localeCompare(b.title);
-            });
-        }
-      };
+      let result = null;
+      for (const [key, value] of Object.entries(state.bookmarkSetByTagName)) {
+        if (key === state.selectedTagName) result = value.bookmarkList;
+      }
+
+      return result;
+    },
+    getSortedBookmarkSet(state): Bookmark[] | null {
+      if (!this.getBookmarkSetByTagName) return null;
+
+      if (state.selectedSort === '최신 순') {
+        return [...this.getBookmarkSetByTagName].sort((a, b) => {
+          if (a.createdDate > b.createdDate) return -1;
+          else return 1;
+        });
+      } else if (state.selectedSort === '가나다') {
+        return [...this.getBookmarkSetByTagName].sort((a, b) => {
+          if (a.title < b.title) return -1;
+          else return 1;
+        });
+      } else {
+        return null;
+      }
     },
   },
   actions: {
-    toggleFetchingStatus() {
-      this.isFetchingBookmark = !this.isFetchingBookmark;
-    },
-    updateBookmarkList(bookmarkList: Bookmark[]) {
-      this.bookmarkList = bookmarkList;
-    },
-    updateTagWithBookmarkSet(tagWithBookmarkSet: TagWithBookmark) {
-      this.tagWithBookmarkSet = tagWithBookmarkSet;
-    },
-    addOneBookmarkToList(newBookmark: Bookmark) {
-      const isDuplicate = this.bookmarkList.some((bookmark) => {
-        return bookmark.bookmarkId === newBookmark.bookmarkId;
-      });
-      if (isDuplicate) return;
-      this.bookmarkList.unshift(newBookmark);
-    },
-    addOneBookmarkToTagWithBookmarkSet(bookmark: Bookmark) {
-      if (this.tagWithBookmarkSet['전체']) {
-        this.tagWithBookmarkSet['전체'].bookmarkList.unshift(bookmark);
-      } else {
-        this.tagWithBookmarkSet['전체'] = {
-          id: -1,
-          bookmarkList: [bookmark],
-        };
+    async fetchBookmarkSetByTagName() {
+      try {
+        this.isLoading = true;
+        const bookmarkSetByTagName = await getBookmarkSet();
+        this.isLoading = false;
+
+        this.bookmarkSetByTagName = bookmarkSetByTagName;
+        return this.bookmarkSetByTagName;
+      } catch (err) {
+        console.error(err);
       }
-
-      bookmark.tags.forEach((tag) => {
-        if (this.tagWithBookmarkSet[tag]) {
-          this.tagWithBookmarkSet[tag].bookmarkList.unshift(bookmark);
-        } else {
-          this.tagWithBookmarkSet[tag] = {
-            id: bookmark.title,
-            bookmarkList: [bookmark],
-          };
-        }
-      });
     },
-    removeOneFromBookmarkList(targetBookmarkId: number) {
-      this.bookmarkList = this.bookmarkList.filter((bookmark) => {
-        if (bookmark.bookmarkId !== targetBookmarkId) return bookmark;
-      });
-    },
-    removeOneFromTagWithBookmarkList(targetBookmark: Bookmark) {
-      // 1) 전체에서 지우고
-      this.tagWithBookmarkSet['전체'].bookmarkList = this.tagWithBookmarkSet[
-        '전체'
-      ].bookmarkList.filter((bookmark) => {
-        if (bookmark.bookmarkId !== targetBookmark.bookmarkId) return bookmark;
-      });
+    async createBookmark() {},
+    async modiftyBookmark(targetBookmark: Bookmark) {
+      if (!this.bookmarkSetByTagName) return;
 
-      // 2) 개별 태그에서 삭제
-      targetBookmark.tags.forEach((tag) => {
-        if (!this.tagWithBookmarkSet[tag]) return;
+      try {
+        this.isLoading = true;
+        await modifyBookmark(targetBookmark);
+        this.isLoading = false;
 
-        this.tagWithBookmarkSet[tag].bookmarkList = this.tagWithBookmarkSet[
-          tag
-        ].bookmarkList.filter((bookmark) => {
-          if (bookmark.bookmarkId !== targetBookmark.bookmarkId)
-            return bookmark;
-        });
-
-        // 3) 만약 해당 태그의 북마크가 0개라면 태그도 삭제
-        if (
-          tag !== '전체' &&
-          !this.tagWithBookmarkSet[tag].bookmarkList.length
-        ) {
-          delete this.tagWithBookmarkSet[tag];
-        }
-      });
-    },
-    updateOneBookmark(modifiedBookmark: Bookmark) {
-      // 1. 전체 북마크 리스트에 추가하고
-      this.bookmarkList = this.bookmarkList.map((bookmark) => {
-        if (bookmark.bookmarkId === modifiedBookmark.bookmarkId) {
-          return modifiedBookmark;
-        }
-        return bookmark;
-      });
-
-      // 현재 구조상 '전체' 태그 또한 따로 업데이트 필요 (Refactoring required)
-      this.tagWithBookmarkSet['전체'].bookmarkList = this.tagWithBookmarkSet[
-        '전체'
-      ].bookmarkList.map((bookmark) => {
-        if (bookmark.bookmarkId === modifiedBookmark.bookmarkId) {
-          return modifiedBookmark;
-        }
-        return bookmark;
-      });
-
-      // 2. 현재 북마크에 가지고 있는 모든 태그에 대해 업데이트
-      modifiedBookmark.tags.forEach((tag) => {
-        // 새롭게 추가된 태그의 경우, 태그 자체를 추가하고 북마크 리스트 초기화
-        if (!this.tagWithBookmarkSet[tag]) {
-          this.tagWithBookmarkSet[tag] = {
-            id: new Date().getTime(), // 북마크 수정 시 새로 생성된 태그의 id를 가져올 수 없음...
-            bookmarkList: [modifiedBookmark],
-          };
-        } else {
-          // 이미 있는 태그의 경우, 해당 태그의 북마크 리스트에서 수정된 것만 변경
-          this.tagWithBookmarkSet[tag].bookmarkList = this.tagWithBookmarkSet[
-            tag
-          ].bookmarkList.map((bookmark) => {
-            if (bookmark.bookmarkId === modifiedBookmark.bookmarkId) {
-              return modifiedBookmark;
+        for (const [key, value] of Object.entries(this.bookmarkSetByTagName)) {
+          value.bookmarkList = value.bookmarkList.map((bookmark) => {
+            if (bookmark.bookmarkId === targetBookmark.bookmarkId) {
+              return targetBookmark;
             }
             return bookmark;
           });
         }
-      });
-
-      // 3. 태그가 삭제된 경우
-      for (const tag in this.tagWithBookmarkSet) {
-        if (tag === '전체') continue;
-        if (modifiedBookmark.tags.includes(tag)) continue;
-
-        this.tagWithBookmarkSet[tag].bookmarkList = this.tagWithBookmarkSet[
-          tag
-        ].bookmarkList.filter((bookmark) => {
-          return bookmark.bookmarkId !== modifiedBookmark.bookmarkId;
-        });
+      } catch (err) {
+        console.error(err);
       }
+    },
+    async deleteBookmark(targetBookmark: Bookmark) {
+      if (!this.bookmarkSetByTagName) return;
 
-      // 북마크가 0개일 경우 태그 삭제
-      for (const tag in this.tagWithBookmarkSet) {
-        if (tag === '전체') continue;
-        if (!this.tagWithBookmarkSet[tag].bookmarkList.length) {
-          delete this.tagWithBookmarkSet[tag];
+      try {
+        this.isLoading = true;
+        await deleteBookmark(targetBookmark.bookmarkId);
+        this.isLoading = false;
+
+        for (const [key, value] of Object.entries(this.bookmarkSetByTagName)) {
+          value.bookmarkList = value.bookmarkList.filter((bookmark) => {
+            return bookmark.bookmarkId !== targetBookmark.bookmarkId;
+          });
         }
+      } catch (err) {
+        console.error(err);
       }
     },
   },

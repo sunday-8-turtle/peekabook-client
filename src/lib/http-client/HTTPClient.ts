@@ -5,19 +5,19 @@ export default interface HTTPClient {
   post(
     url: string,
     body: unknown,
-    config: Record<string, unknown>
+    config?: Record<string, unknown>
   ): Promise<unknown>;
   put(
     url: string,
     body: unknown,
-    config: Record<string, unknown>
+    config?: Record<string, unknown>
   ): Promise<unknown>;
   patch(
     url: string,
     body: unknown,
-    config: Record<string, unknown>
+    config?: Record<string, unknown>
   ): Promise<unknown>;
-  delete(url: string, config: Record<string, unknown>): Promise<unknown>;
+  delete(url: string, config?: Record<string, unknown>): Promise<unknown>;
 }
 
 export type Filter = (

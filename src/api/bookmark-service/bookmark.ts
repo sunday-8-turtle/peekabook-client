@@ -1,27 +1,5 @@
 import { createHttpClient } from '@/lib/http-client';
-
-// (todo) UI에서 사용하기 좋은 형식으로 재정의할 예정
-interface BookmarkResponse {
-  bookmarkId: number;
-  title: string;
-  url: string;
-  description: string;
-  tags: string[];
-  image?: string;
-  notidate?: string;
-  createdDate: string;
-}
-
-interface Bookmark {
-  bookmarkId: number;
-  title: string;
-  url: string;
-  description: string;
-  tags: string[];
-  image?: string;
-  notidate?: string;
-  createdDate: string;
-}
+import { Tag, Bookmark, BookmarkByTagName } from '@/types/bookmark.types';
 
 interface ErrorResponse {
   errorCode: string;
@@ -32,12 +10,37 @@ const instance = createHttpClient()
   .setBaseUrl(import.meta.env.VITE_API_BASE_URL)
   .build();
 
-const mapBookmark = (bookmarkResponse: any) => {
-  return bookmarkResponse;
+const mapTag = (tagList: Tag[]) => {
+  return tagList;
+};
+
+const mapBookmark = (bookmarkResponse: Bookmark[]) => {
+  const defaultTagName = '전체';
+  const result: BookmarkByTagName = {
+    [defaultTagName]: {
+      tagId: -1,
+      bookmarkList: [],
+    },
+  };
+
+  bookmarkResponse.forEach((bookmark) => {
+    result[defaultTagName].bookmarkList.push(bookmark);
+    bookmark.tags.forEach((tag) => {
+      if (tag in result) {
+        result[tag].bookmarkList.push(bookmark);
+      } else {
+        result[tag] = {
+          tagId: -1,
+          bookmarkList: [bookmark],
+        };
+      }
+    });
+  });
+
+  return result;
 };
 
 const dispatchError = (err: ErrorResponse) => {
-  // Error를 한 곳에 모아놓고 커스텀으로 정의하여 사용하면 좋을 것 같습니다.
   if (err.errorCode === 'AUTH_INVALID_TOKEN') {
     throw new Error('TOKEN_EXPIRED_ERROR');
   } else {
@@ -45,15 +48,35 @@ const dispatchError = (err: ErrorResponse) => {
   }
 };
 
-const getBookmarkList = (): Promise<Bookmark[]> => {
-  const params = {
-    page: 0,
-    size: 100,
-  };
+const getTagList = ({ page = 0, size = 100 } = {}): Promise<Tag[]> => {
+  const params = { page, size };
   return instance
-    .get(`/bookmark`, { params })
-    .then((res) => mapBookmark(res))
+    .get('/bookmark/tags', { params })
+    .then((res) => mapTag(res as Tag[]))
     .catch((error: ErrorResponse) => dispatchError(error));
 };
 
-export { getBookmarkList };
+const getBookmarkSet = ({
+  page = 0,
+  size = 100,
+} = {}): Promise<BookmarkByTagName> => {
+  const params = { page, size };
+  return instance
+    .get(`/bookmark`, { params })
+    .then((res) => mapBookmark(res as Bookmark[]))
+    .catch((error: ErrorResponse) => dispatchError(error));
+};
+
+const deleteBookmark = (bookmarkId: number): Promise<unknown> => {
+  return instance
+    .delete(`/bookmark/delete/${bookmarkId}`)
+    .catch((error: ErrorResponse) => dispatchError(error));
+};
+
+const modifyBookmark = (bookmark: Bookmark): Promise<unknown> => {
+  return instance
+    .put(`/bookmark/modify/${bookmark.bookmarkId}`, bookmark)
+    .catch((error: ErrorResponse) => dispatchError(error));
+};
+
+export { getBookmarkSet, deleteBookmark, modifyBookmark };

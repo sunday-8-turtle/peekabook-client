@@ -14,15 +14,11 @@ interface Bookmark {
   createdDate: string;
 }
 
-interface CreateBookmarkResponse {
-  bookmarkId: number;
-}
-
-interface TagWithBookmark {
+interface BookmarkByTagName {
   [tagName: string]: {
-    id: number | string;
+    tagId: number;
     bookmarkList: Bookmark[];
   };
 }
 
-export { Tag, Bookmark, TagWithBookmark, CreateBookmarkResponse };
+export { Tag, Bookmark, BookmarkByTagName };
