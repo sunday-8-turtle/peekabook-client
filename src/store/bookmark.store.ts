@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia';
 import {
   getBookmarkSet,
-  modifyBookmark,
-  deleteBookmark,
+  createBookmark as _createBookmark,
+  modifyBookmark as _modifyBookmark,
+  deleteBookmark as _deleteBookmark,
 } from '@/api/bookmark-service/bookmark';
 import { Bookmark, BookmarkByTagName } from '@/types/bookmark.types';
 
@@ -64,13 +65,22 @@ const useBookmarkStore = defineStore('bookmark', {
         console.error(err);
       }
     },
-    async createBookmark() {},
-    async modiftyBookmark(targetBookmark: Bookmark) {
+    async createBookmark(newBookmark: Bookmark) {
+      try {
+        this.isLoading = true;
+        await _createBookmark(newBookmark);
+        await this.fetchBookmarkSetByTagName();
+        this.isLoading = false;
+      } catch (err) {
+        console.error(err);
+      }
+    },
+    async modifyBookmark(targetBookmark: Bookmark) {
       if (!this.bookmarkSetByTagName) return;
 
       try {
         this.isLoading = true;
-        await modifyBookmark(targetBookmark);
+        await _modifyBookmark(targetBookmark);
         this.isLoading = false;
 
         for (const [key, value] of Object.entries(this.bookmarkSetByTagName)) {
@@ -90,7 +100,7 @@ const useBookmarkStore = defineStore('bookmark', {
 
       try {
         this.isLoading = true;
-        await deleteBookmark(targetBookmark.bookmarkId);
+        await _deleteBookmark(targetBookmark.bookmarkId);
         this.isLoading = false;
 
         for (const [key, value] of Object.entries(this.bookmarkSetByTagName)) {

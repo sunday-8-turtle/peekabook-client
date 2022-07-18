@@ -67,6 +67,12 @@ const getBookmarkSet = ({
     .catch((error: ErrorResponse) => dispatchError(error));
 };
 
+const createBookmark = (body: Bookmark): Promise<unknown> => {
+  return instance
+    .post(`/bookmark`, body)
+    .catch((error: ErrorResponse) => dispatchError(error));
+};
+
 const deleteBookmark = (bookmarkId: number): Promise<unknown> => {
   return instance
     .delete(`/bookmark/delete/${bookmarkId}`)
@@ -79,4 +85,4 @@ const modifyBookmark = (bookmark: Bookmark): Promise<unknown> => {
     .catch((error: ErrorResponse) => dispatchError(error));
 };
 
-export { getBookmarkSet, deleteBookmark, modifyBookmark };
+export { getBookmarkSet, createBookmark, deleteBookmark, modifyBookmark };

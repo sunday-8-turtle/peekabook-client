@@ -48,17 +48,17 @@ const updateSort = (newSelectedSort: typeof selectedSort.value) => {
   });
 };
 const createBookmark = async (
-  targetBookmark: Bookmark,
+  newBookmark: Bookmark,
   closeBookmarkModal: any
 ) => {
-  // await bookmarkStore.modiftyBookmark(targetBookmark);
+  await bookmarkStore.createBookmark(newBookmark);
   closeBookmarkModal();
 };
 const modifyBookmark = async (
   targetBookmark: Bookmark,
   closeBookmarkModal: any
 ) => {
-  await bookmarkStore.modiftyBookmark(targetBookmark);
+  await bookmarkStore.modifyBookmark(targetBookmark);
   closeBookmarkModal();
 };
 const deleteBookmark = async (
@@ -72,7 +72,7 @@ const deleteBookmark = async (
 
 <template>
   <div class="wrapper">
-    <TheSnb />
+    <TheSnb @create-bookmark="createBookmark" />
     <main>
       <BookmarkList
         :bookmark-list="getSortedBookmarkSet"

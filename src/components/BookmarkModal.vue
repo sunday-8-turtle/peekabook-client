@@ -173,8 +173,6 @@ const onSubmitForm = async () => {
   // 요청 전 알람 날짜 yy-mm-dd 포맷으로 변경
   formData.value.notidate = convertNotidate(selectedNotidate.value as Notidate);
 
-  console.log(props.selectedBookmark);
-  console.log(formData.value, selectedNotidate.value);
   emits('onConfirm', formData.value, () => {
     close();
   });

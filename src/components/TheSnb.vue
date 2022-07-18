@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, Ref, computed, onBeforeMount } from 'vue';
+import { ref, computed, onBeforeMount } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 import { getProfile } from '@/api/profile';
@@ -9,14 +9,16 @@ import BookmarkModal from './BookmarkModal.vue';
 
 import useBookmarkStore from '@/store/bookmark.store';
 
-import { Profile } from '@/types/profile.types';
-
-import useTag from '@/composables/useTag';
 import truncate from '@/directives/truncate';
 
-const user: Ref<Profile | undefined> = ref();
-const email = computed(() => user.value?.data?.email || '');
-const nickname = computed(() => user.value?.data?.nickname || '');
+import { Bookmark } from '@/types/bookmark.types';
+
+/**
+ * props & emits
+ */
+const emits = defineEmits<{
+  (e: 'createBookmark', formData: Bookmark, callback: () => void): void;
+}>();
 
 /**
  * custom directives
@@ -100,7 +102,7 @@ onBeforeMount(() => {
       >
         <template v-for="(value, key) of bookmarkSetByTagName" :key="key">
           <li
-            v-if="key !== '전체'"
+            v-if="key !== '전체' && value?.bookmarkList?.length"
             class="tag-item"
             :class="{ 'tag-item--selected': key === selectedTagName }"
             @click="handlerSelectTag(key as string)"
@@ -122,11 +124,13 @@ onBeforeMount(() => {
       <a href="#">확장 프로그램</a>
     </footer>
   </aside>
-
   <BookmarkModal
     ref="bookmarkModal"
-    actionType="modify"
+    actionType="create"
     :isLoading="isLoading"
+    @on-confirm="
+      (newBookmark, callback) => $emit('createBookmark', newBookmark, callback)
+    "
   />
 </template>
 
