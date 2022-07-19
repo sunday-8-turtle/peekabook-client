@@ -1,7 +1,8 @@
-<script lang="ts">
-import { ref, reactive, defineComponent } from 'vue';
+<script setup lang="ts">
+import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
 
+import BaseLottie from '@/components/BaseLottie.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import ModalConfirm from '@/components/ModalConfirm.vue';
@@ -18,146 +19,126 @@ import {
   deleteAccount,
 } from '@/api/profile';
 
-export default defineComponent({
-  name: 'ProfileView',
-  components: { BaseInput, BaseButton, ModalConfirm, Snackbar },
-  setup() {
-    const router = useRouter();
-    const goToMain = () => router.push('/');
+const router = useRouter();
+const goToMain = () => router.push('/');
 
-    const isSubmitting = ref(false);
+const isSubmitting = ref(false);
 
-    const modalConfirm = ref<InstanceType<typeof ModalConfirm>>();
-    const hasConfirmed = ref(false);
-    const confirmEmail = ref('');
-    const openModal = () => {
-      hasConfirmed.value = false;
-      modalConfirm.value?.open();
-    };
+const modalConfirm = ref<InstanceType<typeof ModalConfirm>>();
+const hasConfirmed = ref(false);
+const confirmEmail = ref('');
+const openModal = () => {
+  hasConfirmed.value = false;
+  modalConfirm.value?.open();
+};
 
-    const onConfirmDeleteACcount = async () => {
-      if (!hasConfirmed.value) {
-        hasConfirmed.value = true;
-        return;
-      } else {
-        isSubmitting.value = true;
-        await deleteAccount();
-        isSubmitting.value = false;
-        alert('계정이 삭제되었습니다.');
-        goToMain();
-      }
-    };
+const onConfirmDeleteACcount = async () => {
+  if (!hasConfirmed.value) {
+    hasConfirmed.value = true;
+    return;
+  } else {
+    isSubmitting.value = true;
+    await deleteAccount();
+    isSubmitting.value = false;
+    alert('계정이 삭제되었습니다.');
+    goToMain();
+  }
+};
 
-    const formData = reactive({
-      nickname: '',
-      password: '',
-      beforePassword: '',
-    });
-    const formDataErrors: { [index: string]: boolean } = reactive({
-      nickname: false,
-      password: false,
-      beforePassword: false,
-    });
-    const snackbarMessage = ref();
-    const MESSAEG_SET = {
-      NO_NICKNAME: '닉네임을 입력하세요.',
-      NO_NEW_PASSWORD: '변경 비밀번호를 입력해주세요.',
-      NO_BEFORE_PASSWORD: '현재 비밀번호를 입력해주세요.',
-      INVALID_NICKNAME: '닉네임은 최대 10자까지만 가능합니다.',
-      REQUEST_SUCCESS: '변경사항이 저장되었습니다.',
-      REQUEST_DUPLICATE: '이미 요청하였습니다. 잠시만 기다려주세요.',
-    };
-    const resetErrors = () => {
-      Object.keys(formDataErrors).forEach((key) => {
-        formDataErrors[key] = false;
-      });
-    };
-
-    const onSubmit = async () => {
-      snackbarMessage.value = '';
-      resetErrors();
-
-      if (isSubmitting.value) {
-        snackbarMessage.value = MESSAEG_SET.REQUEST_DUPLICATE;
-        return;
-      }
-
-      // (todo) 비활성화 상태 추가되면 필요 없어짐
-      if (!formData.nickname) {
-        snackbarMessage.value = MESSAEG_SET.NO_NICKNAME;
-        formDataErrors.nickname = true;
-        return;
-      }
-
-      if (formData.password && !formData.beforePassword) {
-        snackbarMessage.value = MESSAEG_SET.NO_BEFORE_PASSWORD;
-        formDataErrors.beforePassword = true;
-        return;
-      }
-      if (formData.beforePassword && !formData.password) {
-        snackbarMessage.value = MESSAEG_SET.NO_NEW_PASSWORD;
-        formDataErrors.password = true;
-        return;
-      }
-
-      if (formData.nickname.length > 10) {
-        snackbarMessage.value = MESSAEG_SET.INVALID_NICKNAME;
-        formDataErrors.nickname = true;
-        return;
-      }
-
-      const requests = [] as Promise<
-        ResetNicknameResponse | ResetPasswordResponse
-      >[];
-      requests.push(resetNickname(formData));
-      if (formData.password) requests.push(resetPassword(formData));
-
-      isSubmitting.value = true;
-      const responseList = await Promise.all(requests);
-      isSubmitting.value = false;
-
-      for (const response of responseList) {
-        if (response.result === 'FAIL') {
-          snackbarMessage.value = response.message;
-          return;
-        }
-      }
-
-      snackbarMessage.value = MESSAEG_SET.REQUEST_SUCCESS;
-    };
-
-    const profile = ref({
-      email: '',
-      nickname: '',
-    });
-    (async () => {
-      try {
-        const response = await getProfile();
-        profile.value = response.data;
-
-        formData.nickname = profile.value.nickname;
-      } catch (err) {
-        console.error(err);
-      }
-    })();
-
-    return {
-      modalConfirm,
-      openModal,
-      confirmEmail,
-      hasConfirmed,
-      onConfirmDeleteACcount,
-
-      snackbarMessage,
-      isSubmitting,
-      formData,
-      formDataErrors,
-      onSubmit,
-
-      profile,
-    };
-  },
+const formData = reactive({
+  nickname: '',
+  password: '',
+  beforePassword: '',
 });
+const formDataErrors: { [index: string]: boolean } = reactive({
+  nickname: false,
+  password: false,
+  beforePassword: false,
+});
+const snackbarMessage = ref();
+const MESSAEG_SET = {
+  NO_NICKNAME: '닉네임을 입력하세요.',
+  NO_NEW_PASSWORD: '변경 비밀번호를 입력해주세요.',
+  NO_BEFORE_PASSWORD: '현재 비밀번호를 입력해주세요.',
+  INVALID_NICKNAME: '닉네임은 최대 10자까지만 가능합니다.',
+  REQUEST_SUCCESS: '변경사항이 저장되었습니다.',
+  REQUEST_DUPLICATE: '이미 요청하였습니다. 잠시만 기다려주세요.',
+};
+const resetErrors = () => {
+  Object.keys(formDataErrors).forEach((key) => {
+    formDataErrors[key] = false;
+  });
+};
+
+const onSubmit = async () => {
+  snackbarMessage.value = '';
+  resetErrors();
+
+  if (isSubmitting.value) {
+    snackbarMessage.value = MESSAEG_SET.REQUEST_DUPLICATE;
+    return;
+  }
+
+  // (todo) 비활성화 상태 추가되면 필요 없어짐
+  if (!formData.nickname) {
+    snackbarMessage.value = MESSAEG_SET.NO_NICKNAME;
+    formDataErrors.nickname = true;
+    return;
+  }
+
+  if (formData.password && !formData.beforePassword) {
+    snackbarMessage.value = MESSAEG_SET.NO_BEFORE_PASSWORD;
+    formDataErrors.beforePassword = true;
+    return;
+  }
+  if (formData.beforePassword && !formData.password) {
+    snackbarMessage.value = MESSAEG_SET.NO_NEW_PASSWORD;
+    formDataErrors.password = true;
+    return;
+  }
+
+  if (formData.nickname.length > 10) {
+    snackbarMessage.value = MESSAEG_SET.INVALID_NICKNAME;
+    formDataErrors.nickname = true;
+    return;
+  }
+
+  const requests = [] as Promise<
+    ResetNicknameResponse | ResetPasswordResponse
+  >[];
+  requests.push(resetNickname(formData));
+  if (formData.password) requests.push(resetPassword(formData));
+
+  isSubmitting.value = true;
+  const responseList = await Promise.all(requests);
+  isSubmitting.value = false;
+
+  for (const response of responseList) {
+    if (response.result === 'FAIL') {
+      snackbarMessage.value = response.message;
+      return;
+    }
+  }
+
+  snackbarMessage.value = MESSAEG_SET.REQUEST_SUCCESS;
+};
+
+const isFetchingProfile = ref(true);
+const profile = ref({
+  email: '',
+  nickname: '',
+});
+(async () => {
+  try {
+    const response = await getProfile();
+    profile.value = response.data;
+    isFetchingProfile.value = false;
+
+    formData.nickname = profile.value.nickname;
+  } catch (err) {
+    console.error(err);
+  }
+})();
 </script>
 
 <template>
@@ -223,6 +204,13 @@ export default defineComponent({
       </footer>
     </div>
   </div>
+  <BaseLottie
+    v-if="isFetchingProfile"
+    class="empty-message"
+    name="loading-btn"
+    width="32px"
+    height="32px"
+  />
   <Snackbar :message="snackbarMessage" />
   <ModalConfirm
     ref="modalConfirm"
@@ -264,12 +252,6 @@ export default defineComponent({
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  // position: fixed;
-  // padding: 56px;
-  // top: 50%;
-  // left: 50%;
-  // transform: translate(-50%, -50%);
-
   background: #ffffff;
   border: 1px solid #e9ecef;
   border-radius: 12px;
@@ -375,5 +357,12 @@ footer {
       color: #343a40;
     }
   }
+}
+
+.empty-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 </style>

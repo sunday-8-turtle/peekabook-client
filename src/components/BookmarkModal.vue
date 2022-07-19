@@ -1,240 +1,205 @@
-<script lang="ts">
-import { defineComponent, ref, computed, PropType, toRefs, watch } from 'vue';
+<script setup lang="ts">
+import { ref, computed, toRefs, watch } from 'vue';
 
 import BaseModal from '@/components/BaseModal.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import BaseInput from '@/components/BaseInput.vue';
 
 import { useOnClickOutside } from '@/composables';
-import useBookmarkStore from '@/store/bookmark.store';
-
-import { createBookmark, modifyBookmark } from '@/api/bookmark';
-
 import truncate from '@/directives/truncate';
 
 import { Bookmark } from '@/types/bookmark.types';
 
 type Notidate = '끄기' | '7일' | '14일' | '30일';
 
-export default defineComponent({
-  name: 'BookmarkModal',
-  components: { BaseModal, BaseButton, BaseInput },
-  emits: ['test'],
-  props: {
-    selectedBookmark: {
-      type: Object as PropType<Bookmark>,
-    },
-    actionType: {
-      type: String as PropType<'create' | 'modify'>,
-      default: 'create',
-    },
-  },
-  setup(props, ctx) {
-    const baseModal = ref<InstanceType<typeof BaseModal>>();
-    const open = () => baseModal.value?.open();
-    const close = () => baseModal.value?.close();
-    const onCloseModal = () => {
-      ctx.emit('test');
-    };
+/**
+ * props & emits
+ */
+const props = defineProps<{
+  isLoading: boolean;
+  actionType: 'create' | 'modify';
+  selectedBookmark?: Bookmark;
+}>();
+const { selectedBookmark } = toRefs(props);
 
-    // Notification 설정
-    const notidateList = ref<Notidate[]>(['끄기', '7일', '14일', '30일']);
-    const selectedNotidate = ref('');
-    const selectNotidate = (notidate: Notidate) => {
-      selectedNotidate.value = notidate;
-      toggleNotificationList();
-    };
-    const convertNotidate = (notidate: Notidate) => {
-      switch (notidate) {
-        case '7일': {
-          return getRemindDate(7);
-        }
-        case '14일': {
-          return getRemindDate(14);
-        }
-        case '30일': {
-          return getRemindDate(30);
-        }
-        default: {
-          return '';
-        }
+const emits = defineEmits<{
+  (e: 'onConfirm', formData: Bookmark, callback: () => void): void;
+}>();
+
+/**
+ * notifications
+ */
+const notidateList = ref<Notidate[]>(['끄기', '7일', '14일', '30일']);
+const selectedNotidate = ref(selectedBookmark?.value?.notidate || '');
+const selectNotidate = (notidate: Notidate) => {
+  selectedNotidate.value = notidate;
+  toggleNotificationList();
+};
+const convertNotidate = (notidate: Notidate) => {
+  switch (notidate) {
+    case '7일': {
+      return getRemindDate(7);
+    }
+    case '14일': {
+      return getRemindDate(14);
+    }
+    case '30일': {
+      return getRemindDate(30);
+    }
+    default: {
+      return '';
+    }
+  }
+
+  function getRemindDate(day: number) {
+    const today = new Date();
+    today.setDate(today.getDate() + day);
+    return getFormattedDate(cloneDate(today));
+  }
+
+  function cloneDate(date: Date) {
+    return new Date(date.valueOf());
+  }
+
+  function getFormattedDate(date: Date) {
+    let year = date.getFullYear();
+
+    let month = `${date.getMonth() + 1}`;
+    if (parseInt(month) < 10) month = '0' + month.toString();
+
+    let day = `${date.getDate()}`;
+    if (parseInt(day) < 10) day = '0' + day.toString();
+
+    return `${year}-${month}-${day}`;
+  }
+};
+
+const notificationListContainer = ref();
+const isNotificationListShown = ref(false);
+const toggleNotificationList = () =>
+  (isNotificationListShown.value = !isNotificationListShown.value);
+useOnClickOutside(notificationListContainer, () => {
+  isNotificationListShown.value = false;
+});
+
+/**
+ * Form 제출 및 유효성 검사
+ */
+const bookmarkForm = ref();
+const formData = ref<Bookmark>(
+  selectedBookmark?.value || {
+    bookmarkId: -1,
+    title: '',
+    url: '',
+    description: '',
+    notidate: '',
+    createdDate: '',
+    tags: [],
+  }
+);
+const isReadyToSubmit = computed(() => {
+  if (formData.value?.title && formData.value.url) return true;
+  return false;
+});
+const resetFormData = () => {
+  formData.value = {
+    bookmarkId: -1,
+    title: '',
+    url: '',
+    description: '',
+    notidate: '',
+    createdDate: '',
+    tags: [],
+  };
+};
+
+// 수정하는 경우 초기 formData 설정
+watch(
+  () => props.selectedBookmark,
+  () => {
+    if (props.selectedBookmark && formData.value) {
+      const selectedBookmark = toRefs(props.selectedBookmark);
+      if (selectedBookmark.bookmarkId) {
+        formData.value.bookmarkId = selectedBookmark.bookmarkId?.value;
       }
+      formData.value.title = selectedBookmark.title.value;
+      formData.value.url = selectedBookmark.url.value;
+      formData.value.description = selectedBookmark.description.value;
+      formData.value.image = selectedBookmark.image?.value;
+      formData.value.tags = selectedBookmark.tags?.value;
+      formData.value.createdDate = selectedBookmark.createdDate?.value;
+      formData.value.notidate = selectedBookmark.notidate?.value;
+    }
+  }
+);
 
-      function getRemindDate(day: number) {
-        const today = new Date();
-        today.setDate(today.getDate() + day);
-        return getFormattedDate(cloneDate(today));
-      }
+/**
+ * tags
+ */
+const addTag = (e: Event) => {
+  // 한글 이슈 처리
+  const keyboardEvent = e as KeyboardEvent;
+  if (keyboardEvent.key === 'Enter' && keyboardEvent.isComposing) return;
 
-      function cloneDate(date: Date) {
-        return new Date(date.valueOf());
-      }
+  const tagName = (e.target as HTMLInputElement).value.trim();
+  if (!tagName) return;
+  if (isTagDuplicate(tagName)) return;
 
-      function getFormattedDate(date: Date) {
-        let year = date.getFullYear();
+  formData.value?.tags.push(tagName);
+  (e.target as HTMLInputElement).value = '';
+};
+const removeTag = (tagNameToDelete: string) => {
+  if (!formData.value) return;
 
-        let month = `${date.getMonth() + 1}`;
-        if (parseInt(month) < 10) month = '0' + month.toString();
+  formData.value.tags = formData.value?.tags.filter((tagName) => {
+    return tagNameToDelete !== tagName;
+  });
+};
+const isTagDuplicate = (tagName: string) => {
+  if (!formData.value) return;
 
-        let day = `${date.getDate()}`;
-        if (parseInt(day) < 10) day = '0' + day.toString();
+  for (const tag of formData.value.tags) {
+    if (tag === tagName) return true;
+  }
+  return false;
+};
 
-        return `${year}-${month}-${day}`;
-      }
-    };
+/**
+ * actions (북마크 생성 및 수정)
+ */
+const onSubmitForm = async () => {
+  if (!formData.value) return;
 
-    const notificationListContainer = ref();
-    const isNotificationListShown = ref(false);
-    const toggleNotificationList = () =>
-      (isNotificationListShown.value = !isNotificationListShown.value);
-    useOnClickOutside(notificationListContainer, () => {
-      isNotificationListShown.value = false;
-    });
+  // 요청 전 알람 날짜 yy-mm-dd 포맷으로 변경
+  formData.value.notidate = convertNotidate(selectedNotidate.value as Notidate);
 
-    // Form 제출 및 유효성 검사
-    const bookmarkForm = ref();
-    const formData = ref<Bookmark>({
-      bookmarkId: -1,
-      title: '',
-      url: '',
-      description: '',
-      notidate: '',
-      createdDate: '',
-      tags: [],
-    });
-    const resetFormData = () => {
-      formData.value = {
-        bookmarkId: -1,
-        title: '',
-        url: '',
-        description: '',
-        notidate: '',
-        createdDate: '',
-        tags: [],
-      };
-    };
+  emits('onConfirm', formData.value, () => {
+    close();
+  });
+};
 
-    // 수정하는 경우 초기 formData 설정
-    watch(
-      () => props.selectedBookmark,
-      () => {
-        if (props.selectedBookmark) {
-          const selectedBookmark = toRefs(props.selectedBookmark);
-          if (selectedBookmark.bookmarkId) {
-            formData.value.bookmarkId = selectedBookmark.bookmarkId?.value;
-          }
-          formData.value.title = selectedBookmark.title.value;
-          formData.value.url = selectedBookmark.url.value;
-          formData.value.description = selectedBookmark.description.value;
-          formData.value.image = selectedBookmark.image?.value;
-          formData.value.tags = selectedBookmark.tags?.value;
-          formData.value.notidate = selectedBookmark.notidate?.value;
-        }
-      }
-    );
+/**
+ * directives
+ */
+const vTruncate = {
+  truncate,
+};
 
-    // 태그 관련 핸들러
-    const addTag = (e: Event) => {
-      // 한글 이슈 핸들링
-      const keyboardEvent = e as KeyboardEvent;
-      if (keyboardEvent.key === 'Enter' && keyboardEvent.isComposing) return;
+/**
+ * exposes
+ */
+const baseModal = ref<InstanceType<typeof BaseModal>>();
+const open = () => baseModal.value?.open();
+const close = () => baseModal.value?.close();
 
-      const tagName = (e.target as HTMLInputElement).value.trim();
-      if (!tagName) return;
-      if (isTagDuplicate(tagName)) return;
-
-      formData.value.tags.push(tagName);
-      (e.target as HTMLInputElement).value = '';
-    };
-    const removeTag = (tagNameToDelete: string) => {
-      formData.value.tags = formData.value.tags.filter((tagName) => {
-        return tagNameToDelete !== tagName;
-      });
-    };
-    const isTagDuplicate = (tagName: string) => {
-      for (const tag of formData.value.tags) {
-        if (tag === tagName) return true;
-      }
-      return false;
-    };
-    const isReadyToSubmit = computed(() => {
-      if (formData.value.title && formData.value.url) return true;
-      return false;
-    });
-
-    // 네트워크 요청 (북마크 생성 및 수정)
-    const bookmarkStore = useBookmarkStore();
-    const isLoading = ref(false);
-    const onSubmitForm = async () => {
-      isLoading.value = true;
-
-      // 요청 전 알람 날짜 yy-mm-dd 포맷으로 변경
-      formData.value.notidate = convertNotidate(
-        selectedNotidate.value as Notidate
-      );
-
-      if (props.actionType === 'create') await _createBookmark();
-      if (props.actionType === 'modify') await _modifyBookmark();
-
-      isLoading.value = false;
-      resetFormData();
-      close();
-    };
-    const _createBookmark = async () => {
-      const res = await createBookmark(formData.value);
-      const createdDate = res.timestamp;
-      // 생성일 & 북마크 id는 응답 데이터를 기반으로 store에 저장
-      formData.value.createdDate = createdDate;
-      formData.value.bookmarkId = res.data?.bookmarkId as number;
-      bookmarkStore.addOneBookmarkToTagWithBookmarkSet(formData.value);
-    };
-    const _modifyBookmark = async () => {
-      const res = await modifyBookmark(
-        formData.value.bookmarkId as number,
-        formData.value
-      );
-      const createdDate = res.timestamp;
-      formData.value.createdDate = createdDate;
-      bookmarkStore.updateOneBookmark(formData.value);
-    };
-
-    return {
-      baseModal,
-      open,
-      close,
-      onCloseModal,
-
-      notidateList,
-      selectNotidate,
-      selectedNotidate,
-
-      notificationListContainer,
-      isNotificationListShown,
-      toggleNotificationList,
-
-      formData,
-      bookmarkForm,
-      addTag,
-      removeTag,
-      isReadyToSubmit,
-
-      isLoading,
-      onSubmitForm,
-    };
-  },
-  directives: {
-    truncate,
-  },
+defineExpose({
+  open,
+  close,
 });
 </script>
 
 <template>
-  <BaseModal
-    ref="baseModal"
-    id="bookmark-modal"
-    type="confirm"
-    @close-modal="onCloseModal"
-  >
+  <BaseModal ref="baseModal" id="bookmark-modal" type="confirm">
     <header>
       <div class="bookmark-modal-logo">
         <img src="@/assets/peekabook-logo-title.svg" alt="피카북 로고" />
@@ -274,7 +239,7 @@ export default defineComponent({
         class="bookmark-modal-title"
         placeholder="제목"
       />
-      <form @submit.prevent.stop="onSubmitForm" ref="bookmarkForm">
+      <form @submit.prevent="onSubmitForm" ref="bookmarkForm">
         <div class="bookmark-url-container">
           <BaseInput v-model="formData.url" placeholder="URL" />
         </div>
@@ -298,7 +263,9 @@ export default defineComponent({
           </ul>
         </div>
         <footer class="modal-confirm-footer">
-          <BaseButton class="cancel-btn" @click="close">취소</BaseButton>
+          <BaseButton class="cancel-btn" @click.prevent="close"
+            >취소</BaseButton
+          >
           <BaseButton
             :isLoading="isLoading"
             :disabled="!isReadyToSubmit"
@@ -428,6 +395,7 @@ export default defineComponent({
 
 main {
   .bookmark-modal-title {
+    width: 100%;
     font-weight: 600;
     font-size: 17px;
     line-height: 26px;
